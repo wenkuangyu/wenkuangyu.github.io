@@ -8,7 +8,7 @@
       <p><b>地址：武汉市洪山区珞喻路1037号，邮编：430074</b></p>
     </td>
     <td width="25%">
-      <img src="/wen_photo.JPG" width="100%">      % 插入证件照代码
+      <img src="/wen_photo.JPG" width="100%">      
     </td>
   </tr>
 </table>
