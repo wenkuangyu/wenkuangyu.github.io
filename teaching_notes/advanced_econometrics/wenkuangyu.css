@@ -1,0 +1,33 @@
+@font-face {
+  font-family: 'Yanone Kaffeesatz';
+  font-style: normal;
+  font-weight: 400;
+  src: url('./fonts/YanoneKaffeesatz.ttf');
+}
+@font-face {
+  font-family: 'Droid Serif';
+  font-style: normal;
+  font-weight: 400;
+  src: url('./fonts/DroidSerif-Regular.ttf');
+}
+@font-face {
+  font-family: 'Source Code Pro';
+  font-style: normal;
+  font-weight: 400;
+  src: url('./fonts/SourceCodePro.ttf');
+}
+@font-face {
+  font-family: 'Noto Serif';
+  font-style: normal;
+  font-weight: 400;
+  src: url('./fonts/NotoSerifSC-Regular.otf');
+}
+
+body { font-family: 'Yanone Kaffeesatz','Droid Serif','Noto Serif', 'Palatino Linotype', 'Book Antiqua', Palatino,'Songti SC', serif; }
+h1, h2, h3 {
+  font-family: 'Yanone Kaffeesatz','Noto Serif', 'Palatino Linotype', 'Book Antiqua', Palatino, 'STHeiti', 'SimHei', 'Microsoft YaHei';
+  font-weight: normal;
+}
+.remark-code, .remark-inline-code { font-family: 'Source Code Pro', 'Lucida Console', Monaco, monospace; }
+
+
