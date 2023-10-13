@@ -29,9 +29,6 @@
        h6 {font-size: 12px;}
        code {color: inherit; background-color: rgba(0, 0, 0, 0.04);}
        pre:not([class]) { background-color: white }</style>
-<script src="site_libs/jqueryui-1.11.4/jquery-ui.min.js"></script>
-<link href="site_libs/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
-<script src="site_libs/tocify-1.9.1/jquery.tocify.js"></script>
 <script src="site_libs/navigation-1.1/tabsets.js"></script>
 <link href="site_libs/highlightjs-9.12.0/textmate.css" rel="stylesheet" />
 <script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
@@ -222,69 +219,6 @@ $(document).ready(function () {
 
 
 
-<style type="text/css">
-
-#TOC {
-  margin: 25px 0px 20px 0px;
-}
-@media (max-width: 768px) {
-#TOC {
-  position: relative;
-  width: 100%;
-}
-}
-
-@media print {
-.toc-content {
-  /* see https://github.com/w3c/csswg-drafts/issues/4434 */
-  float: right;
-}
-}
-
-.toc-content {
-  padding-left: 30px;
-  padding-right: 40px;
-}
-
-div.main-container {
-  max-width: 1200px;
-}
-
-div.tocify {
-  width: 20%;
-  max-width: 260px;
-  max-height: 85%;
-}
-
-@media (min-width: 768px) and (max-width: 991px) {
-  div.tocify {
-    width: 25%;
-  }
-}
-
-@media (max-width: 767px) {
-  div.tocify {
-    width: 100%;
-    max-width: none;
-  }
-}
-
-.tocify ul, .tocify li {
-  line-height: 20px;
-}
-
-.tocify-subheader .tocify-item {
-  font-size: 0.90em;
-}
-
-.tocify .list-group-item {
-  border-radius: 0px;
-}
-
-
-</style>
-
-
 
 </head>
 
@@ -292,16 +226,6 @@ div.tocify {
 
 
 <div class="container-fluid main-container">
-
-
-<!-- setup 3col/9col grid for toc_float and main content  -->
-<div class="row">
-<div class="col-xs-12 col-sm-4 col-md-3">
-<div id="TOC" class="tocify">
-</div>
-</div>
-
-<div class="toc-content col-xs-12 col-sm-8 col-md-9">
 
 
 
@@ -328,7 +252,7 @@ div.tocify {
   <a href="./notes.html">课堂笔记</a>
 </li>
 <li>
-  <a href="./index_english.html">ENGLISH</a>
+  <a href="./english.html">ENGLISH</a>
 </li>
       </ul>
     </div><!--/.nav-collapse -->
@@ -344,76 +268,105 @@ div.tocify {
 </div>
 
 
-<p>以下笔记来自于课堂教学中学生的期末汇报，可能存在错误，仅作课堂展示使用。</p>
-<div id="r语言" class="section level2">
-<h2>R语言</h2>
+<hr />
+<p><img src="images/wenkuangyu.jpeg" style="width:15%; margin-right: 20px" align="left"/></p>
+<p><br /> Welcome to my personal website! I am an associate professor in
+School of Economics, Huazhong University of Science and Technology. My
+research field is econometrics. </font></p>
+<div id="contact-information" class="section level4">
+<h4><strong>Contact Information</strong></h4>
+<p>1037 Luoyu Road, Wuhan, China 430074 </font></p>
+<p>E-mail address: <a
+href="mailto:kweneco@gmail.com">kweneco[at]gmail[dot]com</a></font></p>
+<hr />
+</div>
+<div id="working-experience" class="section level2">
+<h2>Working Experience</h2>
 <ul>
-<li><a
-href="./notes/about_r/rmarkdown.html">使用Rmarkdown写作文档</a></li>
-<li><a href="./notes/about_r/rbase_plot.html">使用R作图</a></li>
-<li><a
-href="./notes/about_r/ggplot2.html">使用ggplot2包作图及其拓展</a></li>
-<li><a
-href="./notes/about_r/tidyverse.html">使用tidyverse包处理数据</a></li>
-<li><a
-href="./notes/about_r/data_table.html">使用data.table包处理数据</a></li>
-<li><a href="./notes/about_r/r_parallel.html">R中的并行计算</a></li>
-<li><a href="./notes/about_r/rcpp.html">Rcpp及相关包</a></li>
-<li><a href="./notes/about_r/rshiny.html">使用Rshiny进行展示</a></li>
+<li>Associate Professor, School of Economics, Huazhong University of
+Science and Technology, 2018-present</li>
+<li>Assistant Professor, International School of Economics and
+Management, Capital University of Economics and Business, 2015-2018</li>
 </ul>
 </div>
-<div id="因果推断causal-inference" class="section level2">
-<h2>因果推断（causal inference）</h2>
+<div id="education" class="section level2">
+<h2>Education</h2>
 <ul>
-<li><a
-href="./notes/causal_inference/experiment.pdf">实验（experiment）</a></li>
-<li><a
-href="./notes/causal_inference/potential_outcome.pdf">潜在因果框架（potential
-outcome）</a></li>
-<li><a
-href="./notes/causal_inference/matching.pdf">匹配（matching）</a></li>
-<li><a
-href="./notes/causal_inference/propensity_score.pdf">倾向得分（propensity
-score）</a></li>
-<li><a
-href="./notes/causal_inference/difference_in_difference.pdf">双重查分（difference
-in difference）</a></li>
-<li><a
-href="./notes/causal_inference/regression_discontinuity.pdf">断点回归（regression
-discontinuity）</a></li>
-<li><a
-href="./notes/causal_inference/instrumental_variable.pdf">工具变量（instrumental
-variable）</a></li>
-<li><a
-href="./notes/causal_inference/synthetic_control.pdf">合成控制法（synthetic
-control）</a></li>
+<li>Ph.D. in Agricultural Economics, Texas A&amp;M University, 2015</li>
+<li>B.A. in Financial Management, Renmin University of China, 2009</li>
 </ul>
 </div>
-<div id="非参数方法nonparametric-methods" class="section level2">
-<h2>非参数方法（nonparametric methods）</h2>
+<div id="publications" class="section level2">
+<h2>Publications</h2>
 <ul>
-<li><a
-href="./notes/nonparametric_methods/kernel_density_estimation.html">核密度估计（kernel
-density estimation）</a></li>
-<li><a
-href="./notes/nonparametric_methods/local_polynomial_regression.html">局部多项式回归（local
-polynomial regression）</a></li>
-<li><a
-href="./notes/nonparametric_methods/penalized_linear_regression.html">带惩罚项的线性回归（penalized
-linear regression）</a></li>
-<li><a
-href="./notes/nonparametric_methods/splines.html">样条函数方法（spline
-methods）</a></li>
-<li><a
-href="./notes/nonparametric_methods/logspline_density_estimation.html">对数样条密度函数估计（logspline
-density estimation）</a></li>
+<li>K. Wen. (2023). “A semiparametric spatio-temporal model of crop
+yield trend and its implication to insurance rating”.
+<strong><em>Agricultural Economics</em></strong>. 54(5), 662-673.</li>
+<li>K. Wen, W. Wu and X. Wu. (2023). “Electricity Demand Forecasting and
+Risk Management Using Gaussian Process Model with Error Propagation”.
+<strong><em>Journal of Forecasting</em></strong>. 42(4), 957-969.</li>
+<li>S. Wang, Y. Li and K. Wen. (2021). “Recursive adjusted unit root
+tests under non-stationary volatility”. <strong><em>Economics
+Letters</em></strong>. 109941.</li>
+<li>K. Wen, X. Wu and D. Leatham. (2021). “Spatially smoothed kernel
+densities with application to crop yield distributions”.
+<strong><em>Journal of Agricultural, Biological and Environmental
+Statistics</em></strong>. 26: 349–366.</li>
+<li>K. Wen and X. Wu. (2020). “Generalized empirical likelihood based
+kernel estimation of spatially similar densities”. In M. Chen, J.M.
+Dunn, A. Golan, and A. Ullah, editors, <strong><em>Advances in
+Info-Metrics</em></strong>. Oxford University Press.</li>
+<li>S. Wang, A. Li, K. Wen and X. Wu. (2020). “Robust kernels for kernel
+density estimation”. <strong><em>Economics Letters</em></strong>,
+191:1-5.</li>
+<li>K. Wen and X. Wu. (2020). “Transformation-kernel estimators of
+copula densities”. <strong><em>Journal of Business &amp; Economic
+Statistics</em></strong>, 38(1), 148-164.</li>
+<li>K. Wen and X. Wu. (2019). “A guided nonparametric goodness-of-fit
+test with application to income distributions”. <strong><em>Econometrics
+Journal</em></strong>, 22(3):207-222.</li>
+<li>K. Wen and X. Wu. (2017). “Smoothed kernel conditional density
+estimation”. <strong><em>Economics Letters</em></strong>,
+152:112-116.</li>
+<li>K. Wen and X. Wu. (2015). “An improved transformation-based kernel
+estimator of densities on the unit interval”. <strong><em>Journal of the
+American Statistical Association</em></strong>, 110:773-783.</li>
+</ul>
+</div>
+<div id="refereeing-activities" class="section level2">
+<h2>Refereeing Activities</h2>
+<p>Journal of Econometrics, Journal of Computational and Graphical
+Statistics, Empirical Economics, Statistica Sinica, Scandinavian Journal
+of Statistics, IEEE Transactions on Information Theory, Computational
+Economics, Computational Intelligence and Neuroscience, PLOS ONE,
+Agribusiness</p>
+</div>
+<div id="grants" class="section level2">
+<h2>Grants</h2>
+<ul>
+<li>National Natural Science Foundation of China (71703108), PI,
+2017.</li>
+<li>Hubei Provincial Natural Science Foundation of China (2023AFB1113),
+PI, 2023.</li>
+</ul>
+</div>
+<div id="teaching-experience" class="section level2">
+<h2>Teaching Experience</h2>
+<ul>
+<li>Advanced econometrics (master level), 2018-;</li>
+<li>Advanced econometrics (undergraduate level), 2023-;</li>
+<li>Frontiers in econometrics (doctorate level), 2021-;</li>
+<li>Econometrics (for dual-degree undergraduate students), 2022-;</li>
+<li>Linear Algebra (summer school), 2020-2021;</li>
+<li>Financial modeling and computation (master level), 2019-2022;</li>
+<li>Econometrics (for foreign students), 2018-2021;</li>
+<li>Corporate finance (master level), 2016-2017;</li>
+<li>Corporate finance (undergraduate level), 2016.</li>
 </ul>
 </div>
 
 
 
-</div>
-</div>
 
 </div>
 
@@ -446,35 +399,6 @@ $(document).ready(function () {
 
 <!-- code folding -->
 
-<script>
-$(document).ready(function ()  {
-
-    // temporarily add toc-ignore selector to headers for the consistency with Pandoc
-    $('.unlisted.unnumbered').addClass('toc-ignore')
-
-    // move toc-ignore selectors from section div to header
-    $('div.section.toc-ignore')
-        .removeClass('toc-ignore')
-        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
-
-    // establish options
-    var options = {
-      selectors: "h1,h2",
-      theme: "bootstrap3",
-      context: '.toc-content',
-      hashGenerator: function (text) {
-        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_');
-      },
-      ignoreSelector: ".toc-ignore",
-      scrollTo: 0
-    };
-    options.showAndHide = true;
-    options.smoothScroll = true;
-
-    // tocify
-    var toc = $("#TOC").tocify(options).data("toc-tocify");
-});
-</script>
 
 <!-- dynamically load mathjax for compatibility with self-contained -->
 <script>
