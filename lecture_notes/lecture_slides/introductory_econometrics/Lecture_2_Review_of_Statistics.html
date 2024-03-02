@@ -1,0 +1,1749 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+  <head>
+    <title>第二讲: 统计学复习</title>
+    <meta charset="utf-8" />
+    <meta name="author" content="文旷宇" />
+    <script src="libs/header-attrs-2.18/header-attrs.js"></script>
+    <link href="libs/xaringanExtra-banner-0.0.1/banner.css" rel="stylesheet" />
+    <script src="libs/xaringanExtra-banner-0.0.1/banner.js"></script>
+    <script src="libs/fabric-4.3.1/fabric.min.js"></script>
+    <link href="libs/xaringanExtra-scribble-0.0.1/scribble.css" rel="stylesheet" />
+    <script src="libs/xaringanExtra-scribble-0.0.1/scribble.js"></script>
+    <script>document.addEventListener('DOMContentLoaded', function() { window.xeScribble = new Scribble({"pen_color":["#FF0000"],"pen_size":3,"eraser_size":30,"palette":[]}) })</script>
+    <link href="libs/panelset-0.2.6/panelset.css" rel="stylesheet" />
+    <script src="libs/panelset-0.2.6/panelset.js"></script>
+    <script src="libs/xaringanExtra_fit-screen-0.2.6/fit-screen.js"></script>
+    <link rel="stylesheet" href="xaringan-themer.css" type="text/css" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+.title[
+# 第二讲: 统计学复习
+]
+.author[
+### 文旷宇
+]
+.institute[
+### 华中科技大学
+]
+
+---
+
+&lt;style type="text/css"&gt;
+pre{
+  max-height:400px;
+  overflow-y:auto;
+}
+&lt;/style&gt;
+
+<div>
+<style type="text/css">.xaringan-extra-logo {
+width: 55px;
+height: 64px;
+z-index: 0;
+background-image: url(../images/hust-logo.png);
+background-size: contain;
+background-repeat: no-repeat;
+position: absolute;
+top:1em;right:1em;
+}
+</style>
+<script>(function () {
+  let tries = 0
+  function addLogo () {
+    if (typeof slideshow === 'undefined') {
+      tries += 1
+      if (tries < 10) {
+        setTimeout(addLogo, 100)
+      }
+    } else {
+      document.querySelectorAll('.remark-slide-content:not(.title-slide):not(.inverse):not(.hide_logo)')
+        .forEach(function (slide) {
+          const logo = document.createElement('div')
+          logo.classList = 'xaringan-extra-logo'
+          logo.href = null
+          slide.appendChild(logo)
+        })
+    }
+  }
+  document.addEventListener('DOMContentLoaded', addLogo)
+})()</script>
+</div><script>document.addEventListener('DOMContentLoaded',function(){new xeBanner(JSON.parse('{"left":"","right":"","exclude":["title-slide"],"position":"top"}'))})</script>
+<script>document.addEventListener('DOMContentLoaded',function(){new xeBanner(JSON.parse('{"left":"文旷宇/华中科技大学","exclude":["title-slide"],"position":"bottom"}'))})</script>
+
+
+
+
+
+
+
+### 主要内容
+- 简单随机抽样
+
+- 样本均值的抽样分布
+
+- 大样本下样本均值的近似分布
+  - 大数定律
+  
+  - 中心极限定理
+  
+- 总体均值的估计
+
+  - 无偏性
+  
+  - 一致性
+  
+  - 有效性
+  
+- 关于总体均值的假设检验
+
+- 总体均值的置信区间
+
+---
+
+### 简单随机抽样
+- 每个对象是从总体中随机抽取的，且总体中每个成员都有同等机会入选样本
+
+- 独立同分布(i.i.d)：    
+  - 同分布：由于 `\(Y_1,Y_2,···,Y_n\)` 是从相同总体中随机抽取的，因此对所有的 `\(i=1,2,···,n,Y_i\)` 的边缘分布相同(即为被抽样总体 `\(Y\)` 的分布)
+  
+  - 独立：在简单随机抽样下，知道 `\(Y_1\)` 的取值不提供任何关于 `\(Y_2\)` 取值的信息，因此给定 `\(Y_1\)` 时 `\(Y_2\)` 的条件分布同 `\(Y_2\)` 的边缘分布
+  
+- 反例：令
+$$
+G=
+`\begin{cases}
+1,&amp;\text{女}\\
+0,&amp;\text{男} 
+\end{cases}`
+\tag{1}
+$$
+  - `\(G\)` 是一个伯努利随机变量， `\(E(G)=\mu_G=P(G=1)=0.5\)`
+  
+  - 假设从进入物理学院大楼的人群中随机抽取一部分人，由于男生更可能进入物理学院，所以这不是简单随机抽样， `\(G_1,G_2,···,G_n\)` 不是独立同分布的随机变量
+---
+
+###简单随机抽样和独立同分布随机变量
+.panelset[
+.panel[.panel-name[Code]
+
+```r
+# 创建一个随机向量D（两次掷骰子点数和），包含从2到12的整数
+D &lt;- 2:12
+
+# 创建一个向量 PD，表示随机变量 D 的概率分布
+PD &lt;- c(1:6, 5:1) / 36
+
+# 计算随机变量 D 的期望值，将 D 的每个可能结果与其对应的概率相乘，然后将这些乘积相加
+ED &lt;- sum(D * PD)
+# 输出 D 的期望值
+ED
+
+# 计算随机变量 D 的方差：将 D 的每个可能结果与其期望值的差值的平方与对应的概率相乘，然后将这些乘积相加
+VarD &lt;- sum((D - c(ED))^2 * PD)
+# 输出 D 的方差
+VarD
+
+# 设置图形参数，将绘图区域分为一个行和两个列
+# 设置主标题的字符扩展因子为1，即正常大小
+par(mfrow = c(1, 2),cex.main=1)
+
+# 绘制 D 分布的条形图
+barplot(PD, 
+        ylim = c(0, 0.2), 
+        xlab = "D", 
+        ylab = "Probability", 
+        col = "steelblue", 
+        space = 0, 
+# 设置条形之间的间距
+        main = "两个骰子之和的概率分布")
+
+# 绘制 S（单个骰子点数）分布的条形图
+# 创建一个包含6个1/6的向量，表示每个骰子面出现的概率
+probability &lt;- rep(1/6, 6)
+# 给概率向量中的每个元素命名，使其与骰子的面相对应（例如，1表示骰子的1点面，2表示2点面，等等）
+names(probability) &lt;- 1:6
+
+barplot(probability, 
+        ylim = c(0, 0.2), 
+        xlab = "S", 
+        col = "steelblue", 
+        space = 0, 
+        main = "单个骰子的结果概率分布")
+```
+
+
+
+]
+
+.panel[.panel-name[Output]
+
+![](Lecture_2_Review_of_Statistics_files/figure-html/unnamed-chunk-2-1.png)&lt;!-- --&gt;
+
+```
+## [1] 7
+## [1] 5.833333
+```
+
+
+
+]
+]
+---
+
+###样本均值的抽样分布
+- 随机抽样样本的样本均值 `\(\bar Y\)` 是一个随机变量，其概率分布称为抽样分布
+
+  -  `\(\bar Y=\frac{1}{n}(Y_1+Y_2+···+Y_n)=\frac{1}{n}\sum_{i=1}^{n}Y_i\)`
+  
+- 假设抽样为简单随机抽样，即 `\(Y_1,Y_2,···,Y_n\)`是独立同分布的， `\(Y\)` 的均值为 `\(\mu_Y\)`,方差为 `\(\sigma_Y^2\)` ，那么：
+  - `\(E(\bar Y)=E(\frac{1}{n}\sum_{i=1}^nY_i)=\frac{1}{n}\sum_{i=1}^{n}E(Y_i)=\frac{1}{n}nE(Y)=\mu_Y\)`
+`\(\hspace{1cm}\)`   `\(\begin{aligned}var(\bar Y)&amp;=var(\frac{1}{n}\sum_{i=1}^nY_i)\\&amp;=\frac{1}{n^2}\sum_{i=1}^nvar(Y_i)+2\frac{1}{n^2}\sum_{i=1}^n\sum_{j=1,j\neq i}^n cov(Y_i,Y_j)\\&amp;=\frac{1}{n^2}n\times var(Y)+0\\&amp;=\frac{1}{n}\sigma_Y^2\end{aligned}\)` 
+---
+
+### 样本均值的抽样分布
+.panelset[
+.panel[.panel-name[]
+.panel[.panel-name[代码1]
+
+```r
+# 正态分布样本大小
+n &lt;- 10
+# 样本数量
+reps &lt;- 10000
+
+# 简单随机抽样
+samples &lt;- replicate(reps, rnorm(n)) # 10 x 10000 样本矩阵
+
+# 计算样本均值
+sample.avgs &lt;- colMeans(samples)
+
+#绘制密度直方图
+hist(sample.avgs, 
+     ylim = c(0, 1.4), 
+     col = "steelblue" , 
+     freq = F, 
+     breaks = 20,
+     main="Histogram of Sample Averages",
+     xlab="Sample Averages")
+
+# 在直方图上添加样本均值的分布线
+curve(dnorm(x, sd = 1/sqrt(n)), 
+      col = "red", 
+      lwd = "2", 
+      add = T)
+```
+
+
+
+]
+
+.panel[.panel-name[图1]
+
+![](Lecture_2_Review_of_Statistics_files/figure-html/unnamed-chunk-3-1.png)&lt;!-- --&gt;
+
+]
+
+]
+.panel[.panel-name[]
+.panel[.panel-name[代码2]
+
+```r
+# 设定重复次数
+reps &lt;- 10000
+
+# 设置 chi-Square 分布的自由度
+DF &lt;- 3 
+
+# 生成随机数，从标准正态分布N(0,1)中生成reps（10,000）个长度为DF（3）的列向量
+# Z是一个10,000 x 3的矩阵，每一列都是从N(0,1)中抽取的3个随机数
+Z &lt;- replicate(reps, rnorm(DF)) 
+
+# 计算卡方统计量：实际上计算了每个3个随机数的平方和
+X &lt;- colSums(Z^2)
+
+# 绘制直方图
+hist(X, 
+     freq = F, 
+     col = "steelblue", 
+     breaks = 40, 
+     ylab = "Density", 
+     main = "")
+
+# 添加理论密度曲线
+curve(dchisq(x, df = DF), 
+      type = 'l', 
+      lwd = 2, 
+      col = "red", 
+      add = T)
+```
+
+
+
+]
+
+.panel[.panel-name[图2]
+
+![](Lecture_2_Review_of_Statistics_files/figure-html/unnamed-chunk-4-1.png)&lt;!-- --&gt;
+
+]
+
+]
+]
+---
+
+### 样本均值的抽样分布(续)
+- 例如：令
+$$
+G=
+`\begin{cases}
+1,&amp;\text{女}\\
+0,&amp;\text{男} 
+\end{cases}`
+\tag{2}
+$$
+- 现随机从人群中抽取样本，与(1)不同，该例为简单随机抽样，假设样本容量 `\(n=10\)`
+
+ - `\(E(G)=\mu_G=p=0.5\)`
+
+ - `\(Var(G)=\sigma_G^2=p(1-p)=0.5(1-0.5)=0.25\)`
+
+- 平均性别(女性比例) `\(\bar G = n^{-1}\sum_{i=1}^n G_i\)` 的期望和方差为：
+
+  - `\(E(\bar G)=\mu_G=0.5\)`
+  
+  - `\(var(\bar G)=\frac{1}{n}\sigma_G^2=\frac{1}{10}\times0.25=0.025\)`
+---
+
+###仿真模拟—样本均值的抽样分布
+.panelset[
+.panel[.panel-name[]
+.panel[.panel-name[代码]
+
+```r
+# 每个样本点正态分布时样本均值的密度分布
+# 样本容量 n 有限且较小
+n &lt;- 10
+Xbar &lt;- rep(NA,1000)#xbar是样本平均，重复 1000次
+for (i in 1:1000) {
+  X &lt;- rnorm(n,mean=3,sd=2)#每次循环产生n=10个服从正态分布的随机变量，均值为3，标准差为2
+  Xbar[i] &lt;- mean(X)#第i个样本均值=产生的随机变量的均值
+}
+hist(Xbar,breaks=50,freq=F)#绘制直方图
+x=seq(1,5,length.out=1000)
+#sd=sqrt(2^2/n)是因为sd^2(xbar)=1/n*sd^2(Xi)
+#x是总体，xbar是样本，此处验证抽样产生的f和原来接近
+lines(x,dnorm(x,mean=3,sd=sqrt(2^2/n)),col='red')
+```
+
+
+
+]
+
+.panel[.panel-name[图]
+
+![](Lecture_2_Review_of_Statistics_files/figure-html/unnamed-chunk-5-1.png)&lt;!-- --&gt;
+
+]
+
+]
+]
+---
+
+### 抽样分布的大样本近似
+- 有两种描述抽样分布的方法：
+  - “精确”方法：对任意 `\(n\)` 都精确成立
+  
+  - “近似”方法：样本容量较大时抽样分布的近似分布
+- 精确分布(有限样本分布)：
+  - 精确描述 `\(\bar Y\)` 分布的抽样分布,一般 `\(\bar Y\)` 的精确分布非常复杂且依赖于 `\(Y\)` 的分布
+  
+  - 特殊情况： `\(Y\sim N(\mu_Y,\sigma_Y^2)\)` 且 `\(Y_1,Y_2,···,Y_n\)` 独立同分布，则 `\(\bar Y\)` 的精确分布为 `\(\bar Y\sim N(\mu_Y,\frac{\sigma_Y^2}{n})\)` 
+- 渐进分布：
+  - `\(n\to\infty\)` 时，这种近似是精确的
+  
+  - 因为一般 `\(\bar Y\)` 的精确分布非常复杂，且经济学中我们常使用大样本，所以我们常运用渐进分布。这就涉及到两个重要的概念：**大数定律和中心极限定理**
+---
+
+### 大数定律
+- 假设 `\(Y_1,Y_2,···,Y_n\)` 独立同分布（i.i.d.），且 `\(E(Y_i)=\mu_Y\)`， `\(Var(Y_i)=\sigma_Y^2 &lt; \infty\)`（即大的异常值不太可能出现），那么 `\(n\to\infty\)` 时，样本均值以一定的概率趋近于总体均值，即 `\(\bar Y \stackrel{P}{\to} \mu_Y\)`
+
+- 大数定律指出，**当样本容量较大时， `\(Y\)` 以非常高的概率逼近 `\(\mu_Y\)`，**有时也称“平均值定律”
+
+- 一致性： `\(n\)` 增大时 `\(\bar Y \stackrel{P}{\to} \mu_Y\)` 的概率 `\(P\)` 逐渐增大的性质，也称“依概率收敛”
+
+- 如果数据是由简单随机抽样收集到的，那么i.i.d.假设成立
+
+- 方差有限的假设说明 `\(Y_i\)` 是不太可能出现特别大的异常值，否则，这些异常值会支配 `\(\bar Y\)` 使样本均值无法收敛
+---
+
+###大数定律
+.panelset[
+.panel[.panel-name[]
+.panel[.panel-name[代码]
+
+```r
+# 模拟投掷硬币30000次的实验，并绘制正面累积相对频率R_n随投掷次数变化的路径图，同时在图上添加一条R_n=0.5的虚线作为参考
+
+# 设置随机数生成的种子为1，确保每次运行代码时都能得到相同的结果
+set.seed(1)
+
+# 设置投掷硬币的次数并模拟结果
+# 设置投掷硬币的总次数为30000次
+N &lt;- 30000
+# 从{0, 1}的集合中以替换的方式随机抽取N次，模拟硬币投掷的结果。0代表反面（T），1代表正面（H）
+Y &lt;- sample(0:1, N, replace = T)
+
+# 计算从1到N的每个n的R_n值
+# 计算累积和，以模拟硬币正面和反面的累积计数
+S &lt;- cumsum(Y)
+# 计算每个n的R_n值，即正面累积计数除以n
+R &lt;- S/(1:N)
+
+# 绘制路径图，绘制R_n随n变化的路径图
+plot(R, 
+     ylim = c(0.3, 0.7), 
+# 绘制线条图
+     type = "l", 
+     col = "steelblue", 
+# 设置线条的宽度
+     lwd = 2, 
+     xlab = "重复抛硬币的次数", 
+     ylab = "正面向上的比例",
+     main = "重复抛硬币时，正面向上的比例")
+
+# 在图上添加一条虚线表示R_n = 0.5的位置
+# 在图上添加一条从(0, 0.5)到(N, 0.5)的虚线，颜色为深红色，线条类型为虚线，线条宽度为1
+lines(c(0, N), 
+      c(0.5, 0.5), 
+      col = "darkred", 
+      lty = 2, 
+      lwd = 1)
+```
+
+
+
+]
+
+.panel[.panel-name[图]
+
+![](Lecture_2_Review_of_Statistics_files/figure-html/unnamed-chunk-6-1.png)&lt;!-- --&gt;
+
+]
+]
+.panel[.panel-name[图解]
+- 蓝色图表显示了抛硬币时观察到的正面比例 `\(n\)` 次
+
+- 由于 `\(Y_i\)` 是随机变量， `\(R_n\)` 也是一个随机变量，故所描述的路径只是许多可能的结果之一 
+
+- 如果抛硬币的次数 `\(n\)` 很小，头部的比例可能与理论值 `\(\mu_Y=0.5\)` 相差甚远，然而，随着样本中包含越来越多的观测值，我们发现路径稳定在0.5
+
+- 正如大数定律所声称的那样，随着样本量的增加，多次试验的平均值显示出收敛到其预期值的明显趋势
+]
+]
+---
+
+### 中心极限定理
+-  假设 `\(Y_1,Y_2,···,Y_n\)` 独立同分布（i.i.d.），且 `\(E(Y_i)=\mu_Y\)`， `\(Var(Y_i)=\sigma_Y^2 &lt; \infty\)`（方差存在），那么 `\(n\to\infty\)` 时，样本均值近似正态分布，即 `\(\bar Y\sim^a N(\mu_Y,\frac{\sigma_Y^2}{n})\)`，换句话说， `\(\frac{\bar Y-\mu_Y}{\sqrt{\sigma_\bar Y^2}}\sim N(0,1)\)`
+
+- 中心极限定理指出，**一般条件下，当 `\(n\)` 较大时正态分布能较好地近似 `\(\bar Y\)` 的分布**
+
+- 评估大样本近似分布：
+  - 如果 `\(Y_i\sim N(\mu_Y,\sigma_Y^2)\)`,近似效果非常完美
+  
+  - 如果 `\(Y_i\)` 不是正态分布，那么近似的质量好坏取决于样本容量的大小
+  
+  - 一般 `\(n\geq100\)` 即可认为近似效果较好
+---
+
+###中心极限定理
+.panelset[
+.panel[.panel-name[]
+.panel[.panel-name[代码1]
+
+```r
+# 模拟二项分布的样本均值的分布，并绘制相应的直方图和正态分布曲线：通过循环在不同的样本大小（n）下进行模拟，并绘制每个样本大小对应的直方图和正态分布曲线
+
+# 设置重复模拟的次数为10000次
+reps &lt;- 10000
+# 设置要进行模拟的样本大小
+sample.sizes &lt;- 5
+
+# 设置随机数生成的种子，以确保每次运行代码时得到的结果是一致的
+set.seed(123)
+# 初始化
+samplemean &lt;- rep(0, reps) 
+stdsamplemean &lt;- rep(0, reps)
+
+# 对于每一个样本大小n，进行reps次模拟  
+    for (i in 1:reps) {
+# 生成一个长度为n的二项分布随机数向量，其中每个随机数都是独立的，且成功的概率为0.5
+      x &lt;- rbinom(n, 1, 0.5)
+# 计算样本均值，并将其存储在samplemean[i]中
+      samplemean[i] &lt;- mean(x)
+# 计算标准化后的样本均值，并将其存储在stdsamplemean[i]中
+      stdsamplemean[i] &lt;- sqrt(n)*(mean(x) - 0.5)/0.5
+    }
+    
+# 绘制标准化后的样本均值的直方图   
+    hist(stdsamplemean, 
+         col = "steelblue", 
+# 使用密度而不是频数作为y轴的值
+         freq = FALSE, 
+# 设置直方图的分割数量
+         breaks = 40,
+         xlim = c(-3, 3), 
+         ylim = c(0, 0.8), 
+         xlab = paste("n =", n), 
+         main = "")
+# 在当前的直方图上叠加一个正态分布曲线，dnorm(x)计算标准正态分布的概率密度函数值   
+    curve(dnorm(x), 
+          lwd = 2, 
+          col = "darkred", 
+# 将曲线添加到当前的直方图上
+          add = TRUE)
+```
+
+
+
+]
+
+.panel[.panel-name[图1]
+
+![](Lecture_2_Review_of_Statistics_files/figure-html/unnamed-chunk-7-1.png)&lt;!-- --&gt;
+
+]
+]
+.panel[.panel-name[]
+.panel[.panel-name[代码2]
+
+```r
+# 设置重复模拟的次数为10000次
+reps &lt;- 10000
+# 设置要进行模拟的样本大小
+sample.sizes &lt;- 20
+
+# 设置随机数生成的种子，以确保每次运行代码时得到的结果是一致的
+set.seed(123)
+
+# 初始化
+samplemean &lt;- rep(0, reps) 
+stdsamplemean &lt;- rep(0, reps)
+
+# 对于每一个样本大小n，进行reps次模拟  
+    for (i in 1:reps) {
+# 生成一个长度为n的二项分布随机数向量，其中每个随机数都是独立的，且成功的概率为0.5
+      x &lt;- rbinom(n, 1, 0.5)
+# 计算样本均值，并将其存储在samplemean[i]中
+      samplemean[i] &lt;- mean(x)
+# 计算标准化后的样本均值，并将其存储在stdsamplemean[i]中
+      stdsamplemean[i] &lt;- sqrt(n)*(mean(x) - 0.5)/0.5
+    }
+    
+# 绘制标准化后的样本均值的直方图   
+    hist(stdsamplemean, 
+         col = "steelblue", 
+# 使用密度而不是频数作为y轴的值
+         freq = FALSE, 
+# 设置直方图的分割数量
+         breaks = 40,
+         xlim = c(-3, 3), 
+         ylim = c(0, 0.8), 
+         xlab = paste("n =", n), 
+         main = "")
+# 在当前的直方图上叠加一个正态分布曲线，dnorm(x)计算标准正态分布的概率密度函数值   
+    curve(dnorm(x), 
+          lwd = 2, 
+          col = "darkred", 
+# 将曲线添加到当前的直方图上
+          add = TRUE)
+```
+
+
+
+]
+
+.panel[.panel-name[图2]
+
+![](Lecture_2_Review_of_Statistics_files/figure-html/unnamed-chunk-8-1.png)&lt;!-- --&gt;
+
+]
+]
+.panel[.panel-name[]
+.panel[.panel-name[代码3]
+
+```r
+# 设置重复模拟的次数为10000次
+reps &lt;- 10000
+# 设置要进行模拟的样本大小
+sample.sizes &lt;- 75
+# 设置随机数生成的种子，以确保每次运行代码时得到的结果是一致的
+set.seed(123)
+
+# 初始化
+samplemean &lt;- rep(0, reps) 
+stdsamplemean &lt;- rep(0, reps)
+
+# 对于每一个样本大小n，进行reps次模拟  
+    for (i in 1:reps) {
+# 生成一个长度为n的二项分布随机数向量，其中每个随机数都是独立的，且成功的概率为0.5
+      x &lt;- rbinom(n, 1, 0.5)
+# 计算样本均值，并将其存储在samplemean[i]中
+      samplemean[i] &lt;- mean(x)
+# 计算标准化后的样本均值，并将其存储在stdsamplemean[i]中
+      stdsamplemean[i] &lt;- sqrt(n)*(mean(x) - 0.5)/0.5
+    }
+    
+# 绘制标准化后的样本均值的直方图   
+    hist(stdsamplemean, 
+         col = "steelblue", 
+# 使用密度而不是频数作为y轴的值
+         freq = FALSE, 
+# 设置直方图的分割数量
+         breaks = 40,
+         xlim = c(-3, 3), 
+         ylim = c(0, 0.8), 
+         xlab = paste("n =", n), 
+         main = "")
+# 在当前的直方图上叠加一个正态分布曲线，dnorm(x)计算标准正态分布的概率密度函数值   
+    curve(dnorm(x), 
+          lwd = 2, 
+          col = "darkred", 
+# 将曲线添加到当前的直方图上
+          add = TRUE)
+```
+
+
+
+]
+
+.panel[.panel-name[图3]
+
+![](Lecture_2_Review_of_Statistics_files/figure-html/unnamed-chunk-9-1.png)&lt;!-- --&gt;
+
+]
+]
+.panel[.panel-name[]
+.panel[.panel-name[代码4]
+
+```r
+# 设置重复模拟的次数为10000次
+reps &lt;- 10000
+# 设置要进行模拟的样本大小
+sample.sizes &lt;- 100
+
+# 设置随机数生成的种子，以确保每次运行代码时得到的结果是一致的
+set.seed(123)
+
+# 初始化
+samplemean &lt;- rep(0, reps) 
+stdsamplemean &lt;- rep(0, reps)
+
+# 对于每一个样本大小n，进行reps次模拟  
+    for (i in 1:reps) {
+# 生成一个长度为n的二项分布随机数向量，其中每个随机数都是独立的，且成功的概率为0.5
+      x &lt;- rbinom(n, 1, 0.5)
+# 计算样本均值，并将其存储在samplemean[i]中
+      samplemean[i] &lt;- mean(x)
+# 计算标准化后的样本均值，并将其存储在stdsamplemean[i]中
+      stdsamplemean[i] &lt;- sqrt(n)*(mean(x) - 0.5)/0.5
+    }
+    
+# 绘制标准化后的样本均值的直方图   
+    hist(stdsamplemean, 
+         col = "steelblue", 
+# 使用密度而不是频数作为y轴的值
+         freq = FALSE, 
+# 设置直方图的分割数量
+         breaks = 40,
+         xlim = c(-3, 3), 
+         ylim = c(0, 0.8), 
+         xlab = paste("n =", n), 
+         main = "")
+# 在当前的直方图上叠加一个正态分布曲线，dnorm(x)计算标准正态分布的概率密度函数值   
+    curve(dnorm(x), 
+          lwd = 2, 
+          col = "darkred", 
+# 将曲线添加到当前的直方图上
+          add = TRUE)
+```
+
+
+
+]
+
+.panel[.panel-name[图4]
+
+![](Lecture_2_Review_of_Statistics_files/figure-html/unnamed-chunk-10-1.png)&lt;!-- --&gt;
+
+]
+]
+.panel[.panel-name[图解]
+- 在不同的样本大小下，二项分布的样本均值的分布逐渐接近正态分布
+
+ - 如果样本量较小，则标准化平均值的模拟抽样分布往往会严重偏离标准正态分布
+
+     - 例如 `\(n=5,n=10\)`
+
+ - 随着 `\(n\)` 增大，直方图接近正态分布，近似效果很好
+ 
+     - 例如 `\(n=100\)`
+]
+]
+---
+
+### 仿真模拟
+.panelset[
+.panel[.panel-name[注]
+- 大数定律和中心极限定理
+
+- 样本容量 `\(n\)` 趋近于无穷大
+
+- 要求样本点方差存在，否则中心极限定理不成立，如柯西分布
+
+- 以卡方分布为例
+
+ - 卡方分布自由度和均值相等，方差存在。
+]
+.panel[.panel-name[]
+.panel[.panel-name[代码1]
+
+```r
+# 大数定律和中心极限定理
+n &lt;- 10
+Xbar &lt;- rep(NA,1000)
+for (i in 1:1000) {
+  X &lt;- rchisq(n,df=8) # 方差存在，卡方分布自由度和均值相等，方差存在，即&gt;0且&lt;无穷
+  #X &lt;- rcauchy(n) 
+  # variance does not exist，柯西分布方差不存在，不满足大数定律
+  Xbar[i] &lt;- mean(X)
+}
+hist(Xbar,breaks=50,freq=F)#绘制直方图
+x &lt;- seq(7.8,8.15,length.out=1000)#x在7.8至8.15之间，彼此相隔1000
+lines(x,dnorm(x,mean=8,sd=sqrt(16/n)),col='red')#卡方分布均值=自由度m，方差=2m
+```
+
+
+
+]
+
+.panel[.panel-name[图1]
+
+![](Lecture_2_Review_of_Statistics_files/figure-html/unnamed-chunk-11-1.png)&lt;!-- --&gt;
+
+]
+]
+.panel[.panel-name[]
+.panel[.panel-name[代码2]
+
+```r
+# 大数定律和中心极限定理
+n &lt;- 100
+Xbar &lt;- rep(NA,1000)
+for (i in 1:1000) {
+  X &lt;- rchisq(n,df=8) # 方差存在，卡方分布自由度和均值相等，方差存在，即&gt;0且&lt;无穷
+  #X &lt;- rcauchy(n) 
+  # variance does not exist，柯西分布方差不存在，不满足大数定律
+  Xbar[i] &lt;- mean(X)
+}
+hist(Xbar,breaks=50,freq=F)#绘制直方图
+x &lt;- seq(7.8,8.15,length.out=1000)#x在7.8至8.15之间，彼此相隔1000
+lines(x,dnorm(x,mean=8,sd=sqrt(16/n)),col='red')#卡方分布均值=自由度m，方差=2m
+```
+
+
+
+]
+
+.panel[.panel-name[图2]
+
+![](Lecture_2_Review_of_Statistics_files/figure-html/unnamed-chunk-12-1.png)&lt;!-- --&gt;
+
+]
+]
+.panel[.panel-name[]
+.panel[.panel-name[代码3]
+
+```r
+# 大数定律和中心极限定理
+# 样本容量n趋近于无穷大
+# 样本点方差存在，否则中心极限定理不成立，如柯西分布
+n &lt;- 100000
+Xbar &lt;- rep(NA,1000)
+for (i in 1:1000) {
+  X &lt;- rchisq(n,df=8) # 方差存在，卡方分布自由度和均值相等，方差存在，即&gt;0且&lt;无穷
+  #X &lt;- rcauchy(n) 
+  # variance does not exist，柯西分布方差不存在，不满足大数定律
+  Xbar[i] &lt;- mean(X)
+}
+hist(Xbar,breaks=50,freq=F)#绘制直方图
+x &lt;- seq(7.8,8.15,length.out=1000)#x在7.8至8.15之间，彼此相隔1000
+lines(x,dnorm(x,mean=8,sd=sqrt(16/n)),col='red')#卡方分布均值=自由度m，方差=2m
+```
+
+
+
+]
+
+.panel[.panel-name[图3]
+
+![](Lecture_2_Review_of_Statistics_files/figure-html/unnamed-chunk-13-1.png)&lt;!-- --&gt;
+
+]
+]
+]
+---
+
+### 估计量 &amp; 总体均值的估计
+- 如果我们想知道总体 `\(Y\)` 的均值，如刚毕业的女大学生的平均收入，自然而然地想到用 `\(n\)` 给独立同分布的观测 `\(Y_1,Y_2,···,Y_n\)`(简单随机抽样)的样本均值 `\(\bar Y\)` 来估计这一平均值。下面我们来讨论 `\(\mu_Y\)` 的估计和利用 `\(\bar Y\)` 估计 `\(\mu_Y\)` 性质
+
+- **估计量**
+  - 是从总体中随机抽取的样本数据的函数，是一个随机变量(随机抽样)
+  
+  - 如何估计 `\(\mu_Y\)`? `\(\longrightarrow\)` 利用估计量！如 `\(\bar Y\)`、 `\(Y_1\)` 
+  
+  - 对重复抽取的不同样本， `\(\bar Y\)`、 `\(Y_1\)` 取不同的值(得到了不同的估计值)，因而都具有抽样分布
+
+- **估计值**
+  - 是基于某一特定的样本数据实际计算得出的估计量的数值，是一个 非随机的数
+- 思考：
+  - 如何评价估计量的好坏？(估计量的抽样分布有哪些优良性质？)
+---
+
+### 无偏性、一致性、有效性
+- 令 `\(\hat{\mu_Y}\)` 为 `\(\mu_Y\)` 的一个估计量， `\(E(\hat{\mu_Y})\)` 为 `\(\hat{\mu_Y}\)` 的均值
+
+- **无偏性**
+ - `\(E(\hat{\mu_Y})=\mu_Y\)` ，则估计量 `\(\hat{\mu_Y}\)` 无偏
+ 
+ - 如果我们利用重复随机样本多次计算估计量的值。自然希望平均而言我们可以得到正确答案，因此估计量的一个优良性质是其抽样分布的均值等于总体均值 `\(\mu_Y\)`
+- **一致性**
+  - `\(\hat{\mu_Y}\stackrel{P}{\to}\mu_Y(n\to\infty)\)` 
+  
+  - 当样本容量很大时，由样本随机变化引起的 `\(\hat{\mu_Y}\)` 值的不确定性很小。即当样本容量增大时， `\(\hat{\mu_Y}\)` 落入真值 `\(\mu_Y\)` 小区间内的概率接近于1
+- **有效性**
+  - 估计量方差越小，数据信息利用越有效
+---
+
+###估计量的性质
+.panelset[
+.panel[.panel-name[]
+.panel[.panel-name[代码]
+
+```r
+# 生成一个包含10000个来自标准正态分布（均值为10，标准差为1）的随机数的向量，并将其赋值给变量pop
+pop &lt;- rnorm(10000, 10, 1)
+
+# 从总体中抽样并估计均值
+# 创建向量est1，该向量包含25000次重复抽样（每次抽样大小为5）后计算出的均值，每次抽样都是从pop中随机选择5个数字，然后计算这些数字的均值
+est1 &lt;- replicate(expr = mean(sample(x = pop, size = 5)), n = 25000)
+
+# 创建向量est2，该向量包含25000次重复抽样（每次抽样大小为25）后计算出的均值，每次抽样都是从pop中随机选择25个数字，然后计算这些数字的均值
+est2 &lt;- replicate(expr = mean(sample(x = pop, size = 25)), n = 25000)
+
+# 创建向量fo，该向量包含25000次重复抽样的第一个数字。每次抽样都是从pop中随机选择5个数字，然后取这5个数字中的第一个
+fo &lt;- replicate(expr = sample(x = pop, size = 5)[1], n = 25000)
+
+# 绘制密度估计Y_1
+# 绘制变量fo的密度估计，并设置颜色为绿色、线宽为2、y轴范围为0到2、x轴标签为"Estimates"、主标题为"Sampling Distributions of Unbiased Estimators"
+plot(density(fo), 
+      col = "green", 
+      lwd = 2,
+      ylim = c(0, 2),
+      xlab = "Estimates",
+      main = "Sampling Distributions of Unbiased Estimators")
+
+# 向图上添加样本均值的密度估计，其中n=5
+# 添加变量est1的密度估计到图中，并设置了颜色为钢蓝色、线宽为2、线型为"l"
+lines(density(est1), 
+     col = "steelblue", 
+     lwd = 2, 
+     bty = "l")
+
+# 添加变量est2的密度估计到图中，并设置了颜色为红色、线宽为2
+lines(density(est2), 
+      col = "red2", 
+      lwd = 2)
+
+# 在图中添加一条垂直线，位于真实参数处
+# 在图中添加了一条垂直线，位于x=10处，线型为虚线
+abline(v = 10, lty = 2)
+
+# 向图上添加均值为10、方差为1的正态分布密度估计，并设置线宽为2、线型为虚线、添加到已有图形上
+curve(dnorm(x, mean = 10), 
+     lwd = 2,
+     lty = 2,
+     add = T)
+
+# 在左上角添加一个图例，其中包含四个条目
+legend("topleft",
+       legend = c("N(10,1)",
+                  expression(Y[n == 1]),
+                  expression(bar(Y)[n == 5]),
+                  expression(bar(Y)[n == 25])
+                  ), 
+       lty = c(2, 1, 1, 1), 
+       col = c("black","green", "steelblue", "red2"),
+       lwd = 2)
+```
+
+
+
+]
+
+.panel[.panel-name[图]
+
+![](Lecture_2_Review_of_Statistics_files/figure-html/unnamed-chunk-14-1.png)&lt;!-- --&gt;
+
+]
+]
+.panel[.panel-name[注]
+- 该图绘制了几个密度估计的图形，其中包括单个样本的密度估计、样本均值的密度估计以及正态分布的密度估计
+
+ - &lt;font color=green&gt; `\(Y_1\)` 的抽样分布&lt;/font&gt;紧靠 `\(N(0,1)\)` 分布的密度
+
+     - `\(Y_1\)` 估计量只是报告来自服从 `\(N(0,1)\)` 分布的随机观测值 `\(\longrightarrow\)` `\(Y_1\sim N(0,1)\)`
+ 
+ - `\(\bar Y\)` 的抽样分布比 `\(Y_1\)` 的抽样分布更分散 `\(\longrightarrow\)` `\(\bar Y\)` 方差更小，该估计量更有效
+
+ - 蓝色和红色的密度比绿色的更集中在 `\(\mu=10\)` 周围,随着观测值的数量从1到5增大时，抽样分布在真参数附近收紧
+]
+]
+---
+
+### 无偏性、一致性、有效性
+- 举个例子，假设我们想要了解硕士生的平均工资水平，于是我们通过简单随机抽样抽取10个样本：
+
+|||||||
+|:---:|:---:|:---:|:---:|:---:|:---:|
+|i|1|2|3|4|5|
+||47281.92|70781.94|55174.46|49096.05|67424.82|
+|i|6|7|8|9|10|
+||39252.85|78815.33|46750.78|46587.89|25015.71|
+
+- 则有3种典型估计量：
+  - `\(\bar{W}=\frac{1}{10}\sum_{i=1}^{10}W_i=52618.18\)`
+  
+  - `\(W_1=47281.92\)`
+  
+  - `\(\tilde{W}=\frac{1}{10}(\frac{1}{2}W_1+\frac{3}{2}W_2+···+\frac{1}{2}W_9+\frac{3}{2}W_{10})=49398.82\)`
+- 下面我们不妨讨论一下这三种估计量的质量好坏
+---
+
+###无偏性
+- `\(E(Y_1)=E(Y)=\mu_Y\)` ， `\(Y_1\)` 为无偏估计量
+
+  - 由简单随机抽样可知，每一个样本点独立同分布
+  
+- `\(E(\bar{Y})=\mu_Y\)` ， `\(\bar{Y}\)` 为无偏估计量
+
+  -  `\(E(\bar Y)=E(\frac{1}{n}\sum_{i=1}^nY_i)=\frac{1}{n}\sum_{i=1}^{n}E(Y_i)=\frac{1}{n}nE(Y)=\mu_Y\)`
+  
+- `\(E(\tilde{Y})=\mu_Y\)` ， `\(\tilde{Y}\)` 是无偏估计量
+
+  - `\(\begin{aligned}E(\tilde{Y})&amp;=E(\frac{1}{n}(\frac{1}{2}Y_1+\frac{3}{2}Y_2+···+\frac{1}{2}Y_{n-1}+\frac{3}{2}Y_n))\\&amp;=\frac{1}{n}[\frac{1}{2}E(Y_1)+\frac{3}{2}E(Y_2)+···+\frac{1}{2}E(Y_{n-1})+\frac{3}{2}E(Y_n)]\\&amp;=\frac{1}{n}[(\frac{n}{2}\cdot \frac{1}{2}E(Y_i)+\frac{n}{2}\cdot \frac{3}{2}E(Y_i)]=\mu_Y\end{aligned}\)`
+---
+
+### 一致性
+- `\(\bar {W} \stackrel{P}{\to}\mu_W(n\to\infty)\)`
+
+  - 由大数定律可知， `\(\bar {W}\)` 为一致估计量
+  
+- `\(\tilde {W} \stackrel{P}{\to}\mu_W(n\to\infty)\)` 
+
+  - `\(\tilde{W}=\frac{1}{n}(\frac{1}{2}W_1+\frac{3}{2}W_2+···+\frac{1}{2}W_{n-1}+\frac{3}{2}W_{n})\)` 
+  
+  - `\(\tilde {W}\)` 为一致估计量
+- `\(W_1\)` 不一致
+
+  - 重复随机抽取样本时，每次第一个观测值都是随机的
+---
+
+### 有效性
+- `\(Var(\bar Y)=\frac{1}{n}\sigma_Y^2\)`
+
+- `\(Var(Y_1)=Var(Y)=\sigma_Y^2\)`
+
+- `\(Var(\tilde Y)=1.25\frac{1}{n}\sigma_Y^2\)`
+
+- 因此，对任意 `\(n\geq2\)` , `\(\bar Y\)` 比 `\(Y_1、\tilde Y\)` 更有效
+---
+
+### BLUE最佳线性无偏估计量
+- `\(\hat \mu_Y=\frac{1}{n}\sum_{i-1}^{n}a_iY_i\)`,  `\(a_1,···,a_n\)` 为非随机常数
+
+- `\(\bar Y\)` 是 `\(\mu_Y\)` 的无偏估计量( `\(Y_1.···，Y_n\)` 的加权平均)的最有效估计量
+  - 在所有估计量中，样本均值 `\(\bar Y\)` 拟合数据的效果最好，意思是指观测值与 `\(\bar Y\)` 之间的离差平方和的平均值最小
+  
+  - 寻找最小二乘估计量，即寻找估计量 `\(m\)` 使 `\(\sum_{i=1}^{n}(Y_i-m)^2\)` 最小
+  
+      - 为了使预测误差平方和最小，求导并令其等于0，得
+    
+      - `\(\frac{d}{dm}\sum_{i=1}^{n}(Y_i-m)^2=-2\sum_{i=1}^{n}(Y_i-m)=-2\sum_{i=1}^{n}Y_i+2mn=0\)`
+    
+      - 求解 `\(m\)` 的最后一个方程可证当 `\(m=\bar Y\)` 时 `\(\sum_{i=1}^{n}(Y_i-m)^2\)` 达到最小
+---
+
+### 仿真模拟
+.panelset[
+.panel[.panel-name[注]
+- 重复简单随机抽样1000次，将值赋给3个估计量
+
+- 估计量1 `\(est1=E(X)\)`,一致且无偏
+
+- 估计量2 `\(est2=\frac{n}{100-n}E(X)\)`,一致但有偏
+
+- 估计量3 `\(est3=E(X[1:10])\)`,([1:10]表示从1到10),无偏但不一致
+]
+.panel[.panel-name[]
+.panel[.panel-name[代码1]
+
+```r
+# unbiasedness无偏性, consistency一致性, and efficiency有效性 of an estimator
+
+n &lt;- 20000
+est1 &lt;- rep(NA,1000)#重复简单随机抽样1000次，将值赋给3个估计量
+for (i in 1:1000) {
+  X &lt;- rchisq(n,df=8)
+  est1[i] &lt;- mean(X)
+}
+#求均值
+mean(est1)
+#作直方图
+hist(est1,breaks = 50)
+```
+
+
+
+]
+
+.panel[.panel-name[图1]
+
+![](Lecture_2_Review_of_Statistics_files/figure-html/unnamed-chunk-15-1.png)&lt;!-- --&gt;
+
+```
+## [1] 8.001254
+```
+
+
+
+]
+]
+.panel[.panel-name[]
+.panel[.panel-name[代码2]
+
+```r
+# unbiasedness无偏性, consistency一致性, and efficiency有效性 of an estimator
+
+n &lt;- 20000
+est2 &lt;- rep(NA,1000)#重复简单随机抽样1000次，将值赋给3个估计量
+for (i in 1:1000) {
+  X &lt;- rchisq(n,df=8)
+  est2[i] &lt;- sum(X)/(n-100)#EX*=[n/（100-n）]EX
+}
+#求均值
+mean(est2)
+#作直方图
+hist(est2,breaks = 50)
+```
+
+
+
+]
+
+.panel[.panel-name[图2]
+
+![](Lecture_2_Review_of_Statistics_files/figure-html/unnamed-chunk-16-1.png)&lt;!-- --&gt;
+
+```
+## [1] 8.041585
+```
+
+
+
+]
+]
+.panel[.panel-name[]
+.panel[.panel-name[代码3]
+
+```r
+# unbiasedness无偏性, consistency一致性, and efficiency有效性 of an estimator
+
+n &lt;- 20000
+est3 &lt;- rep(NA,1000)#重复简单随机抽样1000次，将值赋给3个估计量
+for (i in 1:1000) {
+  X &lt;- rchisq(n,df=8)
+  est3[i] &lt;- mean(X[1:10])#[1:10]表示从1到10
+}
+#求均值
+mean(est3)
+#作直方图
+hist(est3,breaks = 50)
+```
+
+
+
+]
+
+.panel[.panel-name[图3]
+
+![](Lecture_2_Review_of_Statistics_files/figure-html/unnamed-chunk-17-1.png)&lt;!-- --&gt;
+
+```
+## [1] 7.975742
+```
+
+
+
+]
+]
+]
+---
+
+### 总体均值的假设检验
+- 许多有关周围世界的假设可以简单表述为是或否的问题。如：
+
+  - 男性和女性大学毕业生的平均收入一样吗？
+  
+  - 现在美国大学毕业生的平均收入是20美元/时吗？
+  
+  - 经济学考试的及格率均值等于1吗？
+  
+  - 挪威的教育水平均值是12年吗？
+  
+- 这几个问题都包含了有关总体均值的假设，下面我们将更深入地介绍有关总体均值的假设检验
+---
+
+### 原假设和备择假设
+- **原假设**：
+  - 统计假设检验的出发点是确定要检验的假设，称为原假设或空假设
+  
+  - 原假设为：总体均值 `\(E(Y)\)` 取某个特定值，记为 `\(\mu_{Y,0}\)`,即 `\(H_0:E(Y)=\mu_{Y,0}\)`
+  
+- **备择假设**：
+  - 假设检验需要利用数据比较原假设和另一个假设，称为备择假设
+  
+  - 即在原假设不成立时成立 `\(H_1:E(Y)\neq\mu_{Y.0}\)`
+  
+  - 可分为双边备择假设和单边备择假设
+  
+-  例如，全体大学毕业生平均收入为20美元/时的猜想构成了关于每小时收入总体分布的原假设，若 `\(Y\)` 表示随机抽取的一名刚毕业大学生每小时的收入，则
+  - 原假设为 `\(H_0:E(Y)=20=\mu_{Y,0}\)`
+  
+  - 备择假设为 `\(H_1:E(Y)\neq\mu_{Y,0}\)`
+---
+
+### 原假设和备择假设
+- **注意**：
+
+  - 我们基于随机抽取的样本数据决定是拒绝原假设还是无法拒绝原假设
+  
+  - **无法拒绝原假设，并不意味着原假设一定是对的**
+  
+  - 因此，假设检验可以表述为：拒绝原假设或不能拒绝原假设
+---
+
+### P值
+- 对任意给定的样本而言，其样本均值 `\(\bar Y\)` 几乎不可能恰好等于假设值 `\(\mu_{Y,0}\)` 
+
+  - 有可能是因为总体均值 `\(\mu_Y\neq\mu_{Y,0}\)`(原假设是错误的) 
+  
+  - 也有可能是因为虽然真实均值等于 `\(\mu_{Y,0}\)` (原假设是正确的)，但由于随机抽样使 `\(\bar Y\neq\mu_Y=\mu_{Y,0}\)` 
+- 为了量化第二个原因，我们定义了 `\(p\)` 值
+
+  - `\(p\)` 值，也称显著性概率，是**在原假设成立的情况下**，抽到的统计量与原假设之间的距离至少等于其样本计算值与原假设之间距离的概率 
+ 
+- 例如，假设一刚毕业大学生的样本的平均工资为22.24美元/时，** `\(p\)` 值是在假定原假设为真的条件下**，观测到的 `\(\bar Y\)` 值和20美元/时（原假设下的总体均值）的差距至少等于仅仅由于随机样本变化观测到的22.24美元/时和20美元/时间差距的概率
+  
+  - **若 `\(p\)` 值很小(如0.5%)，说明原假设成立时不太可能抽到这种样本；若 `\(p\)` 值较大，那么原假设成立时，很可能仅仅是由于随机抽样使我们观测到的样本均值为22.24美元/时**
+---
+
+###P值的计算( `\(\sigma_Y^2\)` 已知)
+.panelset[
+.panel[.panel-name[]
+.panel[.panel-name[代码]
+
+```r
+# 在区间[-4,4]上绘制标准正态分布的密度函数，dnorm(x)计算标准正态分布的概率密度函数值
+curve(dnorm(x),
+      xlim = c(-4, 4),
+      main = "Calculating a p-Value",
+# 关闭y轴刻度，y轴的范围由数据本身决定
+      yaxs = "i",
+      xlab = "z",
+# 不显示y轴标签
+      ylab = "",
+      lwd = 2,
+# 关闭坐标轴
+      axes = "F")
+
+# 在x轴上添加刻度和标签
+axis(1, 
+# 设置刻度的位置
+     at = c(-1.5, 0, 1.5), 
+# 设置标签与刻度之间的距离
+     padj = 0.75,
+# 设置标签的表达式
+     labels = c(expression(-frac(bar(Y)^"act"~-~bar(mu)["Y,0"], sigma[bar(Y)])),
+                0,
+                expression(frac(bar(Y)^"act"~-~bar(mu)["Y,0"], sigma[bar(Y)]))))
+
+# 绘制左尾部的阴影区域
+polygon(x = c(-6, seq(-6, -1.5, 0.01), -1.5),
+        y = c(0, dnorm(seq(-6, -1.5, 0.01)),0), 
+        col = "steelblue")
+
+# 绘制右尾部的阴影区域
+polygon(x = c(1.5, seq(1.5, 6, 0.01), 6),
+        y = c(0, dnorm(seq(1.5, 6, 0.01)), 0), 
+        col = "steelblue")
+```
+
+
+
+]
+
+.panel[.panel-name[图]
+
+![](Lecture_2_Review_of_Statistics_files/figure-html/unnamed-chunk-18-1.png)&lt;!-- --&gt;
+
+]
+]
+]
+---
+
+### P值的计算( `\(\sigma_Y^2\)` 已知)
+- 大样本下由中心极限定理有 `\(\bar Y \sim^a N(\mu_Y,\frac{\sigma_Y^2}{n})\)`，即若原假设成立， `\(\frac{\bar Y-\mu_{Y,0}}{\sqrt {\frac{\sigma_Y^2}{n}}}\sim N(0,1)\)`
+
+- `\(p=P\left(\left|\bar Y-\mu_{Y,0}|&gt;|\bar Y^{act}-\mu_{Y,0}\right|\right)\)`  
+-  `\(p=P\left(\left|\frac{\bar Y-\mu_{Y,0}}{\sqrt {\frac{\sigma_Y^2}{n}}}\right|&gt;\left|\frac{\bar Y^{act}-\mu_{Y,0}}{\sqrt {\frac{\sigma_Y^2}{n}}}\right|\right)=2\Phi\left(-\left|\frac{\bar Y^{act}-\mu_{Y,0}}{\sqrt {\frac{\sigma_Y^2}{n}}}\right|\right)\)`
+
+- 思考：
+  - 如果 `\(\sigma_Y^2\)` 未知，p值应该如何计算？
+  
+  - 利用 `\(\sigma_Y^2\)` 的估计量——样本方差 `\(s_Y^2\)`
+---
+
+### 样本方差、标准差和标准误
+- **样本方差**
+  - `\(s_Y^2=\frac{1}{n-1}\sum_{i=1}^{n}(Y_i-\bar Y)^2\)`
+  
+  - 是**总体方差** `\(\sigma_Y^2\)` 的**一致估计量**, `\(\sigma_Y^2=E(Y_i-\mu_Y)^2\)`
+  
+  - 样本方差与总体方差公式相似，但
+      - 用 `\(\bar Y\)` 替换 `\(\mu_Y\)` ，因为 `\(\mu_Y\)` 未知，必须要估计
+      
+      - 除以 `\(n-1\)` 而不是 `\(n\)`,因为均值估计用完了数据中的某些信息(1个自由度)，在 `\((Y_i-\bar Y)^2\)` 中引入了较小的向下偏差，修正后 `\(s_Y^2\)` **无偏**
+- **样本标准差** `\(s_Y=\sqrt{s_Y^2}\)`
+
+- **标准误**
+  - 当 `\(Y_1,Y_2,···,Y_n\)` 独立同分布时， `\(\hat{\sigma_{\bar Y}}=s_Y/\sqrt{n}\)`
+  
+  - 是**样本标准差**的估计量
+---
+
+### 样本方差、标准差和标准误
+.panelset[
+.panel[.panel-name[]
+.panel[.panel-name[代码]
+
+```r
+# 定义一个包含5个样本大小的向量n
+n &lt;- c(10000, 5000, 2000, 1000, 500)
+
+# 使用replicate函数生成10000个样本，每个样本大小为n[1]（即10000），从均值为10、标准差为3的正态分布中随机抽取，然后计算每个样本的标准差，并取这些标准差的向量
+sq_y &lt;- replicate(n = 10000, expr = sd(rnorm(n[1], 10, 3)))
+# 绘制sq_y的密度估计图，density(sq_y)计算sq_y的核密度估计
+plot(density(sq_y),
+     main = expression("Sampling Distributions of" ~ s[Y]),
+     xlab = expression(s[y]),
+     lwd = 2)
+
+# 循环：用于模拟其他样本大小下的标准差分布，并绘制密度估计图
+# 对于每个样本大小n[i]（从2到5），都生成10000个样本，计算标准差，然后绘制密度估计图。使用lines函数将每个样本大小下的密度估计图添加到已有图形上
+for (i in 2:length(n)) {
+  sq_y &lt;- replicate(n = 10000, expr = sd(rnorm(n[i], 10, 3)))
+  lines(density(sq_y), 
+        col = i, 
+        lwd = 2)
+}
+
+# 在图的左上角添加了一个图例，用于标识各个样本大小
+legend("topleft",
+       legend = c(expression(n == 10000),
+                  expression(n == 5000),
+                  expression(n == 2000),
+                  expression(n == 1000),
+                  expression(n == 500)), 
+       col = 1:5,
+       lwd = 2)
+```
+
+
+
+]
+
+.panel[.panel-name[图]
+
+![](Lecture_2_Review_of_Statistics_files/figure-html/unnamed-chunk-19-1.png)&lt;!-- --&gt;
+
+]
+]
+.panel[.panel-name[注]
+- 左图模拟了不同样本大小下正态分布的标准差（sd）的分布，并绘制密度估计图
+
+- 通过这个模拟和绘图，可以观察到样本大小对标准差分布估计的影响
+
+- 随 `\(n\)` 增大， `\(s_Y\)` 的分布围绕真值 `\(\sigma_Y\)` 收紧
+]
+]
+---
+
+### P值的计算( `\(\sigma_Y^2\)` 未知)
+-  `$$p=P\left(\left|\frac{\bar Y-\mu_{Y,0}}{\sqrt {\frac{\sigma_Y^2}{n}}}\right|&gt;\left|\frac{\bar Y^{act}-\mu_{Y,0}}{\sqrt {\frac{\sigma_Y^2}{n}}}\right|\right)=2\Phi\left(-\left|\frac{\bar Y^{act}-\mu_{Y,0}}{\sqrt {\frac{\sigma_Y^2}{n}}}\right|\right)$$`
+
+- 因为 `\(s_Y^2\)` 是 `\(\sigma_Y^2\)` 的一致估计量，因此可以用 `\(\hat{\sigma_{\bar Y}}\)` 替换 `\(\sigma_\bar Y\)` 计算p值
+
+- 当 `\(\sigma_Y\)` 未知且 `\(Y_1,Y_2,···,Y_n\)` 独立同分布时:
+`$$p=2\Phi\left(-\left|\frac{\bar Y^{act}-\mu_{Y,0}}{\hat{\sigma_{\bar Y}}}\right|\right)$$`
+
+- **注意**：
+  - `\(p\)` 值不是给定样本结果时原假设为真的概率，而是给定原假设为真时样本结果出现的概率
+  
+  - `\(p\)` 值表示对原假设的支持程度，是用于确定是否应该拒绝原假设的另一种方法。 `\(p\)` 值越小越容易拒绝原假设
+  
+  - `\(p\)` 值越小，差异越显著，检验结果显著
+---
+
+### t统计量
+- 标准化样本均值 `\(\frac{\bar Y^{act}-\mu_{Y,0}}{\hat{\sigma_{\bar Y}}}\)` 在统计检验中取得了重要作用，被称为**t统计量**或**t比**
+`$$t=\frac{\bar Y-\mu_{Y,0}}{\hat{\sigma_{\bar Y}}}$$`
+- n较大时，t近似服从 `\(N(0,1)\)` 分布
+  - 由一致估计量：n较大时， `\(s_Y^2\stackrel{P}{\to}\sigma_Y^2\)`,故 `\(t=\frac{\bar Y-\mu_{Y,0}}{\hat{\sigma_{\bar Y}}}\approx \frac{\bar Y-\mu_{Y,0}}{\sigma_\bar Y}\)`
+  
+  - 由中心极限定理：n较大时， `\(\frac{\bar Y-\mu_{Y,0}}{\sigma_\bar Y}\)` 近似标准正态分布
+- n较大时，
+`$$p=2\Phi(-|t^{act}|)$$`
+---
+
+### 给定显著水平下的假设检验
+- **两类错误**：
+  - 原假设为真时错误地拒绝原假设
+  
+  - 原假设不为真时没有拒绝原假设
+- 在假设检验中，我们通常固定第一类错误的概率，因而
+  - 不必通过p值计算进行假设检验
+  
+  - 选择一个事先给定的**原假设为真时拒绝原假设的概率 `\(\alpha\)`(置信水平)**，则当且仅当p值小于该概率时拒绝原假设
+- **置信水平 `\(\alpha\)` **  
+  - 最常用的置信水平 `\(\alpha=0.05\)` 
+  
+  - 因为 `\(N(0,1)\)` 分布的尾部在 `\((-1.96,+1.96)\)` 之外的部分概率为0.05，所以若 `\(p&lt;0.05\)` 或者 `\(|t^{act}|&gt;1.96\)` 就拒绝原假设
+---
+
+### 关于总体均值的假设检验
+`$$H_0:E(Y)=\mu_{Y,0}\qquad H_1:E(Y)\neq\mu_{Y,0}$$`
+- 第一步：计算样本均值 `\(\bar Y\)`
+
+- 第二步：计算样本均值 `\(\bar Y\)` 的标准误 `$$\hat{\sigma_{\bar Y}}=\frac{s_Y}{\sqrt{n}}$$`
+
+- 第三步：计算 `\(t\)` 统计量 
+`$$t^{act}=\frac{\bar Y^{act}-\mu_{Y,0}}{\hat{\sigma_{\bar Y}}}$$`
+
+- 第四步：判断&lt;br&gt;
+如果满足下列条件之一则拒绝原假设( `\(\alpha=0.05\)` )
+  -  `\(p&lt;0.05\)` 
+  
+  - `\(|t^{act}|&gt;1.96\)` 
+---
+
+### 关于总体均值的假设检验例子
+- 假设我们利用一个有250个研究生的样本检验总体均值：
+`$$H_0:E(W)=6000\qquad H_1:E(W)\neq6000$$`
+- 第一步： `\(\bar W=\frac{1}{n}\sum_{i=1}^{n}W_i=61977.12\)`
+
+- 第二步： `\(\hat{\sigma_{\bar W}}=\frac{s_W}{\sqrt{n}}=1334.19\)`
+
+- 第三步： `\(t^{act}=\frac{\bar W^{act}-\mu_{Y,0}}{\hat{\sigma_{\bar W}}}=\frac{61977.12-6000}{1334.19}=1.48\)`
+
+- 第四步：假设 `\(\alpha=0.05\)`，因为 `\(|t^{act}|=1.48&lt;1.96\)`，所以不拒绝原假设
+
+---
+
+###仿真模拟
+.panelset[
+.panel[.panel-name[注]
+- 假设检验和置信区间
+
+- 假设样本点来自 N(2,1)，独立同分布
+
+- `\(H_0: \mu = 2\)` 和 `\(H_0: \mu = 2\)` 时，检验5% 置信水平的真值
+]
+.panel[.panel-name[]
+.panel[.panel-name[Code]
+
+```r
+# 假设检验和置信区间
+
+#设定样本大小为100
+N &lt;- 100
+
+# 初始化存储t统计量和拒绝原假设次数的向量，长度为1000
+tvalue &lt;- rep(NA, 1000)
+reject &lt;- rep(NA,1000)
+
+# H_0: mu = 2，亦可改变为1再次运行
+
+# 5% 置信水平的真值
+# 在每次模拟中，从N(2,1)中抽取一个大小为N的样本
+for (i in 1:1000) {
+
+X &lt;- rnorm(N,mean=2,sd=1)
+
+# 使用qt(1-0.05/2,df=N-1)得到t分布的临界值（5%的显著性水平，双尾检验）
+tvalue[i] &lt;- (mean(X)-2)/(sd(X)/sqrt(N))
+#abs()计算绝对值，dt返回值为正态分布概率密度函数，pt返回值为正态分布的分布函数，qt返回值为给定概率p后的下百分位数，rt返回值为n个正态分布随机数构成的向量
+
+# 判断t统计量的绝对值是否大于临界值，如果大于则拒绝原假设H0: mu = 2，将拒绝原假设的次数存储在reject向量中
+reject[i] &lt;- abs(tvalue[i])&gt;qt(1-0.05/2,df=N-1)
+}
+
+# 计算并输出拒绝原假设的平均次数（即原假设为假的平均次数）
+mean(reject)
+
+# 绘制t统计量的直方图和正态分布的概率密度函数（PDF）
+hist(tvalue,breaks = 50,freq=F)
+
+x &lt;- seq(-4,4,length.out=1000)
+lines(x,dt(x,df=N-1),col='red')
+```
+
+
+
+]
+
+.panel[.panel-name[Output]
+
+![](Lecture_2_Review_of_Statistics_files/figure-html/unnamed-chunk-20-1.png)&lt;!-- --&gt;
+
+```
+## [1] 0.062
+```
+
+
+
+]
+]
+]
+---
+
+### 单边备择假设
+.panelset[
+.panel[.panel-name[注]
+- 在某些情况下，备择假设可能是均值超过 `\(\mu_{Y,0}\)` 
+`$$H_0:E(Y)=\mu_{Y,0}\\
+H_1:E(Y)&gt;\mu_{Y,0}$$`
+
+- 在这种情况下， `\(p\)` 值是 `\(N(0,1)\)` 分布下尾部 `\(t\)` 统计量右边的部分
+`$$p=P_{H_0}(t&gt;t^{act})=1-\Phi(t^{act})$$`
+
+- 置信水平 `\(\alpha=0.05\)` 时，如果 `\(t^{act}&gt;1.64\)` 就拒绝原假设
+]
+.panel[.panel-name[]
+.panel[.panel-name[代码]
+
+```r
+# 使用curve函数在区间[-4,4]上绘制标准正态分布密度函数
+curve(dnorm(x),
+      xlim = c(-4, 4),
+      main = "Rejection Region of a Right-Sided Test",
+# y轴的范围由数据本身决定
+      yaxs = "i",
+      xlab = "t-statistic",
+      ylab = "",
+      lwd = 2,
+# 不绘制坐标轴
+      axes = "F")
+
+# 在x轴上添加四个刻度标记，并设置它们的标签
+axis(1, 
+# 设置刻度的位置
+     at = c(-4, 0, 1.64, 4),
+# 设置刻度标签与刻度之间的距离
+     padj = 0.5,
+# 设置刻度标签
+     labels = c("", 0, expression(Phi^-1~(.95)==1.64), ""))
+
+# 在图的右尾部绘制一个阴影区域
+# x和y定义阴影区域的边界点，col = "darkred"设置阴影区域的填充颜色为深红色
+polygon(x = c(1.64, seq(1.64, 4, 0.01), 4),
+        y = c(0, dnorm(seq(1.64, 4, 0.01)), 0), 
+        col = "darkred")
+```
+
+
+
+]
+
+.panel[.panel-name[图]
+
+![](Lecture_2_Review_of_Statistics_files/figure-html/unnamed-chunk-21-1.png)&lt;!-- --&gt;
+
+]
+]
+]
+---
+
+###单边备择假设
+.panelset[
+.panel[.panel-name[注]
+- 如果备择假设是均值小于 `\(\mu_{Y,0}\)` 
+`$$H_0:E(Y)=\mu_{Y,0}\\
+H_1:E(Y)&lt;\mu_{Y,0}$$`
+
+- 在这种情况下， `\(p\)` 值是 `\(N(0,1)\)` 分布下尾部 `\(t\)` 统计量左边的部分
+`$$p=P_{H_0}(t&lt;t^{act})=1-\Phi(-t^{act})$$`
+
+- 置信水平 `\(\alpha=0.05\)` 时，如果 `\(t^{act}&lt;-1.64\)` 或者 `\(p&lt;0.05\)` 就拒绝原假设
+]
+.panel[.panel-name[]
+.panel[.panel-name[代码]
+
+```r
+# 使用curve函数在区间[-4,4]上绘制标准正态分布密度函数
+curve(dnorm(x),
+      xlim = c(-4, 4),
+      main = "Rejection Region of a Left-Sided Test",
+# y轴的范围由数据本身决定
+      yaxs = "i",
+      xlab = "t-statistic",
+      ylab = "",
+      lwd = 2,
+# 不绘制坐标轴
+      axes = "F")
+
+# 在x轴上添加四个刻度标记，并设置它们的标签
+axis(1, 
+# 设置刻度的位置
+     at = c(-4, 0, -1.64, 4), 
+# 设置刻度标签与刻度之间的距离
+     padj = 0.5,
+# 设置刻度标签
+     labels = c("", 0, expression(Phi^-1~(.05)==-1.64), ""))
+
+# 在图的左尾部绘制一个阴影区域
+# x和y定义阴影区域的边界点，col = "darkred"设置阴影区域的填充颜色为深红色
+polygon(x = c(-4, seq(-4, -1.64, 0.01), -1.64),
+        y = c(0, dnorm(seq(-4, -1.64, 0.01)), 0), 
+        col = "darkred")
+```
+
+
+
+]
+
+.panel[.panel-name[图]
+
+![](Lecture_2_Review_of_Statistics_files/figure-html/unnamed-chunk-22-1.png)&lt;!-- --&gt;
+
+]
+]
+]
+---
+
+### 总体均值的置信区间
+- 由随机抽样引起的误差，仅利用样本信息无法确定 `\(Y\)` 总体均值的精确值，但我们可以利用样本数据构造一个以指定概率包含真实总体均值 `\(\mu_Y\)` 的取值集合，称**置信集(置信区间)**，此集合包含 `\(\mu_Y\)` 的指定概率为**置信水平**
+ 
+- `\(95\%\)` 置信区间
+  - 使所有可能的 `\(95\%\)` 随机样本中包含 `\(\mu_Y\)` 真值的区间
+  
+  - `\(\mu_Y\)`的 `\(95\%\)` 置信区间： `\([\bar Y\pm 1.96 \cdot \hat{\sigma_{\bar Y}}]\)`
+  
+  - `\(\mu_Y\)`的 `\(90\%\)` 置信区间： `\([\bar Y\pm 1.64 \cdot \hat{\sigma_{\bar Y}}]\)`
+  
+  - `\(\mu_Y\)`的 `\(99\%\)` 置信区间： `\([\bar Y\pm 2.58 \cdot \hat{\sigma_{\bar Y}}]\)`
+- 例如，基于刚毕业大学生的一个容量为 `\(200\)` 的假想随机样本，其中 `\(\bar Y=22.64\)` 美元/时， `\(SE(\bar Y)=1.28\)`,构造刚毕业的大学生平均每小时收入的一个 `\(95\%\)` 置信区间： `\(22.64\pm 1.96 \cdot 1.28=22.64\pm 2.51=[20.13,25.15]\)`
+---
+
+### 仿真模拟
+
+```r
+# 置信区间
+coverage &lt;- rep(NA,1000)
+
+for (i in 1:1000) {
+
+X &lt;- rnorm(N,mean=2,sd=1)
+#qt(p,df):p为概率(5%置信水平)，df为自由度 
+ls &lt;- mean(X)-qt(1-0.05/2,df=N-1)*(sd(X)/sqrt(N))
+
+rs &lt;- mean(X)+qt(1-0.05/2,df=N-1)*(sd(X)/sqrt(N))
+
+coverage[i] &lt;- (2 &gt;= ls) &amp; (2 &lt;= rs)
+}
+
+sum(coverage)
+```
+
+```
+## [1] 947
+```
+---
+
+###小结
+- 样本均值 `\(\bar Y\)` 是总体均值 `\(\mu_Y\)` 的估计量，若 `\(Y_i\)` 独立同分布 
+ 
+ - `\(\bar Y\)` 的抽样分布: `\(E( \bar Y)=\mu_Y,\quad \sigma_{\bar Y}^2=\sigma_{ Y}^2/n\)`
+ 
+ - `\(\bar Y\)` 无偏
+ 
+ - `\(\bar Y\)` 一致（大数定律）
+ 
+ - `\(\bar Y\)` 大样本下近似正态分布（中心极限定理）
+
+- `\(t\)` 统计量
+
+ - 可检验总体均值取某一特定值的原假设： `\(n\)` 较大时，在原假设下  `\(t^{act}\sim N(0,1)\)` 
+ 
+ - 可计算原假设对应的 `\(p\)` 值：较小的 `\(p\)` 值 `\(\longrightarrow\)` 原假设错误
+ 
+- 总体均值的假设检验和置信区间
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script>var slideshow = remark.create({
+"highlightStyle": "github",
+"highlightLines": true,
+"countIncrementalSlides": false
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();
+// add `data-at-shortcutkeys` attribute to <body> to resolve conflicts with JAWS
+// screen reader (see PR #262)
+(function(d) {
+  let res = {};
+  d.querySelectorAll('.remark-help-content table tr').forEach(tr => {
+    const t = tr.querySelector('td:nth-child(2)').innerText;
+    tr.querySelectorAll('td:first-child .key').forEach(key => {
+      const k = key.innerText;
+      if (/^[a-z]$/.test(k)) res[k] = t;  // must be a single letter (key)
+    });
+  });
+  d.body.setAttribute('data-at-shortcutkeys', JSON.stringify(res));
+})(document);
+(function() {
+  "use strict"
+  // Replace <script> tags in slides area to make them executable
+  var scripts = document.querySelectorAll(
+    '.remark-slides-area .remark-slide-container script'
+  );
+  if (!scripts.length) return;
+  for (var i = 0; i < scripts.length; i++) {
+    var s = document.createElement('script');
+    var code = document.createTextNode(scripts[i].textContent);
+    s.appendChild(code);
+    var scriptAttrs = scripts[i].attributes;
+    for (var j = 0; j < scriptAttrs.length; j++) {
+      s.setAttribute(scriptAttrs[j].name, scriptAttrs[j].value);
+    }
+    scripts[i].parentElement.replaceChild(s, scripts[i]);
+  }
+})();
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();
+// adds .remark-code-has-line-highlighted class to <pre> parent elements
+// of code chunks containing highlighted lines with class .remark-code-line-highlighted
+(function(d) {
+  const hlines = d.querySelectorAll('.remark-code-line-highlighted');
+  const preParents = [];
+  const findPreParent = function(line, p = 0) {
+    if (p > 1) return null; // traverse up no further than grandparent
+    const el = line.parentElement;
+    return el.tagName === "PRE" ? el : findPreParent(el, ++p);
+  };
+
+  for (let line of hlines) {
+    let pre = findPreParent(line);
+    if (pre && !preParents.includes(pre)) preParents.push(pre);
+  }
+  preParents.forEach(p => p.classList.add("remark-code-has-line-highlighted"));
+})(document);</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>

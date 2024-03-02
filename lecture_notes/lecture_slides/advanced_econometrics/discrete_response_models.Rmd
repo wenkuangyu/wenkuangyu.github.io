@@ -1,0 +1,548 @@
+---
+title: "离散因变量模型（Discrete response models）"
+subtitle: 
+author: "文旷宇"
+institute: "华中科技大学"
+date: "2023"
+output:
+  xaringan::moon_reader:
+    css: [xaringan-themer.css]
+    lib_dir: libs
+    nature:
+      highlightStyle: github
+      highlightLines: true
+      countIncrementalSlides: false
+---
+class: left, middle
+layout: true
+
+```{r setup, include=FALSE}
+options(htmltools.dir.version = FALSE)
+```
+
+```{r xaringanExtra, echo=FALSE}
+xaringanExtra::use_logo(
+  image_url = "../images/hust-logo.png",
+  width = "55px",
+  height = "64px")
+xaringanExtra::use_banner(
+  top_left = "",
+  top_right = "",
+  bottom_left = "文旷宇/华中科技大学",
+  exclude = "title-slide"
+)
+xaringanExtra::use_scribble()
+xaringanExtra::use_panelset()
+```
+
+```{r xaringan-themer, include=FALSE, warning=FALSE}
+library(xaringanthemer)
+style_mono_light(base_color = "#23395b",
+header_font_google = google_font("Noto Serif SC"),
+text_font_google   = google_font("Noto Serif SC", "500", "500i"),
+code_font_google   = google_font("Fira Mono")                 
+)
+```
+
+---
+
+### 主要内容
+
+
+- 二元选择模型
+
+  - 标准模型与MLE估计
+  - 可忽略遗漏变量
+  - 连续型内生变量
+  - 二值型内生变量
+  - 随机效应面板数据模型
+
+- 多元选择模型
+
+- 有序选择模型
+
+- 计数因变量模型
+
+
+
+---
+
+### 二值因变量
+
+- 因变量 $Y$ 是虚拟变量，仅在0和1两个离散值上取值。
+
+- 经济学研究中存在很多二值因变量的例子：学生是否上大学；女性是否进入劳动力市场；住房抵押贷款申请是否批准；企业是否获得政府补贴等。
+
+- 均值回归框架下，回归函数 $E[Y|X]=P(Y=1|X)$，本质上我们需要对概率 $P(Y=1|X)$ 建模。
+
+- 线性概率模型：假设 $\pi(X)=X^\top \beta$，那么我们回到了线性回归
+$$Y_i = X_i^\top \beta+e_i，$$
+该模型可以使用OLS估计，**系数有偏效应和平均偏效应的解释**。但是不足之处在于：
+  - 无法保证得到的估计 $X_i^\top \hat \beta \in [0,1]$，这种情况下无法赋予其概率解释；
+  - 存在异方差，可以计算 $Var(Y_i|X_i)=P(Y_i=1|X_i)-P(Y_i=1|X_i)^2$。
+
+---
+
+.pull-left[
+### Probit/Logit模型
+- 为了解决线性概率模型无法保证估计值处于区间[0,1]的问题，我们令
+$$P(Y_i=1|X_i) = G(X_i^\top \beta)，$$
+其中 $G:\mathbb{R}\to [0,1]$是一个累计分布函数（CDF）。
+
+- Probit模型： $G$ 是标准正态分布的CDF； $\Phi(x)=\frac{1}{\sqrt{2\pi}} \int_{-\infty}^x e^{-\frac{z^2}{2}}dz$；
+- Logit模型： $G$ 是logistic分布的CDF； $\Lambda(x)=\frac{e^{x}}{1+e^{x}}$；
+]
+.pull-right[
+```{r,echo=FALSE,out.width='100%',out.height='100%'}
+x <- seq(-4,4,length.out=1000)
+matplot(x,cbind(pnorm(x),plogis(x)),type='l',xlab='',ylab='CDF')
+rm(x)
+```
+- 在实际应用中，选择Probit还是Logit模型对响应概率和偏效应估计的区别不大。哪个模型使用起来方便、哪个模型拓展更为容易就用哪个模型。
+]
+
+---
+### Probit/Logit模型
+- Probit/Logit模型的潜变量表示
+$$\begin{aligned}
+Y^*_i &= X_i^\top \beta + e_i \\
+Y_i &= 1(Y^*_i > 0)，
+\end{aligned}$$
+其中 $1(A)$ 是示性函数，当 $A$ 为真时等于1，当 $A$ 为假时等于0；潜变量 $Y_i^*$ 不可观测，可以理解为“效用”；残差项 $e_i$ 的分布为 $G$。
+
+  假设分布 $G$ 是对称的，即 $G(x)=1-G(-x)$，可以计算
+$$\begin{aligned}
+&P(Y_i=1|X_i)=P(Y_i^*>0|X_i)
+=P(e_i>-X_i^\top\beta|X_i)\\
+&= 1-P(e_i\le -X_i^\top\beta|X_i)= 1-G(-X_i^\top\beta)= G(X_i^\top\beta)。
+\end{aligned}$$
+
+- 由于该模型中 $Y_i$ 仅取决于潜变量 $Y_i^*$ 的符号，系数 $\beta$ 与 $Var(e_i)$ 无法同时识别，一般我们将 $Var(e_i)$ 标准化到一个确定的值，这是为什么假设 $G$ 是标准正态或者标准logistic分布。
+
+- 模型隐含假设 $e_i$ 和 $X_i$ 是独立的，即潜变量方程中 $X_i$ 是外生的，因为模型用到了 $e_i|X_i$ 的分布与 $e_i$ 的分布一致。
+
+---
+### Probit/Logit模型的MLE估计
+
+- 独立同分布样本 $(Y_i,X_i),i=1,\cdots,N$；
+
+- 未知参数 $\beta \in \mathbb{R}^K$；
+
+- 在回归模型中，自变量 $X_i$ 的分布通常与未知参数无关，因此我们只需要考虑条件概率 $Y_i|X_i$。由于 $P(Y_i=1|X_i)=G(X_i^\top \beta)$ 且  $P(Y_i=0|X_i)=1-G(X_i^\top \beta)$，二者可以统一写作
+$$p(Y_i|X_i)=G(X_i^\top \beta)^{Y_i}(1-G(X_i^\top \beta))^{(1-Y_i)}，$$
+因此对数似然函数是
+$$l(\beta) =\sum_{i=1}^N \log p(Y_i|X_i)= \sum_{i=1}^N Y_i \log G(X_i^\top \beta)+(1-Y_i)\log (1-G(X_i^\top \beta))。$$
+通过最大化 $l(\beta)$ 得出估计量 $\hat \beta$ 以及 $\hat \beta$ 的大样本渐近分布，适用标准的MLE估计理论与统计推断理论。
+
+---
+
+### 偏效应与平均偏效应
+
+将分布函数 $G$ 对应的密度函数记作 $g$；将 $X$ 中第 $k$ 个变量记作 $X_k$；将 $X$ 中除去第 $k$ 个变量后剩下的向量记作 $X_{-k}$。
+
+- 偏效应（partial effect）
+
+  - 当 $X_k$ 连续时，偏效应为 $\partial P(Y=1|X)/\partial X_k = g(X^\top \beta)\beta_k$；
+  - 当 $X_k$ 离散时，假如 $X_k$ 从 $x_k$ 变到 $x_k+1$，偏效应为 $G(X_{-k}^\top\beta_{-k}+x_k\beta_k)-G(X_{-k}^\top\beta_{-k}+(x_k+1)\beta_k)$。
+
+- 在Probit/Logit这类非线性模型中，偏效应是自变量 $X$ 的函数，其具体的值取决于我们在何处计算偏效应，由于 $g(\cdot)>0$，偏效应的符号与系数 $\beta_k$ 的符号一致。
+
+- 平均偏效应（average partial effect）是偏效应对自变量 $X$ 的期望。
+
+  - 当 $X_k$ 连续时，平均偏效应可以估作 $n^{-1}\sum_{i=1}^N g(X_i^\top \beta)\beta_k$。
+  - 当 $X_k$ 离散时，假如 $X_k$ 从 $x_k$ 变到 $x_k+1$，平均偏效应估作 $n^{-1}\sum_{i=1}^N\left[G(X_{-k,i}^\top\beta_{-k}+x_k\beta_k)-G(X_{-k,i}^\top\beta_{-k}+(x_k+1)\beta_k)\right]$。
+
+---
+
+### 遗漏变量：当遗漏变量与自变量不相关
+
+- 在一般线性回归中，当遗漏变量与自变量不相关时，不影响OLS估计的无偏性或一致性。那么Probit/Logit模型下会是什么结果呢？
+
+- 为了分析问题简便，考虑Probit模型（结构模型或真实模型）
+$$\begin{aligned}
+Y_i^* &=X_i^\top \beta + Z_i+e_i \\
+Y_i &= 1(Y_i^*>0)，
+\end{aligned}$$
+其中 $Z_i$ 是遗漏变量，比如不可观测的个体异质性，我们假设 $Z_i \sim N(0,\sigma_z^2)$且 $Z_i$ 与 $X_i$ 独立，残差 $e_i | X_i,Z_i \sim N(0,1)$。
+
+- 如果忽略 $Z_i$，直接将 $Y$ 对 $X$ 做Probit回归，那么实际做的潜变量回归变为
+$$Y_i^* =X_i^\top \beta + u_i，$$
+
+  其中 $u_i=Z_i+e_i \sim N(0,1+\sigma_z^2)$ 且与 $X_i$ 独立，那么
+$$P(Y_i = 1|X_i) = \Phi\left(\frac{X_i^\top \beta}{\sqrt{1+\sigma_z^2}} \right)。$$
+
+---
+### 遗漏变量：当遗漏变量与自变量不相关
+
+- 直接将 $Y$ 对 $X$ 做Probit回归估计出的 $\hat \beta$一致地估计 $\frac{ \beta}{\sqrt{1+\sigma_z^2}}$ 而非 $\beta$，但符号是相同的。
+
+- 偏效应写作 $\partial P(Y=1|X,Z)/\partial X_k =  \phi(X^\top \beta+Z)\beta_k$。给定 $X$ 后对遗漏变量 $Z$ 求期望的平均偏效应
+$$\begin{aligned}
+E_Z \left[\phi(X^\top \beta+Z)\beta_k \right]& =\beta_k \int \phi(z;-X^\top \beta,1)\phi(z;0,\sigma_z^2)dz\\
+&=\beta_k\phi(-X^\top\beta;0,1+\sigma_z^2)= \phi\left(\frac{X^\top \beta}{\sqrt{1+\sigma_z^2}} \right)\frac{\beta_k}{\sqrt{1+\sigma_z^2}}，
+\end{aligned}$$
+其中 $\phi(\cdot;\mu,\sigma^2)$ 代指均值为 $\mu$ 方差为 $\sigma^2$ 的正态分布的概率密度函数。
+
+- 直接将 $Y$ 对 $X$ 做Probit回归估计出的偏效应依概率趋向 $\partial P(Y=1|X)/\partial X_k=\phi\left(\frac{X^\top \beta}{\sqrt{1+\sigma_z^2}} \right)\frac{\beta_k}{\sqrt{1+\sigma_z^2}}$，因此所估计的偏效应实际是对遗漏变量 $Z$ 求期望的平均偏效应。
+
+---
+### 内生性与工具变量：连续型内生变量
+
+- 潜变量方程中，当残差项 $e$ 与自变量 $X$ 相关时会出现内生性问题，此时 $e|X$ 的分布取决于 $X$ 而不是服从分布 $G$。我们以Probit模型为例分析内生性存在是如何利用工具变量进行估计。
+
+- 考虑结构模型
+$$Y_i^* =X_{1i}^\top \beta_1+X_{2i}\beta_2+e_i\\ Y_i=1(Y_i^*>0)，$$
+其中 $X_1$ 是外生变量， $X_2$ 是连续型内生变量，残差 $e\sim N(0,1)$。假设有工具变量 $Z_2$，记内生变量对所有外生变量的简约回归方程为
+$$X_{2i} =  X_{1i}^\top \delta_1 + Z_{2i}^\top\delta_2 + u_i，$$
+由于 $X_2$ 是内生的，那么 $cov(e,u)\ne 0$。**估计含有内生变量的Probit模型需要相当强的假设： $(e,u)$ 服从零均值的二元正态分布并且与 $(X_1,Z_2)$ 是独立的。**
+
+---
+### Rivers and Vuong (1988) 两步估计法
+
+- 记 $e$ 和 $u$ 之间的线性相关系数为 $\rho$ 以及 $u$ 的方差为 $\sigma_u^2$。 由于 $(e,u)$ 服从零均值的二元正态分布且 $Var(e)=1$，我们引入方程 $e=\theta u+v$，其中 $\theta = Cov(e,u)/Var(u)=\rho/\sigma_u$，残差 $v$ 与 $u$ 独立且服从 $N(0,1-\rho^2)$。
+
+- 结构模型中的潜变量方程可以改写为
+$$Y_i^* =X_{1i}^\top \beta_1+X_{2i}\beta_2+\theta u_i + v_i。$$
+根据假设， $v$ 与 $(X_1,X_2,u)$ 独立，如果我们可以观测到 $u$，那么我们有
+$$P(Y_i=1|X_1,X_2,u) = \Phi\left(\frac{X_{1i}^\top \beta_1+X_{2i}\beta_2+\theta u_i}{\sqrt{1-\rho^2}} \right)。$$
+
+- 这意味着我们将 $Y$ 对 $(X_1,X_2,u)$ 做Probit回归可以一致地估计出 $(\beta_1,\beta_2,\theta)/\sqrt{1-\rho^2}$，而 $u$ 是可以通过内生变量对外生变量的简约式回归一致估计出的。
+
+---
+### Rivers and Vuong (1988) 两步估计法（续）
+
+- 第一步：将 $X_2$ 对 $X_1$ 以及 $Z_2$ 做线性回归（OLS估计量即可），得到残差 $u$ 的估计 $\hat u$以及 $\hat \sigma_u^2 = n^{-1}\sum_{i=1}^n \hat u_i^2$。
+
+- 第二步：将 $Y$ 对 $X_1$、 $X_2$ 以及 $\hat u$ 做Probit回归，记得到的估计量为 $\tilde \beta_1$、 $\tilde \beta_2$ 和 $\tilde \theta$，我们有 $(\tilde \beta_1,\tilde \beta_2,\tilde \theta) \to^p (\beta_1,\beta_2,\theta)/\sqrt{1-\rho^2}$。如何得到 $\rho$ 的一致估计 $\hat \rho$ 从而还原出回归系数的一致估计呢？
+
+- 由于
+$\tilde \theta\sqrt{1-\hat \rho^2}$ 和 $\hat \rho/\hat \sigma_u$ 都是 $\theta$ 的一致估计，可以推出 $\sqrt{1-\hat \rho^2} = \left(1+\hat \sigma_u^2 \tilde \theta^2\right)^{-1/2}$。因此，我们的最终估计量是 $(\hat \beta_1,\hat \beta_2,\hat \theta) = (\tilde \beta_1,\tilde \beta_2,\tilde \theta)\left(1+\hat \sigma_u^2 \tilde \theta^2\right)^{-1/2}$。
+
+- 对变量 $X_k$ 的平均偏效应估计：
+$$\frac{1}{n}\sum_{i=1}^N \phi\left(X_{1i}^\top \tilde \beta_1+X_{2i}\tilde \beta_2+\tilde \theta \hat u_i \right)\hat \beta_k。$$
+
+---
+
+### 连续型内生变量的MLE估计
+
+- 未知参数： $\theta = (\beta_1,\beta_2,\delta_1,\delta_2,\rho,\sigma_u^2)$；
+
+- 由于外生变量 $X_1$ 和 $Z_2$ 与未知参数无关，只需要考虑 $\log p(Y,X_2|X_1,Z_2) = \log p(Y|X_2,X_1,Z_2)+ \log p(X_2|X_1,Z_2)$。
+
+- 根据假设 $X_2|X_1,Z_2 \sim N(X_1^\top \delta_1+Z_2^\top \delta_2,\sigma_u^2)$，因此
+$$ \log p(X_2|X_1,Z_2) = -\frac{1}{2}\log(2\pi \sigma_u^2)-\frac{(X_2-X_1^\top \delta_1-Z_2^\top \delta_2)^2}{2\sigma_u^2}。$$
+
+- 
+$$\begin{aligned}
+& P(Y=1|X_2,X_1,Z_2) = P(Y=1|X_2,X_1,u) = \Phi\left(\frac{X_1^\top \beta_1+X_2\beta_2+\theta u}{\sqrt{1-\rho^2}} \right)\\
+&= \Phi\left(\frac{X_1^\top \beta_1+X_2\beta_2+ (X_2 -  X_1^\top \delta_1 - Z_2^\top\delta_2)\rho/\sigma_u}{\sqrt{1-\rho^2}} \right)\equiv \Phi\left(W(\theta) \right)
+\end{aligned}$$
+
+---
+
+### 连续型内生变量的MLE估计（续）
+
+- 对数似然函数
+$$l(\theta) = \sum_{i=1}^N \left\{Y_i\log \Phi\left(W_i(\theta) \right)+(1-Y_i)\log \left[1-\Phi\left(W_i(\theta) \right)\right]\right\} \\-\frac{N}{2}\log(2\pi \sigma_u^2)-\sum_{i=1}^N\frac{(X_{2i}-X_{1i}^\top \delta_1-Z_{2i}^\top \delta_2)^2}{2\sigma_u^2}。$$
+通过最大化对数似然函数得到所有参数的MLE估计量。
+
+- 相较于两步估计法，MLE估计更加有效。但是两步法计算更为方便，MLE估计中数值优化计算量大，有时候很难得到收敛的迭代计算。
+
+---
+
+### 内生性与工具变量：二值型内生变量
+
+- 结构模型
+$$Y_i = 1(X_{1i}^\top \beta_1+X_{2i}\beta_2+e_i>0)，$$
+其中 $X_1$ 是内生变量， $X_2$ 是一个二值内生变量，残差 $e \sim N(0,1)$。假设有工具变量 $Z_2$ 且内生变量对所有外生变量的简约式回归可以表示为
+$$X_{2i} = 1(X_{1i}^\top \delta_1+Z_{2i}^\top\delta_2+u_i>0)，$$
+其中残差 $u\sim N(0,1)$。
+
+- 该简约式回归主要适用于遗漏变量导致的内生性，二值变量的测量误差或者双向因果不会导致这种模型。
+
+- 依然需要一个强的假设条件： $(e,u)$ 服从均值为0的二维正态分布，并且 $(e,u)$ 与外生变量 $(X_1,Z_2)$ 独立。记 $(e,u)$ 的线性相关系数为 $\rho$。
+
+---
+
+### 二值型内生变量的MLE估计
+
+- 未知参数 $\theta=(\beta_1,\beta_2,\delta_1,\delta_2,\rho)$；
+
+- 与连续型内生变量MLE估计一样，只需要考虑 $\log p(Y,X_2|X_1,Z_2) = \log p(Y|X_2,X_1,Z_2)+ \log p(X_2|X_1,Z_2)$。
+
+- 首先根据简约式回归方程，
+$$\log p(X_2|X_1,Z_2) = X_2\log \Phi\left(X_1^\top \delta_1 +Z_2^\top \delta_2 \right)\\+(1-X_2)\log \left[1-\Phi\left(X_1^\top \delta_1 +Z_2^\top \delta_2 \right)\right]。$$
+
+- 由于 $(e,u)$ 服从均值为0的二维正态分布，那么我们有
+$$e = \rho u+v$$ 其中 $v\sim N(0,1-\rho^2)$ 并且 $v$ 与 $u$ 独立。我们进一步将结构方程改写为
+$$Y_i = 1(X_{1i}^\top \beta_1+X_{2i}\beta_2+\rho u_i+v_i>0)，$$
+其中 $v$ 与 $(X_1,X_2,u)$ 独立。
+
+---
+### 二值型内生变量的MLE估计（续）
+
+- 截取正态分布（truncated normal distribution）
+  
+  如果 $T$ 具有标准正态分布，那么 $T|(T>t)$ 的概率密度函数是 $\phi(\cdot)/\Phi(-t)$。
+  
+- 二值内生变量下， $X_2$ 与 $u$ 不是1-1对应的， $X_2=1$ 对应 $u>-X_1^\top \delta_1-Z_2^\top \delta_2$，
+$$\begin{aligned}
+& p(Y=1|X_2=1,X_1,Z_2) = \int_u p(Y=1,u|X_2=1,X_1,Z_2)du\\
+=& \int_u p(Y=1|u,X_2=1,X_1,Z_2)p(u|X_2=1,X_1,Z_2)du\\
+=& \int_u p(Y=1|u,X_1,Z_2)p(u|u>-X_1^\top \delta_1-Z_2^\top \delta_2,X_1,Z_2)du\\
+=& \frac{1}{\Phi(X_1^\top \delta_1+Z_2^\top \delta_2)} \int_{-X_1^\top \delta_1-Z_2^\top \delta_2}^{\infty} \Phi\left(\frac{X_1^\top \beta_1+X_2\beta_2+\rho u}{\sqrt{1-\rho^2}}\right)\phi(u)du。
+\end{aligned}$$
+
+- 接下来有 $p(Y=0|X_2=1,X_1,Z_2)=1-p(Y=1|X_2=1,X_1,Z_2)$。
+
+---
+### 二值型内生变量的MLE估计（续）
+
+- 同样我们可以计算
+$$\begin{aligned}
+& p(Y=1|X_2=0,X_1,Z_2) = \int_u p(Y=1,u|X_2=0,X_1,Z_2)du\\
+=& \int_u p(Y=1|u,X_2=0,X_1,Z_2)p(u|X_2=0,X_1,Z_2)du\\
+=& \int_u p(Y=1|u,X_1,Z_2)p(u|u<-X_1^\top \delta_1-Z_2^\top \delta_2,X_1,Z_2)du\\
+=& \frac{1}{\Phi(-X_1^\top \delta_1-Z_2^\top \delta_2)} \int_{-\infty}^{-X_1^\top \delta_1-Z_2^\top \delta_2} \Phi\left(\frac{X_1^\top \beta_1+X_2\beta_2+\rho u}{\sqrt{1-\rho^2}}\right)\phi(u)du，
+\end{aligned}$$
+以及 $p(Y=0|X_2=0,X_1,Z_2)=1-p(Y=1|X_2=0,X_1,Z_2)$。
+
+- 合并上述四种情况就可以得出 $\log p(Y|X_2,X_1,Z_2)$，进而通过最大化对数似然函数得出未知参数的MLE估计。
+
+---
+### 二值因变量的面板数据模型
+
+- 一种选择是使用线性概率模型（LPM）。虽然LPM对响应概率的模型设定几乎必然是错误的，但是当我们主要关注平均偏效应时，LPM可以做出合理的估计。使用LPM的主要好处包括：1）现有针对连续因变量的面板数据模型可以直接使用，无需设计新的模型；2）估计过程更为容易；3）模型所依赖的假设条件更弱。
+
+- 包含不可观测个体异质性的面板Probit/Logit模型。以Probit为例，该类模型通常写作
+$$P(Y_{it}=1|X_{it},c_i)=\Phi\left(X_{it}^\top \beta+c_i\right) \quad \quad i=1,\cdots,N; t=1,\cdots,T，$$
+其中 $c_i$ 是无法观测到的个体异质性差异， $X$ 包含一系列解释变量，***值得强调的是，我们通常需要在 $X$ 中加入时间虚拟变量以体现不可观测的时间效应***。
+
+- 与线性概率模型相比，面板Probit/Logit模型往往需要在更为严格的假设条件下使用MLE进行估计，计算量更大且更为复杂。
+
+---
+### 传统随机效应Probit模型的假设条件
+
+- （严格外生）给定不可观测的个体效应，解释变量是严格外生的：
+$$P(Y_{it}=1|X_i,c_i) = P(Y_{it}=1|X_{it},c_i)，$$
+其中 $X_i=(X_{i1},X_{i2},\cdots,X_{iT})$。简单来说，给定个体效应，过去的 $X$ 只能通过当期的 $X$ 影响 $Y$；影响当期 $Y$ 的特质性因素（即 $X$ 和 $c$ 之外的其它因素）不会影响未来的 $X$。***该假设排除了解释变量包含滞后因变量的情形。***
+
+- （条件独立）给定 $(X_i,c_i)$， $Y_{i1},Y_{i2},\cdots,Y_{iT}$ 条件独立。在该假设下
+$$p(Y_{i1},Y_{i2},\cdots,Y_{iT}|X_i,c_i)=\prod_{t=1}^T p(Y_{it}|X_i,c_i)=\prod_{t=1}^T p(Y_{it}|X_{it},c_i)。$$
+
+- （ $(X_i,c_i)$ 的相关关系）这里我们把 $c_i$ 当作一个不可观测的随机变量，该随机变量与 $(X_i,Y_i)$ 一同被抽样。传统的随机效应Probit模型假设 $c_i|X_i \sim N(0,\sigma_c^2)$。
+该假设是一个相当强的假设，它意味着 $c_i$ 与所有 $X_{i1},\cdots,X_{iT}$ 都是独立的，且 $c_i$ 服从于正态分布。
+
+---
+### 传统随机效应Probit模型的MLE估计
+
+- 未知参数： $\theta = (\beta,\sigma_c^2)$
+
+- 记 $Y_i = (Y_{i1},Y_{i2},\cdots,Y_{iT})$ 以及 $X_i = (X_{i1},X_{i2},\cdots,X_{iT})$。对数似然函数为 $l(\theta) = \sum_{i=1}^N \log p(Y_i|X_i)$，其中
+$$\begin{aligned}
+p(Y_i|X_i) &= \int p(Y_i,c_i|X_i)dc_i=\int p(Y_i|c_i,X_i)p(c_i|X_i)dc_i \\
+&= \int \prod_{t=1}^T p(Y_{it}|X_{it},c_i)\frac{1}{\sigma_c}\phi\left(\frac{c_i}{\sigma_c}\right)dc_i，
+\end{aligned}$$
+以及
+$$p(Y_{it}|X_{it},c_i) = \Phi\left(X_{it}^\top \beta+c_i \right)^{Y_{it}}\left(1-\Phi\left(X_{it}^\top \beta+c_i \right)\right)^{1-Y_{it}}。$$
+对数似然函数中的积分需要数值近似计算，可参考[Butler and Moffitt (1982)](https://doi.org/10.2307/1912613)。
+
+---
+### 固定效应Probit模型？从属参数陷阱
+
+- 我们可否将个体效应视作未知参数，将其与系数 $\beta$ 一起估计呢？这样似乎可以避免对个体效应的分布以及与解释变量相关结构做严苛的假设。对数似然函数的形式似乎也很简单
+$$l(\beta,c_1,\cdots,c_N)= \sum_{i=1}^N\sum_{t=1}^T Y_{it} \log \Phi\left(X_{it}^\top \beta+c_i \right)+(1-Y_{it})\log \left(1-\Phi\left(X_{it}^\top \beta+c_i \right)\right)。$$ 
+
+- 系数 $\beta$ 是主要参数，个体效应 $(c_1,\cdots,c_N)$ 是从属参数。从属参数的个数为 $N$，当 $T$ 固定且 $N\to \infty$ 时，从属参数个数与样本容量之比趋向 $1/T$ 而非0。
+
+- 与线性模型不同，在Probit/Logit等非线性模型下，当存在个体效应这类从属参数时，一般来说参数估计是不一致的。[Fernández-Val (2009)](https://doi.org/10.1016/j.jeconom.2009.02.007)提出了一个偏差校正估计量。
+
+---
+### 传统随机效应Probit模型的拓展
+
+- 放松条件独立假设条件，允许时序相关。面板Probit模型的潜变量形式：
+$$Y_{it}^* = X_{it}^\top \beta + c_i +e_{it} \\ Y_{it}= 1(Y_{it}^*>0)。$$
+假设给定 $(X_i,c_i)$，残差向量 $e_i = (e_{i1},\cdots,e_{iT})$ 是 $T$ 维正态分布且方差矩阵的对角线元素为1、非对角线元素不为0。该模型的MLE计算非常复杂，可参考[Geweke and Keane (2001)](https://doi.org/10.1016/S1573-4412%2801%2905009-7)使用蒙特卡洛模拟近似计算。
+
+- 放松个体效应与自变量独立的假设。Chamberlain随机效应Probit模型[(Chamberlain 1980)](https://doi.org/10.2307/2297110)假设
+$$c_i | X_i \sim N(\gamma_0+\bar X_i^\top \gamma_1,\sigma_c^2)，$$
+其中 $\bar X_i = T^{-1}\sum_{t=1}^T X_{it}$。该假设下自变量影响个体效应的均值。该模型的估计与传统随机效应Probit模型类似。
+
+---
+### 多元选择模型：多项Logit
+
+- 因变量 $Y$ 在 $J+1$ 个整数 $0,1,\cdots,J$ 中取值，每一个整数代表一个分类，数字本身仅作为标签，数字大小无实际意义。比如，变量 $Y$ 可以是职业的选择、上下班通勤方式等。
+
+- 在二值Logit模型中
+$$P(Y=0|X) \propto 1=\exp(X^\top 0); \quad P(Y=1|X)\propto \exp(X^\top \beta)。$$
+
+- 多项Logit是二值Logit模型的推广。令 $\beta_0=0$，对任一分类 $j=0,1,\cdots,J$，
+$$P(Y=j|X)\propto \exp(X^\top \beta_j)。$$
+为保证概率之和等于1，我们得出多项Logit模型的最终表达式为
+$$P(Y=j|X) = \frac{\exp(X^\top \beta_j)}{\sum_{h=0}^J \exp(X^\top \beta_h)}。$$
+
+---
+### 多项Logit模型中系数的解释
+
+- 记 $\beta_{jk}$ 是系数 $\beta_j$ 中的第 $k$ 个元素。对于连续的 $X_k$，我们可以计算偏效应
+$$\frac{\partial P(Y=j|X)}{\partial X_k}=P(Y=j|X)\left\{\beta_{jk}-\frac{\sum_{h=1}^J \beta_{hk}\exp(X^\top \beta_h)}{\sum_{h=0}^J \exp(X^\top \beta_h)} \right\}，$$
+说明偏效应不仅大小不完全取决于 $\beta_{jk}$，连符号也不完全取决于 $\beta_{jk}$ 了。
+
+- 将类别0设为基准类别，考虑概率比 $P(Y=j|X)/P(Y=0|X)$ 以及对数概率比
+$$\log \left[\frac{P(Y=j|X)}{P(Y=0|X)}\right]=X^\top \beta_j，$$
+这说明对数概率比对于系数 $\beta_j$ 是线性的。因此，系数 $\beta_{jk}$ 可以解释为： $X_k$ 变化一个单位，概率比 $P(Y=j|X)/P(Y=0|X)$ 大约变化 $100\beta_{jk}\%$。
+
+---
+
+### 多项Logit模型的MLE估计
+
+- 未知参数 $\beta= (\beta_1,\cdots,\beta_J)$，即各分类所对应系数的集合。
+
+- 根据多项Logit模型，我们有
+$$P(Y|X)=\prod_{j=0}^J P(Y=j|X)^{1(Y=j)}$$
+以及对数似然函数
+$$l(\beta) = \sum_{i=1}^N \log P(Y_i|X_i)=\sum_{i=1}^N\sum_{j=0}^J 1(Y_i=j)\log P(Y_i=j|X_i)。$$
+
+- 可以证明对数似然 $l(\beta)$ 是全局凹函数，因此多项Logit的MLE计算相对容易。
+
+---
+### 多元选择模型：条件Logit
+
+- 将个体 $i$ 选择类别 $j$ 的效用方程写作
+$$Y_{ij}^* = X_{ij}^\top \beta + a_{ij}, \quad j=0,1,\cdots,J。$$
+其中 $X_{ij}$ 是一系列影响效用的可观测因素，这些因素**必须**随着类别选择的变化而变化，比如在通勤方式选择的例子中 $X_{ij}$ 可能包含不同通勤方式耗费时间，这些因素不必要一定在个体之间存在差异； $a_{ij}$ 是影响效用的其它不可观测因素。
+
+- 记 $a_i=(a_{i0},a_{i1},\cdots,a_{iJ})$ 以及 $X_i=(X_{i0},X_{i1},\cdots,X_{iJ})$，假设 $a_i$ 与 $X_i$ 独立。
+
+- 个体 $i$ 通过最大化效用进行选择，即
+$$Y_i = \arg\max_j (Y_{i0}^*,Y_{i1}^*,\cdots,Y_{iJ}^*)，$$
+那么 $Y_i$ 在 $0,1,\cdots,J$ 中取值。
+
+---
+### 多元选择模型：条件Logit（续）
+
+- 假设 $a_{ij},j=0,1,\cdots,J$ 独立同分布且服从第1类极值分布（extreme value distribution of type I），分布函数为 $F(a)=\exp(-\exp(-a))$，McFadden (1974)证明了响应概率的形式为
+$$P(Y_i=j|X_i)= \exp(X_{ij}^\top \beta)/\left[\sum_{h=0}^J \exp(X_{ih}^\top \beta)\right], \quad j=0,1,\cdots,J，$$
+被称作条件Logit模型。
+
+- 偏效应
+$$\frac{\partial P(Y_i=j|X_i)}{\partial X_{ij}} = P(Y_i=j|X_i)(1-P(Y_i=j|X_i))\beta, \quad j=0,1,\cdots,J$$
+以及
+$$\frac{\partial P(Y_i=j|X_i)}{\partial X_{ih}} = -P(Y_i=j|X_i)P(Y_i=h|X_i)\beta, \quad h\ne j。$$
+
+---
+
+### 多项Logit与条件Logit的比较
+
+- 两者适用场景不同。
+
+  - 多项Logit模型中的解释变量 $X$ 只存在个体间的差异，不存在类别选择的差异，不同类别对应不同的未知系数。该模型适用于待选择类别的特征与选择决策无关或者数据不可获得，比如职业的选择，个体在进行职业选择的时候较多地结合自身特征（比如经验、教育）进行决策，而职业相关特征可能是次要或不可观测的。
+  
+  - 条件Logit模型中解释变量 $X$ 主要存在选择类别的差异，在个体间可能存在也可能不存在差别，不同类别对应相同的未知系数。该模型适用于选择决策主要取决于类别的特征，比如通勤交通工具的选择。
+  
+- 两者响应概率形式相似，事实上多项Logit可以视作条件Logit的一种特殊形式。
+
+  假设 $W_i$ 是个体特征向量且 $P(Y_i=j|W_i)$ 服从多项Logit模型，类别 $j$ 对应的未知系数为 $\delta_j$。我们将其改写为条件Logit模型：定义 $X_{ij} = (d0_jW_i,d1_jW_i,\cdots,dJ_jW_i)$，其中 $dj_h$ 是虚拟变量，当 $h=j$ 时 $dj_h=1$；定义 $\beta=(\delta_1,\delta_2,\cdots,\delta_J)$。
+  
+---
+### 多项Logit与条件Logit的结合——混合Logit模型
+
+- 实际应用中，可以将两类解释变量结合。一个一般的模型是
+$$Y_{ij}^* = Z_{ij}^\top \gamma + W_i^\top \delta_j+a_{ij}, \quad j=0,1,\cdots,J$$
+其中 $Z_{ij}$ 包含随类别变化而变化的解释变量（类别特征）， $W_i$ 包含仅随个体变化的解释变量（个体特征），系数 $\delta_0=0$ （标准化）。这个模型也被称作混合Logit模型。
+
+- 注意：混合Logit模型中不能设定 $\delta_j=\delta$，否则 $W_i^\top \delta$ 将不会影响各分类的响应概率。
+
+---
+### 条件Logit模型的局限
+
+- 无关选项的独立性假设（IIA, independence from irrelevant alternatives）。条件Logit模型下，任意两个选择类别的响应概率比
+$$\frac{P(Y_i=j|X_i)}{P(Y_i=h|X_i)} =\frac{\exp(X_{ij}^\top \beta)}{\exp(X_{ih}^\top \beta)} =\exp((X_{ij}-X_{ih})^\top \beta)$$
+只与类别 $j$ 和类别 $h$ 的特征有关，而与其它选择类别的特征无关。换句话说，加入其它可供选择的类别或者改变其它类别的特征不会影响类别 $j$ 和类别 $h$ 的响应概率之比，这通常是违背现实的。
+
+- 放松IIA假设的模型
+
+  - 多项Probit模型：在效用方程中，假设 $a_i = (a_{i0},a_{i1},\cdots,a_{iJ})$ 服从多维正态分布，这允许对于所有 $j\ne h$， $a_{ij}$ 和 $a_{ih}$ 具有任意相关性。但是这一模型的响应概率极为复杂且难以计算。
+  
+  - 包含不可观测异质性的条件Logit模型：效用方程 $Y_{ij}^* = X_{ij}^\top \beta +c_i+ a_{ij}$，其中 $c_i$ 代表不可观测的个体异质性，通常假设 $c_i$ 独立于 $X_i$ 且服从于正态分布。
+
+---
+###　有序选择模型：有序Probit/Logit
+
+- 因变量 $Y$ 在 $0,1,\cdots,J$ 中取值，每一个整数代表一个类别，但是这些整数不再只是标签，而是包含特定的信息，比如各类别的优劣。典型的例子是信用评级，数字越大代表评级越高。
+
+- 以有序Probit模型为例，假定潜变量模型
+$$Y_i^* = X_i^\top \beta + e_i, \quad e_i|X_i \sim N(0,1)。$$
+假设存在 $J$ 个断点 $\alpha=(\alpha_1,\cdots,\alpha_J)$ 使得
+$$Y_i = \begin{cases}
+0，如果Y_i^* \le \alpha_1\\
+1，如果\alpha_1 < Y_i^* \le \alpha_2\\
+\vdots \\
+J，如果Y_i^* > \alpha_J。
+\end{cases}$$
+断点 $\alpha$ 和系数 $\beta$ 未知。
+
+---
+### 有序Probit模型的MLE估计
+
+- 响应概率
+$$\begin{aligned}
+&P(Y_i=0|X_i)=P(X_i^\top \beta + e_i \le \alpha_1|X_i)=\Phi(\alpha_1-X_i^\top \beta)\\
+&P(Y_i=1|X_i)=P(\alpha_1 < X_i^\top \beta + e_i \le \alpha_2|X_i)=\Phi(\alpha_2-X_i^\top \beta)-\Phi(\alpha_1-X_i^\top \beta)\\
+&\vdots\\
+&P(Y_i=j|X_i)=P(\alpha_j < X_i^\top \beta + e_i \le \alpha_{j+1}|X_i)=\Phi(\alpha_{j+1}-X_i^\top \beta)-\Phi(\alpha_j-X_i^\top \beta)\\
+& \vdots \\
+& P(Y_i=J|X_i) = P(X_i^\top \beta>\alpha_J)=1-\Phi(\alpha_J-X_i^\top \beta)。
+\end{aligned}$$
+
+- 最大化对数似然函数
+$$l(\alpha,\beta)=\sum_{i=1}^N \sum_{j=0}^J 1(Y_i=j)\log P(Y_i=j|X_i)$$
+得出 $\alpha$ 和 $\beta$ 的估计。
+
+---
+### 计数因变量
+
+- 计数因变量 $Y$ 是一个取非负整数值的变量。一个典型例子是公司申请的专利数量。这类变量通常没有天然的上界，而且有一定的概率取0。
+
+- 给定计数因变量 $Y$ 和一系列解释变量 $X$，考虑总体回归 $E(Y|X)$。
+
+  - 一个可能性是采用线性模型 $E(Y|X)=X^\top \beta$，但是该模型可能出现预测值 $X^\top \hat \beta<0$ 的情况。
+  - 另外一个可能性是对变量 $Y$ 做对数变换 $\log (Y)$ 或者 $\log (1+Y)$，但是如何从 $E(\log (Y)|X)$ 中还原出我们所感兴趣的 $E(Y|X)$ 并非一目了然。
+  
+- 直接对 $E(Y|X)$ 建模，令 $E(Y|X)=\exp(X^\top \beta)$。该回归是关于未知参数 $\beta$ 的非线性回归模型，标准的非线性最小二乘法（NLS）虽然适用，但并不理想：NLS是相对非有效的（为什么？）。一个更好的估计方式是泊松回归。
+
+---
+### 泊松回归
+
+- 泊松分布是一种常见的离散概率分布，常用于描述单位时间内随机事件发生的次数。泊松分布包含一个参数 $\mu$，假设随机变量 $Y$ 服从参数为 $\mu$ 的泊松分布，那么$$P(Y=y)=\frac{\mu^y}{y!}\exp(-\mu)。$$ 泊松分布的期望 $E(Y)$ 和方差 $Var(Y)$ 均等于参数 $\mu$。
+
+- 给定解释变量 $X$，假设 $Y|X$ 服从均值为 $m(X,\beta)$ 的泊松分布，即
+$$p(Y|X) = \frac{m(X,\beta)^Y}{Y!}\exp(-m(X,\beta))，$$
+其中 $m(X,\beta)\equiv E(Y|X)$。进一步地，我们假设 $m(X,\beta) = \exp(X^\top \beta)$。
+
+
+- 最大化条件对数似然函数 $l(\beta)$ （舍弃不包含未知参数的项后）得出 $\beta$ 的估计，其中
+$$l(\beta) = \sum_{i=1}^N Y_i X_i^\top \beta - \exp(X_i^\top \beta)。$$
+
+
+---
+### 泊松回归中的偏效应
+
+- 假定 $E(Y|X) = \exp(X^\top \beta)$，记 $X_k$ 为解释变量 $X$ 中的第 $k$ 个变量，如果 $X_k$ 是连续的，那么
+$$\frac{\partial E(Y|X)}{X_k} = \exp(X^\top \beta)\beta_k=E(Y|X)\beta_k。$$
+
+- 因此系数 $\beta_k$ 可以解释为半弹性，即当 $X_k$ 变动1单位， $E(Y|X)$ 的百分比变化大约为 $100\beta_k \%$。
+
+---
+### 关于泊松回归假设的讨论
+
+- 泊松回归包含了两个假设：1） $Y|X$ 服从泊松分布；2）条件均值函数 $E(Y|X) = \exp(X^\top \beta)$。
+
+- 第1个假设，即 $Y|X$ 服从泊松分布，几乎确定是误设的，因为泊松分布暗含 $Var(Y|X)=E(Y|X)$ 这一约束条件，而该条件在实际应用中几乎是不满足的。在此基础上，一个更弱的条件方差假设条件是 $Var(Y|X)=\sigma^2 E(Y|X)$。
+
+  - 当 $\sigma^2 > 1$，称为散度过度（与泊松条件方差相比），该情形现实中较为常见，比如[Cameron and Trivedi (1986)](https://doi.org/10.1002/jae.3950010104)中的第1类负二项分布（NegBin I）。
+  - 当 $\sigma^2 < 1$，称为散度不足，该情形现实中少见。
+  
+- 即使是弱化后的条件方差假设 $Var(Y|X)=\sigma^2 E(Y|X)$，现实中很多计数分布也不满足，比如[Cameron and Trivedi (1986)](https://doi.org/10.1002/jae.3950010104)中的第2类负二项分布（NegBin II）。因此，泊松回归往往在QMLE的框架下进行分析。
+
+- 尽管泊松分布假设几乎是误设的，但是如果我们仅关注条件均值函数并假设其设定正确，那么泊松回归QMLE对于 $\beta$ 的估计依然是一致的。（与线性回归类比。）

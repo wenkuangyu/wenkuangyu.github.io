@@ -1,0 +1,312 @@
+---
+title: "非参数回归入门（Introduction to nonparametric regression）"
+subtitle: 
+author: "文旷宇"
+institute: "华中科技大学"
+date: "2023"
+output:
+  xaringan::moon_reader:
+    css: [xaringan-themer.css]
+    lib_dir: libs
+    nature:
+      highlightStyle: github
+      highlightLines: true
+      countIncrementalSlides: false
+---
+class: left, middle
+layout: true
+
+```{css, echo=FALSE}
+pre {
+  max-height: 500px;
+  overflow-y: auto;
+}
+```
+
+```{r setup, include=FALSE}
+options(htmltools.dir.version = FALSE)
+knitr::opts_chunk$set(echo = TRUE,collapse = TRUE,fig.show = 'asis')
+```
+
+```{r xaringanExtra, echo=FALSE}
+xaringanExtra::use_logo(
+  image_url = "../images/hust-logo.png",
+  width = "55px",
+  height = "64px")
+xaringanExtra::use_banner(
+  top_left = "",
+  top_right = "",
+  bottom_left = "文旷宇/华中科技大学",
+  exclude = "title-slide"
+)
+xaringanExtra::use_scribble()
+xaringanExtra::use_panelset()
+xaringanExtra::use_fit_screen()
+```
+
+```{r xaringan-themer, include=FALSE, warning=FALSE}
+library(xaringanthemer)
+style_mono_light(base_color = "#23395b",
+header_font_google = google_font("Noto Serif SC"),
+text_font_google   = google_font("Noto Serif SC", "500", "500i"),
+code_font_google   = google_font("Fira Mono")                 
+)
+```
+
+---
+
+### 参数回归与非参数回归
+
+- 参数回归需要假设回归函数的类型，比如线性回归与诸如Probit和Logit的非线性回归。
+
+- 非参数回归不需要假设回归函数的具体类型，通常只需要假设回归函数具备一定的平滑度（比如假设函数具有连续二阶导数）。
+
+- 参数回归的优势在于，如果回归函数类型假设正确，那么所得到的估计比非参数法更为有效；劣势在于，一旦假设错误，所得到的估计必然存在偏误，我们称之为“设定偏误”。
+
+- 非参数回归的优势在于不存在设定偏误，但是其劣势在于估计与参数回归相比效率欠缺，要达到相同估计精度需要更多的样本量，特别地，当自变量的维度较大时，非参数方法几乎无法使用（维度诅咒）。
+
+- 非参数回归是参数回归的重要补充，而不是替代。
+
+---
+
+### 非参数回归的两种主要方法
+
+- 局部平滑法
+
+  - 局部平滑法的思想可简单概括为向邻居借用信息。假如需要估计回归函数 $m(\cdot)$ 在 $x_0$ 的值，我们可以在 $x_0$ 附近构建一个邻域 $(x_0-h,x_0+h)$，找到落入这个邻域内的样本点（也就是邻居们），然后对这些样本点做加权平均得出估计。
+  
+  - 给定样本 $(Y_i,X_i):i=1,\cdots,N$，假设回归方程为 $Y_i = m(X_i) + e_i$，那么
+  $$\hat m(x_0) = \sum_{i=1}^N w_i  1(x_0-h \le X_i \le x_0+h) Y_i，$$
+  其中，权重 $\sum_{i=1}^N w_i  1(x_0-h \le X_i \le x_0+h)=1$。不同的方法有不同的权重。
+  
+  - 参数 $h$ 控制着邻居的多寡， $h$ 越大，则借用的信息越多，引入的偏差越大，但是估计的方差会降低（因为使用了更多的数据）；反之， $h$ 越小，借用的信息越少，引入的偏差越小，但是估计的方差会升高。
+
+---
+
+### 非参数回归的两种主要方法（续）
+- 全局逼近法
+
+  - 全局逼近法的主要思想是将回归函数表示为基底函数展开的形式。
+  
+  - 函数可以视作无穷维的向量，我们可以将一个平滑函数表示为无穷个基底函数的线性组合 $m(x) = \sum_{k=0}^\infty \alpha_kf_k(x)$，其中 $f_0,f_1,\cdots,f_\infty$ 是基底函数， $\alpha_0,\alpha_1,\cdots,\alpha_\infty$ 为未知参数。有兴趣的同学可以了解[Stone–Weierstrass定理](https://en.wikipedia.org/wiki/Stone%E2%80%93Weierstrass_theorem#Weierstrass_approximation_theorem)。
+  
+  - 实际估计无法做到无穷展开，因此只保留前 $K$ 个基底函数，从而将回归函数近似为$$m(x) \approx \sum_{k=0}^K \alpha_k f_k (x)。$$由于我们舍弃掉了部分基底函数，因此该近似是存在偏差的。参数 $K$ 越大，近似偏差越小，但是未知参数越多，估计方差越大；反之， $K$ 越小，近似偏差越大，但是未知参数越少，估计方差越小。
+
+
+---
+
+### 一般多项式作为基底函数
+
+- 从现在开始，我们考虑独立同分布样本 $(Y_i,X_i):i=1,\cdots,N$ 和回归方程 $Y_i = m(X_i)+e_i$，自变量 $X \in [-1,1]$。
+
+- 我们将回归函数近似为$$m(X_i) \approx \alpha_0 + \alpha_1 X_i + \alpha_2 X_i^2 +\cdots+ \alpha_K X_i^K。$$
+
+- 给定 $K$，那么未知参数 $\alpha_0,\cdots,\alpha_K$ 的估计就变成了一个标准的线性回归问题，OLS及其相关理论都可以直接应用。在得到OLS估计 $\hat \alpha_0,\cdots,\hat \alpha_K$ 后，回归函数的估计为 $\hat m(x) = \sum_{k=0}^K \hat \alpha_k x^k$。
+
+- 如何衡量估计的好坏？积分均方误差。
+$$
+\begin{aligned}
+\text{IMSE}[\hat m] &= \int_x E [\hat m(x) - m(x)]^2 dx \\
+&= \int_x \text{Bias}(x)^2dx + \int_x \text{Var}(x)dx
+\end{aligned}
+$$
+---
+
+.panelset[
+.panel[.panel-name[仿真模拟实验]
+- 数据生成过程（DGP）
+
+  - 自变量 $X_i\sim U(-1,1)$
+  
+  - 回归方程 $Y_i=\sin(\pi X_i)+e_i$
+  
+  - 残差 $e_i \sim N(0,0.5^2)$
+  
+  - 样本量 $N=200$
+  
+- 重复生成1000个样本，每个样本做一次估计，通过对1000个估计平均从而近似积分均方误差。
+
+- 考虑不同的多项式阶数 $K$，考查不同阶数对近似偏差和估计方差的影响。
+]
+.panel[.panel-name[R代码]
+```{r poly_fns,echo = T, results = 'hide'}
+
+fit_poly <- function(Y, X, newx, K) {
+  fit <- lm(Y~poly(X,degree=K,raw = T))
+  mhat <- as.vector(cbind(1,poly(newx,degree=K,raw=T)) %*% coef(fit))
+  mhat
+}
+
+approx_imse <- function(fn, N, n_rep, ...) {
+  newx <- seq(-1,1,length.out=2000)
+  mhat <- matrix(NA, nrow=length(newx), ncol=n_rep)
+  set.seed(519831)
+  for (i in 1:n_rep) {
+    X <- runif(N,min = -1,max = 1)
+    Y <- sin(pi*X)+rnorm(N,sd=.5)
+    mhat[,i] <- fn(Y,X,newx,...)
+  }
+  
+  Emhat <- apply(mhat,1,mean)
+  Vmhat <- apply(mhat,1,var)
+  
+  ibias2 <- 2*mean((Emhat-sin(pi*newx))^2)
+  ivar <- 2*mean(Vmhat)
+  imse <- ibias2+ivar
+  
+  list('Emhat'=Emhat, 'Vmhat'=Vmhat, 'ibias2'=ibias2, 'ivar'=ivar, 'imse'=imse, 'newx'=newx)
+}
+```
+]
+]
+
+---
+
+仿真模拟实验结果
+
+.panelset[
+
+.panel[.panel-name[R代码]
+```{r poly_fit, fig.height=7, fig.show='hide', fig.width=12}
+
+res_poly5 <- approx_imse(fit_poly,N=200, n_rep=1000,K=5)
+
+matplot(res_poly5$newx,cbind(sin(pi*res_poly5$newx),res_poly5$Emhat), 
+        type='l',col=c(1,2),lwd=2,lty=1,xlab='',ylab='',ylim = c(-1.2,1.2)); polygon(x=c(res_poly5$newx,rev(res_poly5$newx)),y=c(res_poly5$Emhat-1.96*sqrt(res_poly5$Vmhat),
+                                 rev(res_poly5$Emhat+1.96*sqrt(res_poly5$Vmhat))),lty=2)
+
+
+```
+```{r poly_imse, fig.height=8, fig.show='hide', fig.width=12}
+
+res_poly <- NULL
+for (K in 3:10) {
+  tmp <- approx_imse(fit_poly,N=200, n_rep=1000,K=K)
+  res_poly <- rbind(res_poly,c(tmp$ibias2,tmp$ivar,tmp$imse))
+}
+
+matplot(3:10,res_poly,type='l',lwd=3,xlab = 'K',ylab='')
+```
+]
+
+.panel[.panel-name[回归函数估计及其置信带]
+![](`r knitr::fig_chunk("poly_fit", ".png")`)
+]
+
+.panel[.panel-name[积分均方误差与多项式阶数]
+
+![](`r knitr::fig_chunk("poly_imse", ".png")`)
+]
+]
+
+---
+
+### 正交多项式作为基底函数
+
+- 一般多项式的不足。在使用OLS估计未知参数时，基底函数之间线性相关，即对于 $j \ne k$，线性相关系数 $\text{Corr}(X^j,X^k)$ 绝对值可能较大，这可能会导致计算不稳健。
+
+- 使用正交多项式作为基底函数可以缓解这一不足。理论上，正交多项式作为基底函数与一般多项式是等价的。
+
+- 一般地，考虑区间 $[a,b]$ 和权重函数 $w(x)$，多项式函数 $P_j(x)$ 和 $P_k(x)$ 称之为正交如果$$\int_a^b P_j(x)P_k(x)w(x)dx=0。$$
+因此，当我们谈论正交多项式时，特别要注意其定义的区间和对应的权重函数。
+
+- 常用的正交多项式函数包括切比雪夫多项式（Chebyshev polynomials），埃尔米特多项式（Hermite polynomials），拉盖尔多项式（Laguerre polynomials），雅可比多项式（Jacobi polynomials），勒让德多项式（Legendre polynomials）等。
+---
+
+### 勒让德多项式（Legendre polynomials）
+
+- 勒让德多项式是一种常用的正交多项式，可以由Rodrigues' formula表示。记第 $k$ 个勒让德多项式函数为 $P_k(x)$，那么$$P_k(x) = \frac{1}{2^k k!} \frac{d^k}{dx^k} (x^2 -1)^k。$$
+
+  对于任意 $j\ne k$，可以证明 $\int_{-1}^1 P_j(x) P_k(x)\,dx = 0$。
+  
+- 使用前 $k$ 阶勒让德多项式逼近回归函数，即$$ m(x) \approx \sum_{k=0}^K \alpha_k P_k(x)$$
+
+
+---
+
+.panelset[
+.panel[.panel-name[前10个勒让德多项式表达式]
+
+|$k$ | 函数 |
+|-|-|
+|0 | $1$
+|1 | $x$
+|2 | $\tfrac12 \left(3x^2-1\right)$
+|3 | $\tfrac12 \left(5x^3-3x\right)$
+|4 | $\tfrac18 \left(35x^4-30x^2+3\right)$
+|5 | $\tfrac18 \left(63x^5-70x^3+15x\right)$
+|6 | $\tfrac1{16} \left(231x^6-315x^4+105x^2-5\right)$
+|7 | $\tfrac1{16} \left(429x^7-693x^5+315x^3-35x\right)$
+|8 | $\tfrac1{128} \left(6435x^8-12012x^6+6930x^4-1260x^2+35\right)$
+|9 | $\tfrac1{128} \left(12155x^9-25740x^7+18018x^5-4620x^3+315x\right)$
+]
+
+.panel[.panel-name[前5个勒让德多项式图像]
+```{r legendre_plot,echo=FALSE, fig.height=7, fig.width=12}
+library(orthopolynom)
+p_list <- legendre.polynomials(4)
+x <- seq(-1,1,length.out=1000)
+y <- polynomial.values(p_list,x)
+y <- do.call(cbind,y)
+matplot(x,y,type='l',xlab='',ylab='',lty=1,lwd=2)
+```
+]
+]
+  
+---
+
+蒙特卡洛仿真模拟（续）
+
+.panelset[
+.panel[.panel-name[R代码]
+```{r legendre_fns,echo = T, results = 'hide'}
+library(orthopolynom)
+fit_legendre <- function(Y, X, newx, K) {
+  p_list <- legendre.polynomials(K)
+  fit <- lm(Y~0+do.call(cbind,polynomial.values(p_list,X)))
+  as.vector(do.call(cbind,polynomial.values(p_list,newx)) %*% coef(fit))
+}
+
+```
+
+```{r legendre_fit, fig.height=7, fig.show='hide', fig.width=12}
+
+res_legendre5 <- approx_imse(fit_legendre,N=200, n_rep=1000,K=5)
+matplot(res_legendre5$newx,cbind(sin(pi*res_legendre5$newx),res_legendre5$Emhat), 
+        type='l',col=c(1,2),lwd=2,lty=1,xlab='',ylab='',ylim = c(-1.2,1.2)); polygon(x=c(res_legendre5$newx,rev(res_legendre5$newx)),y=c(res_legendre5$Emhat-1.96*sqrt(res_legendre5$Vmhat),
+                                 rev(res_legendre5$Emhat+1.96*sqrt(res_legendre5$Vmhat))),lty=2)
+```
+
+```{r legendre_imse, fig.height=7, fig.show='hide', fig.width=12}
+res_legendre <- NULL
+for (K in 3:10) {
+  tmp <- approx_imse(fit_legendre,N=200, n_rep=1000,K=K)
+  res_legendre <- rbind(res_legendre,c(tmp$ibias2,tmp$ivar,tmp$imse))
+}
+matplot(3:10,res_legendre,type='l',lwd=3,xlab = 'K',ylab='')
+```
+
+
+]
+
+.panel[.panel-name[回归函数估计及其置信带]
+![](`r knitr::fig_chunk("legendre_fit", ".png")`)
+]
+
+.panel[.panel-name[积分均方误差与多项式阶数]
+
+![](`r knitr::fig_chunk("legendre_imse", ".png")`)
+]
+]
+
+---
+### 关于多项式阶数 $K$ 的几点说明
+
+- 为了保证非参数估计是渐近无偏的，多项式阶数 $K$ 或者说多项式基底函数的个数需要满足 $K \to \infty$ 随着样本量 $N\to \infty$。
+
+- 参数 $K$ 
+
+---
+
+### 从多项式到样条函数
+
