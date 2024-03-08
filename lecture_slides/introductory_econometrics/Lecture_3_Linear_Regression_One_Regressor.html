@@ -1,0 +1,1770 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+  <head>
+    <title>第三讲:一元线性回归</title>
+    <meta charset="utf-8" />
+    <meta name="author" content="文旷宇" />
+    <script src="libs/header-attrs-2.18/header-attrs.js"></script>
+    <link href="libs/xaringanExtra-banner-0.0.1/banner.css" rel="stylesheet" />
+    <script src="libs/xaringanExtra-banner-0.0.1/banner.js"></script>
+    <script src="libs/fabric-4.3.1/fabric.min.js"></script>
+    <link href="libs/xaringanExtra-scribble-0.0.1/scribble.css" rel="stylesheet" />
+    <script src="libs/xaringanExtra-scribble-0.0.1/scribble.js"></script>
+    <script>document.addEventListener('DOMContentLoaded', function() { window.xeScribble = new Scribble({"pen_color":["#FF0000"],"pen_size":3,"eraser_size":30,"palette":[]}) })</script>
+    <link href="libs/panelset-0.2.6/panelset.css" rel="stylesheet" />
+    <script src="libs/panelset-0.2.6/panelset.js"></script>
+    <script src="libs/xaringanExtra_fit-screen-0.2.6/fit-screen.js"></script>
+    <link rel="stylesheet" href="xaringan-themer.css" type="text/css" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+.title[
+# 第三讲:一元线性回归
+]
+.author[
+### 文旷宇
+]
+.institute[
+### 华中科技大学
+]
+
+---
+
+&lt;style type="text/css"&gt;
+pre{
+  max-height:400px;
+  overflow-y:auto;
+}
+&lt;/style&gt;
+
+<div>
+<style type="text/css">.xaringan-extra-logo {
+width: 55px;
+height: 64px;
+z-index: 0;
+background-image: url(./images/hust-logo.png);
+background-size: contain;
+background-repeat: no-repeat;
+position: absolute;
+top:1em;right:1em;
+}
+</style>
+<script>(function () {
+  let tries = 0
+  function addLogo () {
+    if (typeof slideshow === 'undefined') {
+      tries += 1
+      if (tries < 10) {
+        setTimeout(addLogo, 100)
+      }
+    } else {
+      document.querySelectorAll('.remark-slide-content:not(.title-slide):not(.inverse):not(.hide_logo)')
+        .forEach(function (slide) {
+          const logo = document.createElement('div')
+          logo.classList = 'xaringan-extra-logo'
+          logo.href = null
+          slide.appendChild(logo)
+        })
+    }
+  }
+  document.addEventListener('DOMContentLoaded', addLogo)
+})()</script>
+</div><script>document.addEventListener('DOMContentLoaded',function(){new xeBanner(JSON.parse('{"left":"","right":"","exclude":["title-slide"],"position":"top"}'))})</script>
+<script>document.addEventListener('DOMContentLoaded',function(){new xeBanner(JSON.parse('{"left":"文旷宇/华中科技大学","exclude":["title-slide"],"position":"bottom"}'))})</script>
+
+
+
+
+
+
+
+### 主要内容
+
+- 两个随机变量之间的关系
+  - 散点图
+  
+  - 样本协方差、样本相关系数
+
+- 线性回归模型
+
+ - 系数估计：普通最小二乘估计量
+      
+ - 拟合优度
+
+     - `\(R^2\)` 、 `\(SER\)` 
+
+- `\(OLS\)` 估计量
+
+- 最小二乘假设
+
+- `\(OLS\)` 估计量的性质
+
+---
+
+### 两个随机变量之间的关系
+- 一般经济学中的问题涉及2至多个随机变量之间的关系。例如：
+  - 受教育水平与收入之间的关系
+  
+  - 利率和经济增长的关系
+  
+  - 啤酒税和交通致死率之间的关系
+  
+  - 班级规模和学生考试分数之间的关系
+---
+
+### 两个随机变量之间的关系
+- 下面我们以班级规模和学生考试分数为例进行分析讨论
+  - 我们将使用一组包含有考试表现、学校特征、学生背景的数据
+  
+  - 数据来自加利福尼亚州教育部
+  
+  - 主要的感兴趣的变量是：
+      - `\(Testscore\)` 是学区5年级学生的阅读和数学平均水平
+      
+      - `\(ClassSize(STR)\)` 是学生人数与全职老师(假定是同等的)人数之比
+---
+
+### 散点图
+.panelset[
+.panel[.panel-name[注]
+- 为了解班级规模和考试分数之间的关系，我们可以绘制散点图
+
+- **散点图**：是有关 `\(X_i\)` 和 `\(Y_i\)` 的 `\(n\)` 组观测值的图形，其中每组观测值用点 `\((X_i,Y_i)\)` 表示
+
+- 引用数据绘制以考试表现为Y，班级规模为X的散点图
+]
+.panel[.panel-name[]
+.panel[.panel-name[代码]
+
+```r
+# 一个简单线性回归的例子
+
+#install.packages('AER') # 仅仅在第一次使用
+
+ # 每次需要载入包时，用library
+library('AER')
+data(CASchools)#引用数据
+#阅读和数学的平均水平赋给CASchools$test_score
+CASchools$test_score &lt;- (CASchools$read+CASchools$math)/2
+#班级规模赋给CASchools$STR
+CASchools$STR &lt;- CASchools$students/CASchools$teachers
+#lm()函数，拟合线性模型，用于回归、方差分析、协方差分析，拟合结果赋给fit
+fit &lt;- lm(test_score~STR,data = CASchools)
+#引用数据绘制以考试表现为Y，班级规模为X的散点图
+plot(test_score~STR,data = CASchools)
+
+# 给散点图添加直线
+abline(fit) 
+```
+
+
+
+]
+
+.panel[.panel-name[图]
+
+![](Lecture_3_Linear_Regression_One_Regressor_files/figure-html/unnamed-chunk-2-1.png)&lt;!-- --&gt;
+
+]
+]
+]
+---
+
+### 样本协方差
+.panelset[
+.panel[.panel-name[协方差]
+- 由于总体分布未知，因此实际上我们不知道总体协方差和相关系数。但通过从总体抽取的 `\(n\)` 个个体的随机样本收集到的数据 `\((X_i,Y_i),i=1,2,···,n\)`可以估计总体协方差和相关系数
+
+- **样本协方差**
+  - 是总体协方差的估计量，总体协方差不可观测但是可被样本协方差估计
+  
+  - `\(S_{XY}=\frac{1}{n-1}\sum_{i=1}^{n}(X_i-\bar Y)(Y_i-\bar Y)\)`
+  
+  - 衡量两个随机变量 `\(X\)` 和  `\(Y\)` 一起变化的程度
+  
+  - 有单位：如班级规模单位 `\(\times\)` 考试分数单位
+  
+]
+.panel[.panel-name[一致性]
+- 如果 `\((X_i,Y_i)i.i.d. ,\quad E(X^4)&lt;\infty \&amp; E(Y^4)&lt;\infty\)` 
+
+- 则 `\(S_{XY}\stackrel{P}{\to}\sigma_{XY},\quad\)` 推导如下：
+
+$$
+`\begin{aligned}
+(Y_i-\bar Y)^2
+&amp;=[(Y_i-\mu_Y)-(\bar Y-\mu_Y)]^2\\
+&amp;=(Y_i-\mu_Y)^2-2(Y_i-\mu_Y)(\bar Y-\mu_Y)+(\bar Y-\mu_Y)^2
+\end{aligned}`
+$$
+
+$$
+`\begin{aligned}
+S_Y^2
+&amp;=\frac{1}{n-1}\sum_{i=1}^{n}(Y_i-\bar Y)^2\\
+&amp;=\frac{1}{n-1}\sum_{i=1}^{n}(Y_i-\mu_Y)^2-\frac{2}{n-1}\sum_{i=1}^{n}(Y_i-\mu_Y)(\bar Y-\mu_Y)\\
+&amp;+\frac{1}{n-1}\sum_{i=1}^{n}(\bar Y-\mu_Y)^2
+\end{aligned}`
+$$
+]
+.panel[.panel-name[一致性]
+- 又因为 
+`$$\sum_{i=1}^{n}(Y_i-\mu_Y)=n(\bar Y-\mu_Y)$$` 
+
+- 所以
+$$
+`\begin{aligned}
+S_Y^2
+&amp;=\frac{1}{n-1}\sum_{i=1}^{n}(Y_i-\mu_Y)^2-\frac{2(\bar Y-\mu_Y)}{n-1}\sum_{i=1}^{n}(Y_i-\mu_Y)+\frac{n}{n-1}(\bar Y-\mu_Y)^2\\
+&amp;=\frac{1}{n-1}\sum_{i=1}^{n}(Y_i-\mu_Y)^2-\frac{2(\bar Y-\mu_Y)}{n-1}n(\bar Y-\mu_Y)+\frac{n}{n-1}(\bar Y-\mu_Y)^2\\
+&amp;=(\frac{n}{n-1})[\frac{1}{n}\sum_{i=1}^{n}(Y_i-\mu_Y)^2]-(\frac{n}{n-1})(\bar Y-\mu_Y)^2
+\end{aligned}`
+$$
+]
+.panel[.panel-name[一致性]
+- 令 `\(W_i=(Y_i-\mu_Y)^2,\quad\)` 则 `\(E(W_i)=\frac{1}{n}\sum_{i=1}^{n}(Y_i-\mu_Y)^2=\sigma_Y^2\)`
+
+- 因为 `\(Y_1,Y_2,···,Y_n \quad i.i.d.,\quad\)` 所以 `\(W_1,W_2,···,W_n \quad i.i.d.\)`
+
+- 假设 `\(E(Y_i^4)&lt;\infty,\quad\)` 得 `\(\sigma_Y^2=E(W_i^2)=E[(Y_i-\mu_Y)^4]&lt;\infty\)`
+
+- 由大数定律可知 `\(\bar{W} \stackrel{P}{\longrightarrow}E(W_i)\)` ，即 `\(\frac{1}{n}\sum_{i=1}^{n}(Y_i-\mu_Y)^2 \stackrel{P}{\longrightarrow} \sigma_Y^2\)`
+
+- 又因为 `\(\frac{n}{n-1}\stackrel{P}{\longrightarrow}1,\quad\)` 且 `\(\bar Y\stackrel{P}{\longrightarrow} \mu_Y,(\bar Y-\mu_Y)^2 \stackrel{P}{\longrightarrow}0\)`
+
+- 所以
+`$$S_Y^2=(\frac{n}{n-1})[\frac{1}{n}\sum_{i=1}^{n}(Y_i-\mu_Y)^2]-(\frac{n}{n-1})(\bar Y-\mu_Y)^2 \stackrel{P}{\longrightarrow}\sigma_Y^2$$`
+]
+]
+---
+
+###仿真模拟
+.panelset[
+.panel[.panel-name[]
+.panel[.panel-name[Code]
+
+```r
+# 加载已经安装的AER包
+library(AER)
+
+# 加载了CASchools数据集到工作空间
+data(CASchools)
+
+# 计算了学校的学生教师比率STR，并将结果存储在CASchools数据集的STR列中
+CASchools$STR &lt;- CASchools$students/CASchools$teachers 
+
+# 计算学校的阅读和数学测试分数，并将它们的平均值存储在CASchools数据集的score列中
+CASchools$score &lt;- (CASchools$read + CASchools$math)/2 
+
+# 计算协方差
+cov(CASchools$STR,CASchools$score)
+
+# 计算相关系数
+cor(CASchools$STR,CASchools$score)
+```
+
+
+
+]
+
+.panel[.panel-name[Output]
+
+```
+## [1] -8.159323
+## [1] -0.2263627
+```
+
+
+
+]
+]
+.panel[.panel-name[注]
+- 班级规模和考试分数之间的样本协方差 `\(S_{CT}=-8.16\)`
+
+  - 思考：这意味着什么？
+  
+- 班级规模和考试分数之间的样本相关系数 `\(r_{CT}=-0.23\)` 
+
+ - 怎样理解相关系数？
+]
+]
+---
+
+### 样本相关系数
+- **样本相关系数**是样本协方差与样本标准差之比
+`$$r_{XY}=\frac{S_{XY}}{S_X S_Y}$$`
+ - 由于样本方差和样本协方差一致 `\(\longrightarrow\)` 样本相关系数一致
+`$$r_{XY}\stackrel{P}{\longrightarrow}corr(X_i,Y_i)$$`
+  - 是总体相关系数的估计量，无量纲
+  
+  - 衡量 `\(n\)` 组观测值 `\(X\)` 和  `\(Y\)` 之间的线性关系的强度
+  
+  - `\(|r_{XY}|\leq1\)`
+      - 若散点图为一直线则相关系数为 `\(\pm 1\)` 
+      
+      - 若直线向上倾斜，则 `\(X\)` 和  `\(Y\)` 之间正相关且相关系数为 `\(1,X_i=Y_i\)`
+      
+      - 若直线向下倾斜，则 `\(X\)` 和  `\(Y\)` 之间负相关且相关系数为 `\(-1,X_i=-Y_i\)`
+---
+
+###样本相关系数
+.panelset[
+.panel[.panel-name[]
+.panel[.panel-name[代码]
+
+```r
+# 使用library(MASS)加载MASS包，该包包含mvrnorm函数，用于从多元正态分布中抽取随机数
+library(MASS)
+
+# 设置随机种子以确保结果的可重复性
+set.seed(1)
+
+# 生成三个数据集（example1, example2, example3），每个数据集包含100个从二元正态分布中抽取的样本点。这三个数据集的均值向量mu都是(0,0)，但协方差矩阵Sigma不同，以产生不同的相关性
+
+# 正相关（相关系数约为0.81）
+example1 &lt;- mvrnorm(100,
+                    mu = c(0, 0), 
+                    Sigma = matrix(c(2, 2, 2, 3), ncol = 2),
+                    empirical = TRUE)
+
+# 负相关（相关系数约为-0.81）
+example2 &lt;- mvrnorm(100,
+                    mu = c(0, 0), 
+                    Sigma = matrix(c(2, -2, -2, 3), ncol = 2),
+                    empirical = TRUE)
+
+# 无相关（相关系数约为0）
+example3 &lt;- mvrnorm(100,
+                    mu = c(0, 0), 
+                    Sigma = matrix(c(1, 0, 0, 1), ncol = 2),
+                    empirical = TRUE)
+
+# 生成第四个数据集example4，其中Y是X的二次函数（加上一些随机噪声）。虽然X和Y之间存在明显的非线性关系，但它们的线性相关系数接近于0
+X &lt;- seq(-3, 3, 0.01)
+Y &lt;- - X^2 + rnorm(length(X))
+
+example4 &lt;- cbind(X, Y)
+
+# 将绘图区域划分为2x2的网格，以便在同一窗口中显示四个散点图
+par(mfrow = c(2, 2))
+
+# 使用plot函数绘制四个数据集的散点图。每个图都使用相同的颜色和点类型，但标题不同，以显示每个数据集中X和Y之间的相关性
+plot(example1, col = "steelblue", pch = 20, xlab = "X", ylab = "Y", 
+     main = "Correlation = 0.81")
+
+plot(example2, col = "steelblue", pch = 20, xlab = "X", ylab = "Y", 
+     main = "Correlation = -0.81")
+
+plot(example3, col = "steelblue", pch = 20, xlab = "X", ylab = "Y", 
+     main = "Correlation = 0")
+
+plot(example4, col = "steelblue", pch = 20, xlab = "X", ylab = "Y", 
+     main = "Correlation = 0")
+```
+
+
+
+]
+
+.panel[.panel-name[图]
+
+![](Lecture_3_Linear_Regression_One_Regressor_files/figure-html/unnamed-chunk-4-1.png)&lt;!-- --&gt;
+
+]
+]
+.panel[.panel-name[注]
+- 代码生成四个数据集，每个数据集都包含两个变量X和Y，然后绘制这四个数据集的散点图。
+
+- 每个数据集都展示了X和Y之间不同程度的相关性
+
+- 图4中两个变量存在非线性关系但是不相关 `\(\longrightarrow\)`  **相关系数是线性关系的度量**
+
+- 样本相关系数是总体相关系数的估计量，度量两个变量间的线性关系
+]
+]
+---
+
+### 一元线性回归（引入）
+- 在实际应用中，我们不仅想知道两个变量间的相关性，还想知道其中的因果关系
+
+ - 美国某州对酒后驾车的司机实施了严厉的新处罚：这对高速公路上发生的死亡事故有什么影响呢？
+
+ - 某学区缩小了小学班级规模：这对学生的标准化测试成绩有什么影响呢？
+
+ - 你成功地完成了又一年的大学课程，这对你进来的收入有什么影响呢？
+`$$……$$`
+- 所有这些问题都是关于一个变量 `\(X\)` 的变化对另一个变量 `\(Y\)` 的未知影响
+
+- 接下来我们将介绍联系一个变量 `\(X\)` 和另一个变量 `\(Y\)` 的线性回归模型
+  - 该模型假定 `\(X\)` 和 `\(Y\)` 之间具有线性关系
+  
+  - 联系 `\(X\)` 和 `\(Y\)` 的直线斜率表示 `\(X\)` 变化一个单位对 `\(Y\)` 的影响
+  
+  - 联系 `\(X\)` 和 `\(Y\)` 的直线斜率和截距可以用普通最小二乘（OLS）法进行估计
+---
+
+### 一元线性回归模型的术语
+- 一元线性回归模型
+`$$Y_i=\beta_0+\beta_1X_i+u_i$$`
+  - `\(Y_i\)` 是**因变量**， `\(X_i\)` 是独立变量或**回归变量**
+  
+  - `\(\beta_0+\beta_1X_i\)` 称为**总体回归线**（或者总统回归函数）
+  
+  - `\(\beta_0\)` 是总体回归线的**截距**，是 `\(X=0\)` 时 `\(Y\)` 的期望
+  
+  - `\(\beta_1\)` 是总体回归线的**斜率**
+  
+  - 斜率 `\(\beta_1\)` 和截距  `\(\beta_1\)` 称为总体回归线的**系数**（或者参数）
+  
+  - `\(u_i\)` 是**误差项**（决定 `\(Y_i\)` 的所有其他因素）
+- 一般总体回归线的截距 `\(\beta_0\)` 和斜率 `\(\beta_1\)` 未知
+
+- 但是正如利用总体中抽取的样本数据了解总体均值一样，我们也可以利用样本数据了解总体斜率和截距
+---
+
+### 一元线性回归（例）
+- 假设我们想要知道学区平均班级规模每增加一个学生会导致学区考试分数的变化：
+  - 即我们想要知道
+  `$$\beta_{ClassSize}=\frac{\Delta Test score}{\Delta Class size}$$`
+  - `\(\beta_{ClassSize}\)` 是联系考试分数和班级规模的直线斜率
+  `$$Test score=\beta_0+\beta_{ClassSize}\times Class Size$$`
+  - `\(\beta_0\)` 是直线的截距
+- 第 `\(i\)` 个学区的平均考试分数不仅取决于平均班级规模，而且取决于老师的水平、学生的背景、教科书的质量……
+
+- 描述考试分数和班级规模之间线性关系的方程为：
+`$$Test score_i=\beta_0+\beta_{ClassSize}\times Class Size_i+u_i$$`
+  - `\(u_i\)` 囊括了所有其他的影响平均考试分数的学区特征
+  
+---
+
+###线性回归模型的系数估计
+.panelset[
+.panel[.panel-name[]
+.panel[.panel-name[代码]
+
+```r
+## # 安装AER包（仅第一次需要安装）。AER（Applied Econometrics with R）是一个包含许多用于应用计量经济学的R函数的包
+## install.packages("AER")
+## 
+## # 加载已经安装的AER包
+library(AER)
+
+# 加载了CASchools数据集到工作空间
+data(CASchools)
+
+# 计算了学校的学生教师比率STR，并将结果存储在CASchools数据集的STR列中
+CASchools$STR &lt;- CASchools$students/CASchools$teachers 
+
+# 计算学校的阅读和数学测试分数，并将它们的平均值存储在CASchools数据集的score列中
+CASchools$score &lt;- (CASchools$read + CASchools$math)/2     
+
+# 创建一个散点图，显示学校测试分数（score）和学生教师比率（STR）之间的关系
+plot(score ~ STR, 
+     data = CASchools,
+     main = "Scatterplot of Test Score and STR", 
+     xlab = "STR (X)",
+     ylab = "Test Score (Y)")
+```
+
+
+
+]
+
+.panel[.panel-name[图]
+
+![](Lecture_3_Linear_Regression_One_Regressor_files/figure-html/unnamed-chunk-5-1.png)&lt;!-- --&gt;
+
+]
+]
+.panel[.panel-name[注]
+- 这里使用的数据是由420个覆盖幼儿园到八年级学制的加利福尼亚学区1999年的测试成绩和班级规模组成的
+
+- 测试成绩是全学区五年级的阅读和数学平均成绩
+
+- 班级规模用全学区的学生/教师比表示
+
+- 尽管散点图显示相关系数较低，但也可以设法画出通过这些数据的直线
+
+- 但是如何在众多直线中选出拟合效果最好的一条呢？
+
+ - 最常用的方法是利用**最小二乘估计量** `\(\longrightarrow\)` 选择能得到数据“最小二乘”拟合的直线
+]
+]
+---
+
+### 普通最小二乘估计量（OLS）
+- &lt;font color=darkred&gt;OLS估计量&lt;/font&gt;：选择使估计的回归线和观测数据尽可能地仅仅回归系数，其中近似程度用给定 `\(X\)` 时预测 `\(Y\)` 的误差平方和度量
+  - 令 `\(b_0、b_1\)` 分别为 `\(\beta_0、\beta_1\)` 的估计量
+
+  - 给定 `\(X_i\)` 时 `\(Y_i\)` 的**期望**为 `\(b_0+b_1X_i\)`
+
+  - **预期误差**为： `\(Y_i-(b_0+b_1X_i)=Y_i-b_0-b_1X_i\)`
+
+- &lt;font color=darkred&gt;普通最小二乘（OLS）估计量&lt;/font&gt;：使得 `\(\sum_{i=1}^{n}(Y_i-b_0-b_1X_i)^2\)` 最小的斜率和截距的估计量称为 `\(\beta_0、\beta_1\)` 的**普通最小二乘（OLS）估计量**
+
+- 我们可以通过尝试不同的 `\(b_0、b_1\)` 值直至找到使误差平方和最小的 `\(b_0、b_1\)`值，它们即是用最小二乘法计算的 `\(\beta_0、 \beta_1\)` 最小二乘估计量，但是这种方法非常复杂
+
+- 所以，下面我们将用微积分最小化得到的公式简化OLS估计量的计算
+---
+
+### 普通最小二乘估计量（OLS）
+- 假设没有 `\(X\)` 只有 `\(Y\)` : `\(Y_i=\mu_Y+u_i\)`
+  - 令 `\(m\)` 为 `\(\mu_Y\)` 的一个估计量，最小二乘估计量使得 `\(\sum_{i=1}^{n}(Y_i-m)^2\)` 最小
+  
+      - 为了使预测误差平方和最小，求导并令其等于0，得
+    
+      - `\(\frac{\partial}{\partial m}\sum_{i=1}^{n}(Y_i-m)^2=-2\sum_{i=1}^{n}(Y_i-m)=-2\sum_{i=1}^{n}Y_i+2mn=0\)`
+    
+      - 求解 `\(m\)` 的最后一个方程可证当 `\(m=\frac{1}{n}\sum_{i=1}^{n}Y_i=\bar Y\)` 时 `\(\sum_{i=1}^{n}(Y_i-m)^2\)` 达到最小
+---
+
+### 普通最小二乘估计量（OLS）- `\(\hat \beta_0\)`
+`$$Y_i=\beta_0+\beta_1X_i+u_i$$`
+ 
+- OLS使得预期误差平方和误差最小
+ - `\(\sum_{i=1}^{n}\hat u_i^2=\sum_{i=1}^{n}(Y_0-\hat \beta_0-\hat \beta_1X_i)^2\)`
+ 
+ - `\(\frac{\partial}{\partial \hat \beta_0}\sum_{i=1}^{n}(Y_i-\hat \beta_0-\hat \beta_1)^2=0\)`
+      
+       `\(\begin{aligned} \frac{\partial}{\partial \hat \beta_0}\sum_{i=1}^{n}(u_i)^2&amp;=-2\sum_{i=1}^{n}(Y_i-\hat \beta_0-\hat \beta_1X_i)\\&amp;=\frac{1}{n}(\sum_{i=1}^{n}Y_i-\sum_{i=1}^{n}\hat \beta_0-\sum_{i=1}^{n}\hat \beta_1X_i)\\&amp;=\bar Y-\hat \beta_0-\hat \beta_1 \bar X_i\\&amp;=0 \end{aligned}\)`
+      
+- 得 
+  `\(\hat \beta_0=\bar Y-\hat \beta_1 \bar X\)`
+---
+
+### 普通最小二乘估计量（OLS）- `\(\hat \beta_1\)`
+`$$Y_i=\beta_0+\beta_1X_i+u_i$$`
+ 
+- OLS使得预期误差平方和误差最小
+
+ - `\(\sum_{i=1}^{n}\hat u_i^2=\sum_{i=1}^{n}(Y_0-\hat \beta_0-\hat \beta_1X_i)^2\)`
+ 
+ - `\(\hat \beta_0=\bar Y-\hat \beta_1 \bar X\)`
+ 
+`$$\begin{aligned} \frac{\partial}{\partial \hat \beta_1}\sum_{i=1}^{n}(u_i)^2 &amp;=-2\sum_{i=1}^{n}(-X_i)(Y_i-\hat \beta_0-\hat \beta_1X_i) \\&amp;=2\sum_{i=1}^{n}X_i(Y_i-(\bar Y-\hat \beta_1 \bar X)-\hat \beta_1X_i)\\&amp;=2\sum_{i=1}^{n}X_i[(Y_i-\bar Y)-(\hat \beta_1 \bar X-\hat \beta_1X_i)]\\&amp;=0\end{aligned}$$`
+---
+
+### 普通最小二乘估计量（OLS）- `\(\hat \beta_1\)`
+`$$\sum_{i=1}^{n}X_i(Y_i-\bar Y)-\hat \beta_1\sum_{i=1}^{n}X_i(X_i-\bar X)=0$$`
+
+- 已知
+
+`\(\begin{aligned}\sum_{i=1}^{n}(X_i-\bar X)(Y_i-\bar Y)&amp;=\sum_{i=1}^{n}X_iY_i-\sum_{i=1}^{n}X_i\bar Y-\sum_{i=1}^{n}\bar XY_i+\sum_{i=1}^{n}\bar X \bar Y\\&amp;=\sum_{i=1}^{n}X_iY_i-\sum_{i=1}^{n}X_i\bar Y-n \bar X(\frac{1}{n}\sum_{i=1}^{n}Y_i)+n\bar X \bar Y\\&amp;=\sum_{i=1}^{n}X_i(Y_i-\bar Y)\end{aligned}\)`
+
+- 同理：
+`$$\sum_{i=1}^{n}X_i(X_i-\bar X)=\sum_{i=1}^{n}(X_i-\bar X)(X_i-\bar X)$$`
+---
+
+###普通最小二乘估计量（OLS）
+- 综上所述:
+`$$\frac{\partial}{\partial \hat \beta_1}\sum_{i=1}^{n}(u_i)^2=\sum_{i=1}^{n}(X_i-\bar X)(Y_i-\bar Y)-\hat \beta_1\sum_{i=1}^{n}(X_i-\bar X)(X_i-\bar X)=0$$`
+`$$\hat \beta_1=\frac{\sum_{i=1}^{n}(X_i-\bar X)(Y_i-\bar Y)}{\sum_{i=1}^{n}(X_i-\bar X)(X_i-\bar X)}=\frac{\frac{1}{n-1}\sum_{i=1}^{n}(X_i-\bar X)(Y_i-\bar Y)}{\frac{1}{n-1}\sum_{i=1}^{n}(X_i-\bar X)(X_i-\bar X)}=\frac{S_{XY}}{S_X^2}$$`
+
+- OLS估计量 `\(\hat Y_i\)` 和残差 `\(\hat u_i\)` 分别为
+  `$$\hat Y_i=\hat \beta_0+\hat \beta_1X_i$$`
+  `$$\hat u_i=Y_i-\hat Y_i$$`
+---
+
+### 简单线性回归模型
+.panelset[
+.panel[.panel-name[注]
+- 下面，以加利福尼亚学区分数和班级规模的关系为例，我们具体地分析一下简单线性回归模型
+
+- 为了解班级规模和考试分数之间的关系，我们可以绘制散点图
+
+- **散点图**：是有关 `\(X_i\)` 和 `\(Y_i\)` 的 `\(n\)` 组观测值的图形，其中每组观测值用点 `\((X_i,Y_i)\)` 表示
+
+- 要注意这些数据不包含关于学区的班级极小时其平均测试成绩会怎样变动的信息
+]
+.panel[.panel-name[]
+.panel[.panel-name[代码]
+
+```r
+# 一个简单线性回归的例子
+
+#install.packages('AER') # 仅仅在第一次使用
+
+library('AER') # 每次需要载入包时，用library
+data(CASchools)#引用数据
+
+CASchools$test_score &lt;- (CASchools$read+CASchools$math)/2#阅读和数学的平均水平赋给CASchools$test_score
+
+CASchools$STR &lt;- CASchools$students/CASchools$teachers#班级规模赋给CASchools$STR
+
+#引用数据绘制以考试表现为Y，班级规模为X的散点图
+plot(test_score~STR,data = CASchools)
+
+fit &lt;- lm(test_score~STR,data = CASchools)#lm()函数，拟合线性模型，用于回归、方差分析、协方差分析，拟合结果赋给fit
+
+# 给散点图添加直线
+abline(fit) 
+```
+
+
+
+]
+
+.panel[.panel-name[图]
+
+![](Lecture_3_Linear_Regression_One_Regressor_files/figure-html/unnamed-chunk-6-1.png)&lt;!-- --&gt;
+
+]
+]
+.panel[.panel-name[]
+.panel[.panel-name[Code]
+
+```r
+library('AER') # 每次需要载入包时，用library
+data(CASchools)#引用数据
+
+CASchools$test_score &lt;- (CASchools$read+CASchools$math)/2#阅读和数学的平均水平赋给CASchools$test_score
+
+CASchools$STR &lt;- CASchools$students/CASchools$teachers#班级规模赋给CASchools$STR
+
+fit &lt;- lm(test_score~STR,data = CASchools)#lm()函数，拟合线性模型，用于回归、方差分析、协方差分析，拟合结果赋给fit
+
+# 查看回归报告的总结
+summary(fit) 
+# 提取协方差的系数估计
+coef(fit) 
+# 提取拟合模型对象的方差、协方差矩阵，模型的“主要”参数对应于coef返回的参数
+vcov(fit) 
+```
+
+
+
+]
+
+.panel[.panel-name[Output]
+
+```
+## 
+## Call:
+## lm(formula = test_score ~ STR, data = CASchools)
+## 
+## Residuals:
+##     Min      1Q  Median      3Q     Max 
+## -47.727 -14.251   0.483  12.822  48.540 
+## 
+## Coefficients:
+##             Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept) 698.9329     9.4675  73.825  &lt; 2e-16 ***
+## STR          -2.2798     0.4798  -4.751 2.78e-06 ***
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## Residual standard error: 18.58 on 418 degrees of freedom
+## Multiple R-squared:  0.05124,	Adjusted R-squared:  0.04897 
+## F-statistic: 22.58 on 1 and 418 DF,  p-value: 2.783e-06
+## 
+## (Intercept)         STR 
+##  698.932949   -2.279808 
+##             (Intercept)        STR
+## (Intercept)   89.633388 -4.5218653
+## STR           -4.521865  0.2302326
+```
+
+
+
+]
+]
+]
+---
+
+### 简单线性回归模型
+`$$TestScore_i=\beta_0+\beta_1ClassSize_i+u_i$$`
+
+.panelset[
+.panel[.panel-name[]
+.panel[.panel-name[Code]
+
+```r
+library('AER') # 每次需要载入包时，用library
+data(CASchools)#引用数据
+
+CASchools$test_score &lt;- (CASchools$read+CASchools$math)/2#阅读和数学的平均水平赋给CASchools$test_score
+
+CASchools$STR &lt;- CASchools$students/CASchools$teachers#班级规模赋给CASchools$STR
+
+fit &lt;- lm(test_score~STR,data = CASchools)#lm()函数，拟合线性模型，用于回归、方差分析、协方差分析，拟合结果赋给fit
+
+fit1 &lt;- summary(fit)$coefficients
+knitr::kable(fit1)
+```
+
+
+
+]
+
+.panel[.panel-name[Output]
+
+
+
+|            |   Estimate| Std. Error|   t value| Pr(&gt;&amp;#124;t&amp;#124;)|
+|:-----------|----------:|----------:|---------:|------------------:|
+|(Intercept) | 698.932949|  9.4674911| 73.824516|            0.0e+00|
+|STR         |  -2.279808|  0.4798255| -4.751327|            2.8e-06|
+
+
+
+]
+]
+.panel[.panel-name[注]
+`$$\widehat{TestScore}=698.9-2.28\times STR$$`
+- `\(\hat \beta_1=-2.27:\)` 班级规模每减少一个学生，考试分数会增加 `\(2.27\)` 分
+
+- `\(\hat \beta_0=698.93:\)` 班级规模为 `\(0\)` 时期望分数的大小
+]
+]
+---
+
+### 拟合优度
+- 估计了线性回归线之后，我们怎么知道回归线描述数据的效果如何呢？回归变量说明了大部分还是极少部分的因变量变化？观测值是紧密地聚集在回归线周围还是很分散？
+
+- 要回答上述问题，我们需要用到**拟合优度** `\(R^2\)` 和**回归标准误差**
+
+- 回归 `\(R^2=0.0512\)` 
+  - 注意：回归 `\(R^2\)` 并不能判断班级规模的增加是否会引起学区考试分数的减少
+
+- 回归标准误 `\(SER=18.6\)`
+---
+
+###  回归 `\(R^2\)`
+- 可由 `\(X_i\)` 解释（或预测）的 `\(Y_i\)` 样本方差的比例
+      
+- 将因变量 `\(Y_i\)` 写成预测值 `\(\hat Y_i\)` 与残差 `\(u_i\)` 之和： `\(Y_i=\hat Y_i+u_i\)` ， `\(R^2\)` 则为预测值 `\(\hat Y_i\)` 的样本方差与 `\(Y_i\)`  样本方差之比
+      
+ - 被解释平方和与总平方和之比: `\(R^2=\frac{ESS}{TSS}=1-\frac{SSR}{TSS}\)`
+ 
+ - 被解释平方和 `\(ESS=\sum_{i=1}^{n}(\hat Y_i-\bar Y)^2\)`
+      
+ - 总平方和 `\(TSS=\sum_{i=1}^{n}(Y_i-\bar Y)^2\)`
+      
+ - 残差平方和 `\(SSR=\sum_{i=1}^{n}\hat u_i^2=(Y_i-\hat Y_i)^2\)`
+ 
+- 取值范围 `\((0,1)\)`
+      
+ - `\(R^2=0\)`, `\(X_i\)` 不能解释 `\(Y_i\)` 的变化
+      
+ - `\(R^2=1\)`, `\(X_i\)` 能解释 `\(Y_i\)` 的所有变化
+---
+
+### 回归标准误SER
+- 是回归残差 `\(u_i\)` 的标准差的估计量
+`$$SER=s_{\hat u_i}=\sqrt{(\hat u_i)^2}=\sqrt{\frac{1}{n-2}\sum_{i=1}^{n}(\hat u_i)^2}=\sqrt{\frac{SSR}{n-2}}$$`
+
+- 它度量了离散程度，衡量了观测值围绕回归线的分布
+
+- 与独立变量的单位相同
+
+- `\(n-2\)` 是因为在估计两个回归系数 `\(\hat \beta_0、 \hat \beta_1\)` 失去了两个自由度
+
+- 在测试成绩数据的应用中
+
+ - `\(R^2=0.051\)` 说明回归变量 `\(STR\)` 解释了 `\(5.1\%\)` 的因变量 `\(TestScore\)` 的方差
+ 
+ - `\(SER=18.6\)` 表示散点图在回归线附近较分散 `\(\longrightarrow\)` 只用该学区的学生/教师比预测成绩通常误差较大
+
+---
+
+### OLS 估计量
+`$$Y_i=\beta_0+\beta_1X_i+u_i$$`
+- 我们感兴趣的问题是自变量 `\(X_i\)` 的变化是如何影响因变量 `\(Y_i\)` 的
+
+- 上节课我们学习了简单线性回归模型，并推导了系数 `\(\beta_0、\beta_1\)` 的估计量 `\(\hat \beta_0、\hat \beta_1\)` 
+
+`$$\hat \beta_0=\bar Y-\hat \beta_1 \bar X$$`
+
+`$$\hat \beta_1=\frac{\sum_{i=1}^{n}(X_i-\bar X)(Y_i-\bar Y)}{\sum_{i=1}^{n}(X_i-\bar X)(X_i-\bar X)}=\frac{\frac{1}{n-1}\sum_{i=1}^{n}(X_i-\bar X)(Y_i-\bar Y)}{\frac{1}{n-1}\sum_{i=1}^{n}(X_i-\bar X)(X_i-\bar X)}=\frac{S_{XY}}{S_X^2}$$`
+- 并且运用简单线性回归模型分析了加利福尼亚州的学区分数与班级规模大小的关系
+`$$TestScore_i=\beta_0+\beta_1ClassSize_i+u_i$$`
+`$$\hat {TestScore_i}=698.93-2.28ClassSize_i$$`
+- 下面，我们将进一步学习**最小二乘假设**
+---
+
+### 最小二乘假设
+`$$Y_i=\beta_0+\beta_1X_i+u_i$$`
+- 思考：
+  - 在什么条件下 `\(OLS\)`  假设可以提供系数 `\(\beta_0、\beta_1\)` 的合适估计量呢
+  
+  - 在什么条件下 `\(OLS\)` 可以提供合适估计量来评估班级规模大小对学区分数的影响呢
+- 这节课我们将学到能利用 `\(OLS\)` 给出未知回归系数 `\(\beta_0、\beta_1\)` 合适估计量的线性回归模型的三个假设和抽样方案
+---
+
+###最小二乘假设
+- 假设1：
+
+ - 给定 `\(X_i\)` 时 `\(u_i\)` 的条件分布均值为 `\(0\)`
+  `$$E(u_i|X_i)=0$$`
+  
+- 假设2： 
+
+ - `\((X_i,Y_i),i=1,2,···,n\)` 独立同分布
+  
+- 假设3：
+
+ - 不太可能出现异常值, `\(X,Y\)` 有有限峰度
+  `$$0&lt;E(X^4)&lt;\infty,0&lt;E(X^4)&lt;\infty$$`
+---
+
+### 最小二乘假设1
+`$$E(u_i|X_i)=0$$`
+- 第一个最小二乘假设是给定 `\(X_i\)` 时 `\(u_i\)` 的条件分布均值为0
+  - 所有影响因变量 `\(Y_i\)` 的因素都包含在残差项 `\(u_i\)` 中
+  
+  - 在给定 `\(X_i\)` 时其他因素的条件分布均值为0，说明其他因素与 `\(X_i\)` 无关
+- 举个例子
+  - 仍然是加利福尼亚州学区分数与班级规模关系的例子
+  
+  - 所有影响学区分数的其他因素都应该和班级规模无关，给定班级规模时其他因素的条件均值为0
+`$$\begin{aligned}E(Y_i|X_i)&amp;=E(\beta_0+\beta_1X_i+u_i|X_i)=\beta_0+\beta_1E(X_i|X_i)+E(u_i|X_i)\\&amp;=\beta_0+\beta_1X_i\end{aligned}$$`
+- 举个反例：不同地区的经济水平和发展程度不同，富裕地区有更多的资金用来雇佣更多更好的老师，师资力量更雄厚，而师资力量又和班级规模有关，这就违背了该假设
+---
+
+###最小二乘假设1
+.panelset[
+.panel[.panel-name[]
+.panel[.panel-name[代码]
+
+```r
+# 设置随机数种子，以确保结果的可重复性
+set.seed(321)
+
+# 生成50个在-5到5之间的随机数，这些随机数将用作X的值
+X &lt;- runif(50, min = -5, max = 5)
+# 生成50个标准差为1的正态分布随机数，这些随机数将用作u的值
+# 确保了误差项是从同一个正态分布中独立抽取的,且误差项均值为0
+u &lt;- rnorm(50, sd = 1)  
+
+# 真实的关系式：根据公式Y = X^2 + 2X + u生成Y的值
+Y &lt;- X^2 + 2 * X + u                
+
+# 使用线性模型拟合Y和X的关系，并存储模型
+mod_simple &lt;- lm(Y ~ X)
+
+# 使用二次模型拟合Y和X的关系，并存储模型
+mod_quadratic &lt;- lm( Y ~ X + I(X^2)) 
+
+# 使用二次模型对排序后的X值进行预测
+prediction &lt;- predict(mod_quadratic, data.frame(X = sort(X)))
+
+# 绘制X和Y的散点图
+plot( Y ~ X, col = "black", pch = 20, xlab = "X", ylab = "Y")
+# 在散点图上绘制简单线性模型的拟合线
+abline( mod_simple, col = "blue",lwd=2)
+# 在散点图上绘制二次模型的预测线
+#红线 = 不正确的线性回归 (违背最小二乘假设1)
+lines( sort(X), prediction,col="red",lwd=2)
+# 在图的左上角添加图例
+legend("topleft", 
+       legend = c("Simple Regression Model", 
+                  "Quadratic Model"),
+       cex = 1,
+       lty = 1,
+       col = c("blue","red"))
+```
+
+
+
+]
+
+.panel[.panel-name[图]
+
+![](Lecture_3_Linear_Regression_One_Regressor_files/figure-html/unnamed-chunk-9-1.png)&lt;!-- --&gt;
+
+]
+]
+.panel[.panel-name[注]
+- 使用二次模型（由黑色曲线表示），我们看到观测值与预测关系没有系统偏差
+
+- 在采用二次模型时，没有违反最小二乘假设1
+
+- 但是使用一个简单的线性回归模型，我们看到这个假设被违反了，因为 `\(E(u_i|X_i)\)` 随 `\(X_i\)` 变化
+]
+]
+---
+
+### 最小二乘假设1
+- 注意：
+  - 在随机对照试验中，试验对象被随机分配到处理组 `\((X=1)\)` 或对照组 `\((X=0)\)` 中，其中随机分配通常采用与试验对象无关的计算机程序进行，这样就能确保 `\(X\)` 的分布与试验对象的所有个体特征独立
+  
+  - 随机分配使 `\(X、u\)` 相互独立，即给定 `\(X\)` 时 `\(u\)` 条件均值为0： `\(E(u_i|X_i)=0\)`
+  
+  - 在观测数据中，  `\(X\)`  不是随机分配的
+  
+  - `\(E(u_i|X_i)=0\longleftrightarrow Cov(X_i,u_i)=0 \longleftrightarrow Corr(X_i,u_i)=0\longleftrightarrow\)` 总体回归线即为 `\(E(Y|X=X_i)\)`
+ 
+---
+
+### 最小二乘假设2
+.panelset[
+.panel[.panel-name[1]
+ `$$(X_i,Y_i),i=1,2,···,n \qquad i.i.d.$$` 
+- 如果样本是**简单随机抽样下获得的，则满足该假设**
+
+- 例如，以 `\(X\)` 表示工人的年龄， `\(Y\)` 表示收入，从工人总体中随机抽取1个人，则这个抽取的人具有一定的年龄和收入（ `\(X\)` ， `\(Y\)` 分别取值）。若从这个总体中抽取n个工人的样本，则 `\((X_i,Y_i),i=1,2,···,n\)` 一定具有相同的分布。又由于是随机抽取的，所以他们之间彼此独立。即 `\((X_i,Y_i),i=1,2,···,n \qquad i.i.d.\)`
+]
+.panel[.panel-name[2]
+- 又如：探究母亲的受教育水平 `\(X\)` 对孩子的受教育水平 `\(Y\)` 的影响
+  - **简单随机抽样**： `\((X_i,Y_i),i=1,2,···,n \qquad i.i.d.\)` 
+      - 随机选取母亲样本得到她的受教育水平信息和她的随机一个孩子的受教育水平信息
+    
+  - **非简单随机抽样：违背该假设**
+      - 随机选取母亲样本得到她的受教育水平信息和她的所有孩子的受教育水平信息
+      
+- 再如：**时间序列**
+
+ - 时间上靠近的观测不是独立的而是**相关**的
+]
+]
+---
+
+###最小二乘假设2
+.panelset[
+.panel[.panel-name[]
+.panel[.panel-name[代码]
+
+```r
+# 设置种子文件，使结果可复制
+set.seed(123)
+
+# 产生数据向量
+Date &lt;- seq(as.Date("1951/1/1"), as.Date("2000/1/1"), "years")
+
+# 向量初始化
+X &lt;- c(5000, rep(NA, length(Date)-1))
+
+# 产生随机时间序列观测值
+for (t in 2:length(Date)) {
+  
+    X[t] &lt;- -50 + 0.98 * X[t-1] + rnorm(n = 1, sd = 200)
+    
+}
+
+#绘图
+plot(x = Date, 
+     y = X, 
+     type = "l", 
+     col = "steelblue", 
+     ylab = "Workers", 
+     xlab = "Time",
+     lwd=2)
+```
+
+
+
+]
+
+.panel[.panel-name[图]
+
+![](Lecture_3_Linear_Regression_One_Regressor_files/figure-html/unnamed-chunk-10-1.png)&lt;!-- --&gt;
+
+]
+
+]
+.panel[.panel-name[注]
+- `\(i.i.d.\)` 假设一个突出的反例就是时间序列数据
+
+- 可以对同一单位随时间推移进行观测，例如，以 `\(X\)` 作为生产公司随时间推移的工人数量
+
+- 很明显，在这个例子中，对雇员人数的观察不能是独立的：今天的就业水平与明天的就业水平相关。因此，  `\(i.i.d.\)` 假设被违反了。
+]
+]
+---
+
+### 最小二乘假设3
+.panelset[
+.panel[.panel-name[注]
+不太可能出现异常值, `\(X,Y\)` 有有限峰度
+  `$$0&lt;E(X^4)&lt;\infty,0&lt;E(X^4)&lt;\infty$$`
+- 异常值： `\(X_i,Y_i\)` 的观测中远落在一般数据范围之外的值。大异常值会产生让人误解的OLS结果
+
+- 该假设对于大样本下估计OLS估计量的分布是必要的
+
+- 出现大的异常值的一种可能是数据登录错误，可以进行改正或剔除]
+.panel[.panel-name[]
+.panel[.panel-name[代码]
+
+```r
+# 设置种子文件使结果可复制可重现
+set.seed(123)
+
+# 产生数据
+X &lt;- sort(runif(10, min = 30, max = 70))
+Y &lt;- rnorm(10 , mean = 200, sd = 50)
+Y[9] &lt;- 2000
+
+# 具有异常值的拟合模型
+fit &lt;- lm(Y ~ X)
+
+# 没有异常值的拟合模型
+fitWithoutOutlier &lt;- lm(Y[-9] ~ X[-9])
+
+# 作图
+plot(Y ~ X)
+abline(fit)
+abline(fitWithoutOutlier, col = "red")
+```
+
+
+
+]
+
+.panel[.panel-name[图]
+
+![](Lecture_3_Linear_Regression_One_Regressor_files/figure-html/unnamed-chunk-11-1.png)&lt;!-- --&gt;
+
+]
+]
+]
+---
+
+### 最小二乘假设的应用
+`$$Y_i=\beta_0+\beta_1X_i+u_i$$`
+- 假设1： `\(E(u_i|X_i)=0\)`
+  
+- 假设2： `\((X_i,Y_i),i=1,2,···,n\)` 独立同分布
+  
+- 假设3：不太可能出现异常值, `\(X,Y\)` 有有限峰度
+  `$$0&lt;E(X^4)&lt;\infty,0&lt;E(X^4)&lt;\infty$$`
+- 当以上3个假设成立时，OLS估计量 `\(\hat \beta_0、\hat \beta_1\)` 有如下性质：
+  - 是 `\(\beta_0、\beta_1\)` 的无偏估计量
+  
+  - 是 `\(\beta_0、\beta_1\)` 的一致估计量
+  
+  - 在大样本条件下服从正态抽样分布，是发展假设检验和构造置信区间的基础
+---
+
+### OLS估计量的性质：无偏性
+`$$Y_i=\beta_0+\beta_1X_i+u_i \qquad \bar Y=\beta_0+\beta_1X_i+\bar u$$`
+`$$\begin{aligned} E(\hat \beta_1)
+&amp;=E\left[\frac{\sum_{i=1}^{n}(X_i-\bar X)(Y_i-\bar Y)}{\sum_{i=1}^{n}(X_i-\bar X)(X_i-\bar X)}\right] 
+\\&amp;=E\left[\frac{\sum_{i=1}^{n}(X_i-\bar X)[\beta_0+\beta_1X_i+u_i-(\beta_0+\beta_1X_i+u_i)]}{\sum_{i=1}^{n}(X_i-\bar X)(X_i-\bar X)}\right]
+\\&amp;=E\left[\frac{\sum_{i=1}^{n}(X_i-\bar X)[\beta_1(X_i-\bar X)+(u_i-\bar u)]}{\sum_{i=1}^{n}(X_i-\bar X)(X_i-\bar X)}\right]
+\\&amp;=E\left[\frac{\beta_1 \sum_{i=1}^{n}(X_i-\bar X)(X_i-\bar X)}{\sum_{i=1}^{n}(X_i-\bar X)(X_i-\bar X)}\right]+E\left[\frac{\sum_{i=1}^{n}(X_i-\bar X)(u_i-\bar u)}{\sum_{i=1}^{n}(X_i-\bar X)(X_i-\bar X)}\right]
+\\
+\\&amp; \text{经代数变换可得}
+\\
+\\&amp;=\beta_1+E\left[\frac{\sum_{i=1}^{n}(X_i-\bar X)u_i}{\sum_{i=1}^{n}(X_i-\bar X)(X_i-\bar X)}\right]
+\end{aligned}$$`
+
+
+---
+
+### OLS估计量的性质：无偏性(续)
+- 代数变换：
+`$$\begin{aligned} \sum_{i=1}^{n}(X_i-\bar X)(u_i-\bar u)&amp;=\sum_{i=1}^{n}X_iu_i-\sum_{i=1}^{n}X_i\bar u-\sum_{i=1}^{n}\bar Xu_i+\sum_{i=1}^{n}\bar X\bar u
+\\&amp;=\sum_{i=1}^{n}X_iu_i-n\left(\frac{1}{n}\sum_{i=1}^{n}X_i\right)\bar u-\sum_{i=1}^{n}\bar Xu_i+n\bar X \bar u\\&amp;=\sum_{i=1}^{n}X_iu_i-n\bar X \bar u-\sum_{i=1}^{n}\bar Xu_i+n\bar X \bar u
+\\&amp;=\sum_{i=1}^{n}(X_i-\bar X)u_i 
+\end{aligned}$$`
+`\(E(\hat \beta_1)=\beta_1+E\left[\frac{\sum_{i=1}^{n}(X_i-\bar X)(u_i)}{\sum_{i=1}^{n}(X_i-\bar X)(X_i-\bar X)}\right]=\beta_1+E\left[\frac{\sum_{i=1}^{n}(X_i-\bar X)E(u_i|X_i)}{\sum_{i=1}^{n}(X_i-\bar X)(X_i-\bar X)}\right]\)`
+
+- 所以若 `\(E(u_i|X_i)=0,E[\hat \beta_1]=\beta_1\)`
+---
+
+### OLS估计量的性质：一致性
+需要说明 `\(\hat \beta_1 \stackrel{P}{\rightarrow}\beta_1\)`。
+`$$\begin{aligned}  \hat \beta_1
+&amp;=\frac{\sum_{i=1}^{n}(X_i-\bar X)(Y_i-\bar Y)}{\sum_{i=1}^{n}(X_i-\bar X)(X_i-\bar X)}
+\\&amp;=\frac{\frac{1}{n}\sum_{i=1}^{n}(X_i-\bar X)(Y_i-\bar Y)}{\frac{1}{n}\sum_{i=1}^{n}(X_i-\bar X)(X_i-\bar X)})=\frac{ S_{XY}}{ S_X^2}
+\\
+\\&amp; \text{由大数定律和最小二乘假设2、3可知}
+\\
+\\&amp;\stackrel{P}{\rightarrow}\frac{Cov(X_i,Y_i)}{Var(X_i)}
+\\&amp;=\frac{Cov(X_i,\beta_0+\beta_1X_i+u_i)}{Var(X_i)}
+\\&amp;=\frac{\beta_1Var(X_i)+Cov(X_i,u_i)}{Var(X_i)}
+\end{aligned}$$`
+---
+
+### OLS估计量的性质：一致性(续)
+`$$\begin{aligned} \hat \beta_1
+&amp;\stackrel{P}{\rightarrow}\beta_1+\frac{Cov(X_i,u_i)}{Var(X_i)}
+\\&amp;=\beta_1+\frac{E(X_i-\mu_X)(u_i-\mu_u)}{Var(X_i)}
+\\
+\\&amp; \text{由前述代数变换可知}
+\\
+\\&amp;=\beta_1+\frac{E(X_i-\mu_X)u_i}{Var(X_i)}
+\\&amp;=\beta_1+\frac{E(X_i-\mu_X)E(u_i|X_i)}{Var(X_i)}
+\end{aligned}$$`
+- 所以若 `\(E(u_i|X_i)=0\)`， `\(\hat \beta_1\stackrel{P}{\rightarrow}\beta_1\)`。
+---
+
+### 仿真模拟
+.panelset[
+.panel[.panel-name[注]
+- 检验OLS估计量的无偏性和一致性
+
+- 设定 `\(Y=1+2X+U\)`
+
+- `\(X: N(0,1)\)`
+
+- `\(U: N(0,1)\)`
+
+- 外生性假设成立
+]
+.panel[.panel-name[]
+.panel[.panel-name[代码]
+
+```r
+N &lt;- 10000#样本容量大小设定
+
+beta &lt;- rep(NA,1000)#NA是复制的对象，1000是复制次数，值赋给beta
+
+for (i in 1:1000) {
+
+X &lt;- rnorm(N,mean=0,sd=1)#X服从标准正态分布
+
+U &lt;- rnorm(N,mean=0,sd=1)#U服从标准正态分布
+
+Y &lt;- 1+2*X+U
+
+fit &lt;- lm(Y~X)#拟合结果赋给fit
+
+beta[i] &lt;- coef(fit)[2]#提取标准误：提取方差矩阵对角线上元素
+
+}
+# 检验无偏性
+mean(beta) 
+# 直方图查看分布
+hist(beta,breaks=50) 
+```
+
+
+
+]
+
+.panel[.panel-name[图]
+
+![](Lecture_3_Linear_Regression_One_Regressor_files/figure-html/unnamed-chunk-12-1.png)&lt;!-- --&gt;
+
+```
+## [1] 1.999855
+```
+
+
+
+]
+]
+.panel[.panel-name[]
+.panel[.panel-name[代码]
+
+```r
+normalized_beta &lt;- rep(NA,1000)#NA是复制的对象，1000是复制次数，值赋给normalized_beta
+
+for (i in 1:1000) {
+
+X &lt;- rnorm(N,mean=0,sd=1)
+
+U &lt;- rnorm(N, mean=0,sd=1)
+
+Y &lt;- 1+2*X+U
+
+fit &lt;- lm(Y~X)#拟合结果赋给fit
+
+normalized_beta[i] &lt;- (coef(fit)[2]-2)/sqrt(vcov(fit)[2,2])#β的标准化
+#coef提取协方差的系数估计
+# vcov提取拟合模型对象的方差、协方差矩阵，模型的“主要”参数对应于coef返回的参数
+
+}
+# 检验无偏性
+mean(normalized_beta) 
+
+hist(normalized_beta,breaks=50,freq=F)
+
+x &lt;- seq(-3,3,length.out=1000)#seq函数是产生等间距间隔数列的函数。该数列开始于-3，终止于3，长度1000
+
+lines(x,dnorm(x),col='red')
+```
+
+
+
+]
+
+.panel[.panel-name[图]
+
+![](Lecture_3_Linear_Regression_One_Regressor_files/figure-html/unnamed-chunk-13-1.png)&lt;!-- --&gt;
+
+```
+## [1] 0.00600795
+```
+
+
+
+]
+]
+]
+---
+
+### 仿真模拟
+.panelset[
+.panel[.panel-name[注]
+- 检验OLS估计量的无偏性和一致性
+
+- 设定 `\(Y=1+2X+U\)`
+
+- `\(X=Z+V1 \qquad U=0.5Z+V2\)`
+
+- `\(V1,V2:N(0,1),\)`均服从正态分布
+
+- 外生性假设不成立
+]
+.panel[.panel-name[]
+.panel[.panel-name[代码]
+
+```r
+# endogeneity内生性，x，u相关
+
+# Y=1+2*X+U
+
+# X=Z+V1
+
+# U=.5*Z+V2
+
+# Z: N(0,1)
+
+# V1,V2:N(0,1)
+
+N &lt;- 10000
+
+beta &lt;- rep(NA,1000)
+
+for (i in 1:1000) {
+
+Z &lt;- rnorm(N)
+
+V1 &lt;- rnorm(N)
+
+V2 &lt;- rnorm(N)
+
+X &lt;- Z+V1
+
+U &lt;- Z/2+V2
+
+Y &lt;- 1+2*X+U
+
+fit &lt;- lm(Y~X)
+
+beta[i] &lt;- coef(fit)[2]
+
+}
+# 不再是无偏估计量
+mean(beta) 
+# 不再是一致估计量
+hist(beta,breaks=50) 
+```
+
+
+
+]
+
+.panel[.panel-name[图]
+
+![](Lecture_3_Linear_Regression_One_Regressor_files/figure-html/unnamed-chunk-14-1.png)&lt;!-- --&gt;
+
+```
+## [1] 2.250114
+```
+
+
+
+]
+]
+]
+---
+
+### 小结：无偏性和一致性
+- 无偏性和一致性都依赖于最小二乘假设1： `\(E(u_i|X_i)=0\)`
+
+- 无偏性表明在给定样本容量下， `\(E[\hat \beta_1]=\beta_1\)`
+
+- 一致性：当样本量 `\(n\)` 很大时， `\(\hat \beta_0,\hat \beta_1\)` 以较高的概率集中在总体系数 `\(\beta_0,\beta_1\)` 的周围。
+  
+- 估计量方差：
+`$$\sigma_{\hat \beta_0}^2=\frac{1}{n}\frac{H_iu_i}{\left[E(H_i^2)\right]^2},H_i=1-\left(\frac{\mu_X}{E(X_i^2)}\right)X_i$$`
+`$$\sigma_{\hat \beta_1}=\frac{1}{n}\frac{(X_i-\mu_i)u_i}{[Var(X_i)]^2}$$`
+- 自变量 `\(X\)` 的方差 `\(Var(X_i)\)` 越大，样本容量越大即取值范围越广，包含信息越多，估计越准确， `\(\sigma_{\hat \beta_1}\)` 越小
+---
+
+### `\(\hat \beta_0、\hat \beta_1\)` 大样本分布
+- 前面我们讨论了样本均值 `\(\bar Y\)` 的抽样分布
+
+- 我们知道，当样本容量 `\(n\)` 很小时，抽样分布很复杂
+
+- 但是如果 `\(Y_1,Y_2,···,Y_n\)` 独立同分布，那么 `\(E(\bar Y)=\mu_Y\)`
+
+- 由中心极限定理可知，大样本下抽样分布可以用正态分布近似估计
+`$$\bar Y \sim N(\mu_Y,\frac{\sigma_Y^2}{n})$$`
+- 所以，如果三个最小二乘假设都成立，我们可以对 `\(OLS\)` 估计量 `\(\hat \beta_0、\hat \beta_1\)` 作相似的表述
+---
+
+###  `\(\hat \beta_0、\hat \beta_1\)` 大样本分布
+.panelset[
+.panel[.panel-name[注]
+- 严格说来，中心极限定理和大样本下样本均值分布有关
+
+- 我们之前推导得到的OLS估计量却是样本均值的函数
+`$$\hat \beta_0=\bar Y-\hat \beta_1 \bar X$$`
+
+$$
+`\begin{aligned}
+\hat \beta_1&amp;=\frac{\sum_{i=1}^{n}(X_i-\bar X)(Y_i-\bar Y)}{\sum_{i=1}^{n}(X_i-\bar X)(X_i-\bar X)}\\
+&amp;=\frac{\frac{1}{n-1}\sum_{i=1}^{n}(X_i-\bar X)(Y_i-\bar Y)}{\frac{1}{n-1}\sum_{i=1}^{n}(X_i-\bar X)(X_i-\bar X)}\\
+&amp;=\frac{S_{XY}}{S_X^2}
+\end{aligned}`
+$$
+]
+.panel[.panel-name[注]
+- 但是中心极限定理同样适用于这些样本均值的函数
+
+- 如果最小二乘假设1（外生性假设）成立
+  - 对任意大小的样本容量，OLS估计量无偏
+  
+  - `\(E(\hat \beta_0)= \beta_0,E(\hat \beta_1)= \beta_1\)`
+- 如果最小二乘假设3（有限峰度假设）成立
+
+  - 中心极限定理表明大样本下 `\(\hat \beta_0\sim N(\beta_0,\sigma_{\hat \beta_0}^2),\hat \beta_1\sim N(\beta_1,\sigma_{\hat \beta_1}^2))\)`
+]
+.panel[.panel-name[]
+.panel[.panel-name[代码]
+
+```r
+# 模拟数据
+N &lt;- 100000
+# X是一个在0到20之间的均匀分布随机数
+X &lt;- runif(N, min = 0, max = 20)
+# u是一个标准差为10的正态分布随机数
+u &lt;- rnorm(N, sd = 10)
+
+# 总体回归
+Y &lt;- -2 + 3.5 * X + u
+# 结果存储在 data.frame 中
+population &lt;- data.frame(X, Y)
+
+# 设置样本大小
+n &lt;- 100
+
+# 计算 beta_hat_0 的方差
+H_i &lt;- 1 - mean(X) / mean(X^2) * X
+var_b0 &lt;- var(H_i * u) / (n * mean(H_i^2)^2 )
+
+# 计算 beta_hat_1 的方差
+var_b1 &lt;- var( ( X - mean(X) ) * u ) / (n * var(X)^2)
+
+# 设置重复次数
+reps &lt;- 10000
+
+# 初始化了一个矩阵fit，用于存储每次重复中线性回归的系数估计值
+fit &lt;- matrix(ncol = 2, nrow = reps)
+
+# 循环抽样和系数估计
+for (i in 1:reps){
+ # 从总体数据population中随机抽取一个大小为n的样本 
+ sample &lt;- population[sample(1:N, n), ]
+ # 拟合一个线性模型，并提取回归系数（截距和斜率）存储在fit矩阵的相应行中
+ fit[i, ] &lt;- lm(Y ~ X, data = sample)$coefficients
+ 
+}
+
+# 设置绘图区域为1行2列的数组
+par(mfrow = c(1, 2))
+
+# 绘制beta_0估计值的直方图
+# 使用hist函数绘制fit矩阵第一列（即beta_0的估计值）的直方图
+hist(fit[, 1],
+     # 设置主标题的字符缩放因子
+     cex.main = 0.8,
+     # 设置主标题，使用bquote函数来包含数学表达式
+     main = bquote(The ~ Distribution  ~ of ~ 10000 ~ beta[0] ~ Estimates), 
+     xlab = bquote(hat(beta)[0]), 
+     # y轴显示概率密度而不是频数
+     freq = F)
+
+# 在beta_0直方图上添加真实分布曲线
+# 使用curve函数在直方图上添加正态分布曲线，该曲线的均值是-2（真实截距），标准差是sqrt(var_b0)（根据之前的计算得到的beta_0估计值的方差的标准差）
+curve(dnorm(x, 
+            -2, 
+            sqrt(var_b0)), 
+      # 将曲线添加到现有的直方图上
+      add = T, 
+      col = "darkred",lwd=2)
+
+# 绘制beta_1估计值的直方图 
+hist(fit[, 2],
+    cex.main = 0.8,
+     main = bquote(The ~ Distribution  ~ of ~ 10000 ~ beta[1] ~ Estimates), 
+     xlab = bquote(hat(beta)[1]), 
+     freq = F)
+
+# 在beta_1直方图上添加真实分布曲线
+curve(dnorm(x, 
+            3.5, 
+            sqrt(var_b1)), 
+      add = T, 
+      col = "darkred",lwd=2)
+```
+
+
+
+]
+
+.panel[.panel-name[图]
+
+![](Lecture_3_Linear_Regression_One_Regressor_files/figure-html/unnamed-chunk-15-1.png)&lt;!-- --&gt;
+
+]
+]
+]
+---
+
+### `\(\hat \beta_0、\hat \beta_1\)` 大样本分布
+.panelset[
+.panel[.panel-name[注]
+`$$\sigma_{\hat \beta_0}^2=\frac{1}{n}\frac{H_iu_i}{\left[E(H_i^2)\right]^2}$$`
+`$$H_i=1-\left(\frac{\mu_X}{E(X_i^2)}\right)X_i$$`
+`$$\sigma_{\hat \beta_1}^2=\frac{1}{n}\frac{(X_i-\mu_i)u_i}{[Var(X_i)]^2}$$`
+- 自变量 `\(X\)` 的方差 `\(Var(X_i)\)` 越大，样本容量越大即取值范围越广，包含信息越多，估计越准确， `\(\sigma_{\hat \beta_1}^2\)` 越小
+]
+.panel[.panel-name[]
+.panel[.panel-name[Code]
+
+```r
+# 模拟数据
+N &lt;- 100000
+# X是一个在0到20之间的均匀分布随机数
+X &lt;- runif(N, min = 0, max = 20)
+# u是一个标准差为10的正态分布随机数
+u &lt;- rnorm(N, sd = 10)
+
+# 总体回归
+Y &lt;- -2 + 3.5 * X + u
+# 结果存储在 data.frame 中
+population &lt;- data.frame(X, Y)
+
+# 设置样本大小
+n &lt;- 100
+
+# 计算 beta_hat_0 的方差
+H_i &lt;- 1 - mean(X) / mean(X^2) * X
+var_b0 &lt;- var(H_i * u) / (n * mean(H_i^2)^2 )
+
+# 计算 beta_hat_1 的方差
+var_b1 &lt;- var( ( X - mean(X) ) * u ) / (n * var(X)^2)
+
+# 输出结果
+var_b0
+var_b1
+```
+
+
+
+]
+
+.panel[.panel-name[Output]
+
+```
+## [1] 3.977533
+## [1] 0.02985296
+```
+
+
+
+]
+]
+.panel[.panel-name[注]
+- 总体回归方程为
+`$$Y_i=-2+3.5X_i$$`
+
+- 对于随机抽取的大小为100的样本，根据计算得真正的方差为
+`$$\sigma_{\hat \beta_0}^2=\frac{1}{n}\frac{H_iu_i}{[E(H_i^2)]^2}=3.970$$`
+`$$\sigma_{\hat \beta_1}^2=\frac{1}{n}\frac{(X_i-\mu_i)u_i}{[Var(X_i)]^2}=0.030$$`
+]
+.panel[.panel-name[注]
+- 假设我们不知道 `\(\beta_0,\beta_1\)` 并且不能观察到整个总体
+
+ - 因为观测值是从总体中随机抽样的
+ 
+ - 我们可以使用 OLS 的样本数据获得 `\(\beta_0,\beta_1\)`
+ 
+- 方差结果分别为4.107和0.030，与真正的方差接近
+ 
+- 这进一步说明最小二乘假设成立时，在大样本中 `\(\beta_0,\beta_1\)` 具有联合正态抽样分布
+]
+.panel[.panel-name[]
+.panel[.panel-name[Code]
+
+```r
+# 设置样本大小
+n &lt;- 100
+# 设置重复次数
+reps &lt;- 10000
+
+# 初始化了一个矩阵fit，用于存储每次重复中线性回归的系数估计值
+fit &lt;- matrix(ncol = 2, nrow = reps)
+
+# 循环抽样和系数估计
+for (i in 1:reps){
+ # 从总体数据population中随机抽取一个大小为n的样本 
+ sample &lt;- population[sample(1:N, n), ]
+ # 拟合一个线性模型，并提取回归系数（截距和斜率）存储在fit矩阵的相应行中
+ fit[i, ] &lt;- lm(Y ~ X, data = sample)$coefficients
+ 
+}
+# 输出结果
+var(fit[, 1])
+var(fit[, 2])
+```
+
+
+
+]
+
+.panel[.panel-name[Output]
+
+```
+## [1] 4.067678
+## [1] 0.03010208
+```
+
+
+
+]
+]
+]
+---
+
+###  `\(\hat \beta_0、\hat \beta_1\)` 大样本分布
+.panelset[
+.panel[.panel-name[]
+.panel[.panel-name[Code]
+
+```r
+# 下载并引用 MASS 安装包
+#install.packages(MASS)
+library(MASS)
+
+# 设置种子文件使结果可重现
+set.seed(4)
+
+# 模拟二元正态数据
+# mvrnorm是MASS包中的一个函数，可以从多元正态随机变量中抽取随机样本
+bvndata &lt;- mvrnorm(100, 
+                mu = c(5, 5), 
+                Sigma = cbind(c(5, 4), c(4, 5))) 
+
+# 指定列名 / 转换为日期框架
+colnames(bvndata) &lt;- c("X", "Y")
+bvndata &lt;- as.data.frame(bvndata)
+
+# 对数据进行子集划分
+set1 &lt;- subset(bvndata, abs(mean(X) - X) &gt; 1) #|X-u_X|&gt;1
+set2 &lt;- subset(bvndata, abs(mean(X) - X) &lt;= 1)#|X-u_X|&lt;1
+
+# 拟合两个线性回归模型并储存
+lm.set1 &lt;- lm(Y ~ X, data = set1)
+lm.set2 &lt;- lm(Y ~ X, data = set2)
+
+# 对数据子集作图
+plot(set1, 
+     xlab = "X", 
+     ylab = "Y", 
+     pch = 19)
+
+points(set2, 
+       col = "steelblue", 
+       pch = 19)
+
+# 在图上添加回归线
+abline(lm.set1, col = "black",lwd=2)
+abline(lm.set2, col = "steelblue",lwd=2)
+
+# 添加图例
+legend("bottomright", 
+       legend = c("Set1", 
+                  "Set2"),
+       cex = 1,
+       lwd=2,
+       col = c("black","steelblue"))
+```
+
+
+
+]
+
+.panel[.panel-name[Output]
+
+![](Lecture_3_Linear_Regression_One_Regressor_files/figure-html/unnamed-chunk-18-1.png)&lt;!-- --&gt;
+
+]
+]
+.panel[.panel-name[图解]
+- 蓝色的数据点是靠近均值 `\(\mu_X\)` 的点，方差较小
+
+- 黑色的数据点是远离均值 `\(\mu_X\)` 的点，方差大
+
+- 蓝色数据点拟合的蓝色线拟合效果不如黑色数据点拟合的黑色线，因为
+
+ - 自变量 `\(X\)` 的方差 `\(Var(X_i)\)` 越大，样本容量越大即取值范围越广，包含信息越多，估计越准确
+]
+]
+---
+
+###小结
+- 总体线性回归模型有关术语
+
+- 基于样本观测，利用普通最小二乘OLS可以估计总体回归线
+
+- `\(R^2\)` 和回归标准误 `\(SER\)` 度量了 `\(Y_i\)` 与回归线估计的近似程度
+
+- 线性回归模型三个重要假设
+ 
+ - `\(E(u_i|X_i)=0\)`
+ 
+ - 独立同分布假设
+ 
+ - 大的异常值不大可能出现
+ 
+- 最小二乘假设 `\(\longrightarrow\)`  OLS估计量的性质
+
+ - 无偏
+ 
+ - 一致
+ 
+ - 样本较大时服从正态分布
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script>var slideshow = remark.create({
+"highlightStyle": "github",
+"highlightLines": true,
+"countIncrementalSlides": false
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();
+// add `data-at-shortcutkeys` attribute to <body> to resolve conflicts with JAWS
+// screen reader (see PR #262)
+(function(d) {
+  let res = {};
+  d.querySelectorAll('.remark-help-content table tr').forEach(tr => {
+    const t = tr.querySelector('td:nth-child(2)').innerText;
+    tr.querySelectorAll('td:first-child .key').forEach(key => {
+      const k = key.innerText;
+      if (/^[a-z]$/.test(k)) res[k] = t;  // must be a single letter (key)
+    });
+  });
+  d.body.setAttribute('data-at-shortcutkeys', JSON.stringify(res));
+})(document);
+(function() {
+  "use strict"
+  // Replace <script> tags in slides area to make them executable
+  var scripts = document.querySelectorAll(
+    '.remark-slides-area .remark-slide-container script'
+  );
+  if (!scripts.length) return;
+  for (var i = 0; i < scripts.length; i++) {
+    var s = document.createElement('script');
+    var code = document.createTextNode(scripts[i].textContent);
+    s.appendChild(code);
+    var scriptAttrs = scripts[i].attributes;
+    for (var j = 0; j < scriptAttrs.length; j++) {
+      s.setAttribute(scriptAttrs[j].name, scriptAttrs[j].value);
+    }
+    scripts[i].parentElement.replaceChild(s, scripts[i]);
+  }
+})();
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();
+// adds .remark-code-has-line-highlighted class to <pre> parent elements
+// of code chunks containing highlighted lines with class .remark-code-line-highlighted
+(function(d) {
+  const hlines = d.querySelectorAll('.remark-code-line-highlighted');
+  const preParents = [];
+  const findPreParent = function(line, p = 0) {
+    if (p > 1) return null; // traverse up no further than grandparent
+    const el = line.parentElement;
+    return el.tagName === "PRE" ? el : findPreParent(el, ++p);
+  };
+
+  for (let line of hlines) {
+    let pre = findPreParent(line);
+    if (pre && !preParents.includes(pre)) preParents.push(pre);
+  }
+  preParents.forEach(p => p.classList.add("remark-code-has-line-highlighted"));
+})(document);</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>
