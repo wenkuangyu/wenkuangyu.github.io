@@ -1,0 +1,1362 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+  <head>
+    <title>第四讲：一元线性回归——假设检验和置信区间</title>
+    <meta charset="utf-8" />
+    <meta name="author" content="文旷宇" />
+    <script src="libs/header-attrs-2.18/header-attrs.js"></script>
+    <link href="libs/xaringanExtra-banner-0.0.1/banner.css" rel="stylesheet" />
+    <script src="libs/xaringanExtra-banner-0.0.1/banner.js"></script>
+    <script src="libs/fabric-4.3.1/fabric.min.js"></script>
+    <link href="libs/xaringanExtra-scribble-0.0.1/scribble.css" rel="stylesheet" />
+    <script src="libs/xaringanExtra-scribble-0.0.1/scribble.js"></script>
+    <script>document.addEventListener('DOMContentLoaded', function() { window.xeScribble = new Scribble({"pen_color":["#FF0000"],"pen_size":3,"eraser_size":30,"palette":[]}) })</script>
+    <link href="libs/panelset-0.2.6/panelset.css" rel="stylesheet" />
+    <script src="libs/panelset-0.2.6/panelset.js"></script>
+    <script src="libs/xaringanExtra_fit-screen-0.2.6/fit-screen.js"></script>
+    <link rel="stylesheet" href="xaringan-themer.css" type="text/css" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+.title[
+# 第四讲：一元线性回归——假设检验和置信区间
+]
+.author[
+### 文旷宇
+]
+.institute[
+### 华中科技大学
+]
+
+---
+
+&lt;style type="text/css"&gt;
+pre{
+  max-height:400px;
+  overflow-y:auto;
+}
+&lt;/style&gt;
+
+<div>
+<style type="text/css">.xaringan-extra-logo {
+width: 55px;
+height: 64px;
+z-index: 0;
+background-image: url(../images/hust-logo.png);
+background-size: contain;
+background-repeat: no-repeat;
+position: absolute;
+top:1em;right:1em;
+}
+</style>
+<script>(function () {
+  let tries = 0
+  function addLogo () {
+    if (typeof slideshow === 'undefined') {
+      tries += 1
+      if (tries < 10) {
+        setTimeout(addLogo, 100)
+      }
+    } else {
+      document.querySelectorAll('.remark-slide-content:not(.title-slide):not(.inverse):not(.hide_logo)')
+        .forEach(function (slide) {
+          const logo = document.createElement('div')
+          logo.classList = 'xaringan-extra-logo'
+          logo.href = null
+          slide.appendChild(logo)
+        })
+    }
+  }
+  document.addEventListener('DOMContentLoaded', addLogo)
+})()</script>
+</div><script>document.addEventListener('DOMContentLoaded',function(){new xeBanner(JSON.parse('{"left":"","right":"","exclude":["title-slide"],"position":"top"}'))})</script>
+<script>document.addEventListener('DOMContentLoaded',function(){new xeBanner(JSON.parse('{"left":"文旷宇/华中科技大学","exclude":["title-slide"],"position":"bottom"}'))})</script>
+
+
+
+
+
+
+
+#### 主要内容
+- 一元线性回归模型系数的假设检验
+  - 回顾总体均值的假设检验
+  
+  - 关于 `\(\beta_1\)` 的双边、单边假设检验
+  
+- 一元线性回归模型系数的置信区间
+
+- 二值变量回归模型
+  - 对系数 `\(\beta_0,\beta_1\)` 的解释
+
+  - 关于 `\(\beta_1\)` 的假设检验
+  
+- OLS估计量的有效性
+
+  - 高斯-马尔可夫理论
+  
+  - 最佳线性无偏估计量
+  
+  - 同方差与异方差
+---
+
+### 回顾：总体均值的假设检验
+`$$H_0:E(Y)=\mu_{Y,0}\qquad H_1:E(Y)\neq\mu_{Y,0}$$`
+- 第一步：计算样本均值 `\(\bar Y\)`
+
+- 第二步：计算样本均值 `\(\bar Y\)` 的标准误 `$$SE(\bar Y)=\frac{s_Y}{\sqrt{n}}$$`
+
+- 第三步：计算 `\(t\)` 统计量 
+`$$t^{act}=\frac{\bar Y^{act}-\mu_{Y,0}}{SE(\bar Y)}$$`
+
+- 第四步：判断，如果满足下列条件之一则拒绝原假设( `\(\alpha=0.05\)` )
+  -  `\(p&lt;0.05\)` 
+  
+  - `\(|t^{act}|&gt;1.96\)` 
+---
+
+### 回顾：总体均值的假设检验
+- `\(p\)` 值
+
+ - 表示能够拒绝原假设的最小显著水平
+ 
+ - 也表示在假定原假设正确的条件下
+ 
+       - 由于随机抽样变异得到的距离原假设值至少与实际观测到的统计量距离原假设值一样远的统计量的概率
+       
+       - 即远离合理期望区间的概率
+       
+ - 原假设下大样本时 `\(t\sim N(0,1)\longrightarrow\)` 双边假设下 `\(p=2\Phi(-|t^{act}|)\)`
+ 
+- `\(|t^{act}|&gt;1.96\)`
+
+ - `\(5\%\)` 显著水平的双边检验中拒绝原假设
+ 
+ - `\(5\%\)` 显著水平下总体均值统计上显著不同于假设值
+---
+
+### 关于总体均值的假设检验例子
+- 假设我们利用420个加利福尼亚学区考试分数的样本检验总体均值：
+`$$H_0:E(TestScore)=650\qquad H_1:E(TestScore)\neq650$$`
+- 第一步： `\(\bar{TestScore}=\frac{1}{n}\sum_{i=1}^{n}TestScore_i=654.16\)`
+
+- 第二步： `\(SE(\bar{TestScore})=\frac{S_{TestScore}}{\sqrt{n}}=0.93\)`
+
+- 第三步： `\(t^{act}=\frac{\bar{TestScore}-TestScore}{SE(\bar{TestScore})}=\frac{654.16-650}{0.939}=4.47\)`
+
+- 第四步：假设 `\(\alpha=0.05\)`，因为 `\(|t^{act}|=4.47&gt;1.96\)`，所以拒绝原假设
+
+---
+
+### 关于 `\(\beta_1\)` 的双边假设检验
+- 对总体均值的假设检验是以中心极限定理为理论依据的
+
+- 中心极限定理表明：
+  - 大样本下 `\(t\)` 统计量（标准化的样本均值）近似标准正态分布
+  
+  - 大样本下 `\(\hat \beta_0,\hat \beta_1\)` 近似正态分布
+  
+  - 标准化的回归系数在大样本下近似标准正态分布
+- 因此，假设最小二乘假设成立，我们可以使用大体相同的方法对 `\(\beta_0,\beta_1\)` 进行假设检验
+---
+
+### 关于 `\(\beta_1\)` 的双边假设检验
+`$$H_0:\beta_1=\beta_{1,0}\qquad H_1:\beta_1 \ne \beta_{1,0}$$`
+- 第一步：通过OLS最小二乘法估计 `\(Y_i=\beta_0+\beta_1X_i+u_i\)` 得到 `\(\hat \beta_0\)`、 `\(\hat \beta_1\)` 和 `\(\hat u_i\)`
+
+- 第二步：计算 `\(\hat \beta_1\)` 的标准误 `\(SE(\hat \beta_1)=\sqrt{\hat \sigma_{\hat \beta_1}^2}\)`，其中
+`$$\hat \sigma_{\hat \beta_1}^2=\frac{1}{n}\frac{\frac{1}{n-2}\sum_{i=1}^{n}(X_i-\bar X)^2\hat u_i^2}{\left[\frac{1}{n}\sum_{i=1}^{n}(X_i-\bar X)^2\right]^2}$$`
+- 第三步：计算 `\(t\)` 统计量
+`$$t^{act}=\frac{\hat \beta_1-\beta_{1,0}}{SE(\hat \beta_1)}$$`
+- 第四步：置信水平 `\(\alpha=0.05\)` 时，如果 `\(|t^{act}|&gt;1.96\)` （临界值）或者 `\(p&lt;0.05\)` 就拒绝原假设
+---
+
+### 关于 `\(\beta_1\)` 的双边假设检验
+.panelset[
+.panel[.panel-name[]
+.panel[.panel-name[Code]
+
+```r
+# 在区间[-6,6]上绘制标准正态分布的图形，并突出显示双尾检验的临界区域
+
+# 创建x轴上的点：生成一个从-6到6的序列，步长为0.01，用于绘制正态分布曲线
+t &lt;- seq(-6, 6, 0.01)
+
+# 绘制正态分布曲线：使用plot()函数绘制标准正态分布曲线（均值为0，标准差为1）
+plot(x = t, 
+     y = dnorm(t, 0, 1), 
+# 绘制线图
+     type = "l", 
+     col = "steelblue", 
+     lwd = 2, 
+# 设置y轴刻度间隔相等
+     yaxs = "i", 
+# 不绘制坐标轴
+     axes = F, 
+# 设置y轴标签
+     ylab = "", 
+     main = expression("Calculating the p-value of a Two-sided Test when"
+             ~ t^act ~ "=-4.75"), 
+     cex.lab = 0.7,
+     cex.main = 1)
+
+tact &lt;- -4.75
+
+# 使用axis()函数设置x轴刻度，突出显示0、-1.96、1.96和给定的t值（-4.75）、4.75
+axis(1, at = c(0, -1.96, 1.96, -tact, tact), cex.axis = 0.7)
+
+# 使用polygon()函数绘制左右两个尾部的临界区域，颜色为橙色
+
+# 左尾临界区域
+polygon(x = c(-6, seq(-6, -1.96, 0.01), -1.96),
+        y = c(0, dnorm(seq(-6, -1.96, 0.01)), 0), 
+        col = 'orange')
+
+# 右尾临界区域
+
+polygon(x = c(1.96, seq(1.96, 6, 0.01), 6),
+        y = c(0, dnorm(seq(1.96, 6, 0.01)), 0), 
+        col = 'orange')
+
+# 添加箭头和文本指示临界区域和p值
+# 使用arrows()函数在图上添加箭头，指示临界区域
+arrows(-3.5, 0.2, -2.5, 0.02, length = 0.1)
+arrows(3.5, 0.2, 2.5, 0.02, length = 0.1)
+
+arrows(-5, 0.16, -4.75, 0, length = 0.1)
+arrows(5, 0.16, 4.75, 0, length = 0.1)
+# 使用text()函数添加文本，解释图中的元素，例如，它解释了α/2（即0.025）是如何与临界值相关联的，以及给定的t值（-4.75）在图中的位置
+text(-3.5, 0.22, 
+     labels = expression("0.025"~"="~over(alpha, 2)),
+     cex = 0.7)
+text(3.5, 0.22, 
+     labels = expression("0.025"~"="~over(alpha, 2)),
+     cex = 0.7)
+
+text(-5, 0.18, 
+     labels = expression(paste("-|",t[act],"|")), 
+     cex = 0.7)
+text(5, 0.18, 
+     labels = expression(paste("|",t[act],"|")), 
+     cex = 0.7)
+
+# 使用rug()函数在图上添加刻度标记指示 0.05-水平, t^act and -t^act 的临界值
+rug(c(-1.96, 1.96), ticksize  = 0.145, lwd = 2, col = "darkred")
+rug(c(-tact, tact), ticksize  = -0.0451, lwd = 2, col = "darkgreen")
+```
+
+
+
+]
+
+.panel[.panel-name[Output]
+
+![](Lecture_4_Simple_Linear_Regression_Inference_files/figure-html/unnamed-chunk-2-1.png)&lt;!-- --&gt;
+
+]
+
+]
+.panel[.panel-name[注]
+- 这个图用于展示在给定的t值（-4.75）下，双尾检验的临界区域是如何确定的。这对于理解假设检验中 `\(p\)` 值的计算非常有帮助
+
+- `\(p\)` 值表示能拒绝原假设的最小显著水平
+
+- 假定原假设正确， `\(p\)` **值 是**随机抽样得到距离原假设值至少与实际观测到的统计量距离原假设值一样远的统计量的**概率**
+
+- 原假设成立时，大样本下 `\(t\)` 统计量服从标准正态分布 `\(\longrightarrow\)` 双边假设的 `\(p\)` 值为 `\(2\phi(-|t^{act}|)\)`
+]
+]
+---
+
+### 仿真模拟
+.panelset[
+.panel[.panel-name[注]
+- 为了解班级规模和考试分数之间的关系，我们可引用数据进行仿真模拟，以考试表现为Y，班级规模为X
+`$$TestSore_i=\beta_0+\beta_1STR_i+u_i$$`
+
+- 假设我们想要检验班级规模是否对考试分数没有影响，即检验 `\(\beta_1=0\)` 是否成立
+]
+.panel[.panel-name[]
+.panel[.panel-name[Code]
+
+```r
+#install.packages('AER') # 仅仅在第一次使用
+library('AER') # 每次需要载入包时，用library
+data(CASchools)#引用数据
+
+CASchools$test_score &lt;- (CASchools$read+CASchools$math)/2#阅读和数学的平均水平赋给CASchools$test_score
+
+CASchools$STR &lt;- CASchools$students/CASchools$teachers#班级规模赋给CASchools$STR
+
+fit &lt;- lm(test_score~STR,data = CASchools)#lm()函数，拟合线性模型，用于回归、方差分析、协方差分析，拟合结果赋给fit
+
+summary(fit) # 查看回归报告的总结
+
+coef(fit) # 提取协方差的系数估计
+
+vcov(fit) # 提取拟合模型对象的方差、协方差矩阵，模型的“主要”参数对应于coef返回的参数
+```
+
+
+
+]
+
+.panel[.panel-name[Output]
+
+```
+## 
+## Call:
+## lm(formula = test_score ~ STR, data = CASchools)
+## 
+## Residuals:
+##     Min      1Q  Median      3Q     Max 
+## -47.727 -14.251   0.483  12.822  48.540 
+## 
+## Coefficients:
+##             Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept) 698.9329     9.4675  73.825  &lt; 2e-16 ***
+## STR          -2.2798     0.4798  -4.751 2.78e-06 ***
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## Residual standard error: 18.58 on 418 degrees of freedom
+## Multiple R-squared:  0.05124,	Adjusted R-squared:  0.04897 
+## F-statistic: 22.58 on 1 and 418 DF,  p-value: 2.783e-06
+## 
+## (Intercept)         STR 
+##  698.932949   -2.279808 
+##             (Intercept)        STR
+## (Intercept)   89.633388 -4.5218653
+## STR           -4.521865  0.2302326
+```
+
+
+
+]
+]
+]
+---
+
+### 关于 `\(\beta_1\)` 的双边假设检验
+`$$H_0:\beta_1=0\qquad H_1:\beta_1 \ne 0$$`
+- 第一步：通过OLS最小二乘法估计 `\(Y_i=\beta_0+\beta_1X_i+u_i\)` 得到 `\(\hat \beta_1=-2.28\)`
+
+- 第二步：计算 `\(\hat \beta_1\)` 的标准误
+`$$SE(\hat \beta_1)=0.48$$`
+- 第三步：计算 `\(t\)` 统计量
+`$$t^{act}=\frac{\hat \beta_1-\beta_{1,0}}{SE(\hat \beta_1)}=\frac{-2.28-0}{0.48}=-4.75$$`
+- 第四步：置信水平 `\(\alpha=0.05\)` 时，因为 `\(|t^{act}|=|-4.75|&gt;1.96\)` ， `\(p=0.000&lt;0.05\)`，所以 拒绝原假设
+
+- 进一步地，假设我们想要检验 `\(\beta_1=-2\)` 是否成立，方法也是类似的
+---
+
+### 关于 `\(\beta_1\)` 的双边假设检验
+`$$H_0:\beta_1=-2\qquad H_1:\beta_1 \ne -2$$`
+- 第一步：通过OLS最小二乘法估计 `\(Y_i=\beta_0+\beta_1X_i+u_i\)` 得到 `\(\hat \beta_1=-2.28\)`
+
+- 第二步：计算 `\(\hat \beta_1\)` 的标准误
+`$$SE(\hat \beta_1)=0.48$$`
+- 第三步：计算 `\(t\)` 统计量
+`$$t^{act}=\frac{\hat \beta_1-\beta_{1,0}}{SE(\hat \beta_1)}=\frac{-2.28-(-2)}{0.48}=-0.58$$`
+- 第四步：置信水平 `\(\alpha=0.05\)` 时，因为 `\(|t^{act}|=|-0.58|&lt;1.96\)` 所以不拒绝原假设
+---
+
+### 关于 `\(\beta_1\)` 的单边假设检验
+`$$H_0:\beta_1=-2\qquad H_1:\beta_1&lt;-2$$`
+- 第一步：通过OLS最小二乘法估计 `\(Y_i=\beta_0+\beta_1X_i+u_i\)` 得到 `\(\hat \beta_1=-2.28\)`
+
+- 第二步：计算 `\(\hat \beta_1\)` 的标准误 `\(SE(\hat \beta_1)=0.48\)`
+
+- 第三步：计算 `\(t\)` 统计量 `\(t^{act}=\frac{\hat \beta_1-\beta_{1,0}}{SE(\hat \beta_1)}=\frac{-2.28-(-2)}{0.48}=-0.58\)`
+- 第四步：置信水平 `\(\alpha=0.05\)` 时，因为 `$$t^{act}=-0.58&gt;-1.645,p=Pr(Z&lt;t^{act})=\phi(t^{act})$$` 所以不拒绝原假设
+
+- 基于统计证据接受/拒绝原假设的方法，提供了利用样本了解总体时处理样本内在不确定性的强大工具
+
+- 但是很多时候我们缺乏回归系数假设，反而需要了解与数据相符的回归系数取值区间，因此需要构造置信区间
+---
+
+### 一元线性回归模型系数的置信区间
+- 斜率 `\(\beta_1\)` 的任何统计估计必定具有抽样不确定性，所以我们不可能仅通过一个样本数据确定 `\(\beta_1\)` 的真值。但是利用OLS估计量及其标准误可以构造斜率 `\(\beta_1\)`、截距 `\(\beta_0\)` 的置信区间
+- 前面我们学习了如何构造总体均值的置信区间，这种方法同样可以延伸到一元线性回归模型系数上来
+
+- 通过双边假设检验的学习我们知道：
+  - 置信水平 `\(\alpha=0.05\)` 时，如果 `\(|t^{act}|&gt;1.96\)` （临界值）或者 `\(p&lt;0.05\)` 就拒绝原假设（ `\(\beta_1\)` 的假设值）
+  
+  - 如果 `\(|t^{act}|&lt;1.96\)` ， `\(\beta_1\)` 的假设值就落在置信区间中
+- 所以 `\(\beta_1\)` 的 `\(95\%\)` 的置信区间为 `\(\hat \beta_1 \pm1.96SE(\hat \beta_1)\)`
+  - `\(5\%\)` 显著水平下的假设检验只能在 `\(5\%\)` 的所有可能样本中拒绝 `\(\beta_1\)` 的真值，在 `\(95\%\)` 的所有可能样本中不会拒绝 `\(\beta_1\)` 的真值
+  
+  -  `\(\beta_1\)` 的真值包含在 `\(95\%\)` 的所有可能样本的置信区间内
+---
+
+###回归模型系数的置信区间
+.panelset[
+.panel[.panel-name[注]
+- 在R语言环境中生成和绘制随机正态分布数据
+
+- 生成一个包含100个来自均值为5、标准差为5的正态分布的随机数，并使用深蓝色的实心圆点来绘制这些随机数
+`$$Y_i\stackrel{i.i.d.}{\sim}N(5,25),i=1,···,100$$`
+`$$Y_i=\mu+\delta_i,\quad\delta_i \sim N(0,25)$$`
+- `\(\hat \mu=\bar Y=\frac{1}{n}\sum_{i=1}^{n}Y_i\)`
+
+- `\(SE(\hat \mu)=\frac{\sigma_{\delta}}{\sqrt{n}}=\frac{5}{\sqrt{100}}\)`
+
+- 置信区间 `\(CI_{0.95}^{\mu}=[\hat \mu \pm1.96\times\frac{5}{\sqrt{100}}]\)`
+]
+.panel[.panel-name[]
+.panel[.panel-name[Code]
+
+```r
+# 设置了随机数生成的种子为4。设置种子是为了确保每次运行代码时，生成的随机数序列都是相同的，从而确保结果的可重复性
+set.seed(4)
+
+# 生成了一个包含100个随机数的向量，这些随机数来自于一个均值为5、标准差为5的正态分布。这些随机数被存储在变量Y中
+# rnorm是生成正态（高斯）分布随机数的函数
+Y &lt;- rnorm(n = 100, 
+           mean = 5, 
+           sd = 5)
+
+# 绘制变量Y中的数据
+plot(Y,
+# 指定点的类型,数字19代表一个实心圆点
+     pch = 19, 
+     col = "steelblue")
+```
+
+
+
+]
+
+.panel[.panel-name[Output]
+
+![](Lecture_4_Simple_Linear_Regression_Inference_files/figure-html/unnamed-chunk-4-1.png)&lt;!-- --&gt;
+
+]
+]
+]
+---
+
+###回归模型系数的置信区间
+.panelset[
+.panel[.panel-name[]
+.panel[.panel-name[Code]
+
+```r
+# 设置随机数生成的种子为1，以确保每次运行代码时生成的数据都是相同的，从而确保结果的可重复性
+set.seed(1)
+
+# 初始化两个长度为10,000的数值向量，用于存储每个样本的置信区间的下限和上限
+lower &lt;- numeric(10000)
+upper &lt;- numeric(10000)
+
+# 循环，重复10,000次
+# 循环绘制前100个样本的置信区间。对于每个区间，它使用lines()函数绘制一条从区间的下限到上限的水平线，线的颜色由colors向量决定
+for(i in 1:10000) {
+# 生成一个包含100个来自均值为5、标准差为5的正态分布的随机数的向量  
+  Y &lt;- rnorm(100, mean = 5, sd = 5)
+# 计算置信区间的下限。这里使用的是Z分数方法，其中1.96是标准正态分布的97.5%分位数（对应于95%的置信水平），而5 / 10是样本标准差除以根号样本大小（这里样本大小为100）
+  lower[i] &lt;- mean(Y) - 1.96 * 5 / 10
+  upper[i] &lt;- mean(Y) + 1.96 * 5 / 10
+  
+}
+
+# 将下限和上限向量合并成一个矩阵，每行代表一个样本的置信区间
+CIs &lt;- cbind(lower, upper)
+
+# 识别前100个样本中哪些置信区间不包含真实均值（(\mu = 5)）。which函数返回满足条件的行的索引
+# (100个区间中有4个不包含真实均值)
+ID &lt;- which(!(CIs[1:100, 1] &lt;= 5 &amp; 5 &lt;= CIs[1:100, 2]))
+
+# 始化一个图形，设置x轴和y轴的范围、标签和标题
+plot(0, 
+     xlim = c(3, 7), 
+     ylim = c(1, 100), 
+     ylab = "Sample", 
+     xlab = expression(mu), 
+     main = "Confidence Intervals")
+
+# 创建一个长度为100的颜色向量，所有颜色都是灰色
+colors &lt;- rep(gray(0.6), 100)
+# 将那些不包含真实均值的置信区间的颜色设置为红色
+colors[ID] &lt;- "red"
+
+# 在x=5的位置绘制一条虚线，表示真实的均值： mu=5
+abline(v = 5, lty = 2)
+
+# 添加水平线展示置信区间
+for(j in 1:100) {
+  
+  lines(c(CIs[j, 1], CIs[j, 2]), 
+        c(j, j), 
+        col = colors[j], 
+        lwd = 2)
+  
+}
+```
+
+
+
+]
+
+.panel[.panel-name[Output]
+
+![](Lecture_4_Simple_Linear_Regression_Inference_files/figure-html/unnamed-chunk-5-1.png)&lt;!-- --&gt;
+
+]
+]
+.panel[.panel-name[注]
+- 生成10,000个样本，每个样本包含100个来自均值为5、标准差为5的正态分布的数据点后，计算每个样本的均值，并使用这些均值来构建95%的置信区间，识别并绘制那些不包含真实均值的置信区间
+
+- 这段代码的目的是通过可视化方法展示**在多次抽样中，95%的置信区间中包含真实均值的区间的比例
+
+- 由于这里使用的是大样本（每个样本包含100个数据点）和正态分布，所以大约95%的置信区间应该包含真实均值
+
+- 如果置信区间的构建过程是正确的，那么在图形上，红色标记的区间（不包含真实均值的置信区间）应该很少
+]
+]
+---
+
+### 仿真模拟
+.panelset[
+.panel[.panel-name[注]
+- 在加利福尼亚州考试分数的例子中：
+
+ - `\(\beta_1\)` 的 `\(95\%\)` 的置信区间为 `\(-2.27\pm1.96 \cdot SE(\hat \beta_1)=(-3.21,-1.33)\)`
+ 
+ - `\(\beta_1\)` 的 `\(90\%\)` 的置信区间为 `\(-2.27\pm1.64 \cdot SE(\hat \beta_1)=(-3.06,-1.48)\)`
+
+|            |   Estimate| Std. Error|   t value| Pr(&gt;&amp;#124;t&amp;#124;)|
+|:-----------|----------:|----------:|---------:|------------------:|
+|(Intercept) | 698.932949|  9.4674911| 73.824516|            0.0e+00|
+|STR         |  -2.279808|  0.4798255| -4.751327|            2.8e-06|
+]
+.panel[.panel-name[]
+.panel[.panel-name[Code]
+
+```r
+#install.packages('AER') # 仅仅在第一次使用
+library('AER') # 每次需要载入包时，用library
+data(CASchools)#引用数据
+
+CASchools$test_score &lt;- (CASchools$read+CASchools$math)/2#阅读和数学的平均水平赋给CASchools$test_score
+
+CASchools$STR &lt;- CASchools$students/CASchools$teachers#班级规模赋给CASchools$STR
+
+fit &lt;- lm(test_score~STR,data = CASchools)#lm()函数，拟合线性模型，用于回归、方差分析、协方差分析，拟合结果赋给fit
+
+summary(fit) # 查看回归报告的总结
+
+coef(fit) # 提取协方差的系数估计
+
+vcov(fit) # 提取拟合模型对象的方差、协方差矩阵，模型的“主要”参数对应于coef返回的参数
+```
+
+
+
+]
+
+.panel[.panel-name[Output]
+
+```
+## 
+## Call:
+## lm(formula = test_score ~ STR, data = CASchools)
+## 
+## Residuals:
+##     Min      1Q  Median      3Q     Max 
+## -47.727 -14.251   0.483  12.822  48.540 
+## 
+## Coefficients:
+##             Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept) 698.9329     9.4675  73.825  &lt; 2e-16 ***
+## STR          -2.2798     0.4798  -4.751 2.78e-06 ***
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## Residual standard error: 18.58 on 418 degrees of freedom
+## Multiple R-squared:  0.05124,	Adjusted R-squared:  0.04897 
+## F-statistic: 22.58 on 1 and 418 DF,  p-value: 2.783e-06
+## 
+## (Intercept)         STR 
+##  698.932949   -2.279808 
+##             (Intercept)        STR
+## (Intercept)   89.633388 -4.5218653
+## STR           -4.521865  0.2302326
+```
+
+
+
+]
+]
+]
+---
+
+### 二值变量回归模型
+- 回归变量不仅可以连续，就像我们前面讨论的那样，还可以为二值变量，即只取 `\(0\)` 或 `\(1\)` 两个值。**二值变量**又称为**指示变量**或者**虚拟变量**
+
+- 二值变量有很多，例如
+$$
+ClassSize=
+\begin{cases}
+1,\quad \text{STR&lt;20}\\
+0,\quad \text{STR &gt;= 20}
+\end{cases}
+\tag{1}
+$$
+
+`$$MALE_i=
+\begin{cases}
+1,男性大学毕业生\\
+0,女性大学毕业生\\
+\end{cases}
+\tag{2}$$`
+- 在这之前，我们学习了系数 `\(\beta_0,\beta_1\)` 的数学含义，知道了 `\(\beta_0\)` 表示截距， `\(\beta_1\)` 表示斜率。但是在二值变量模型中这明显解释不通
+
+- 思考：那么我们应该如何解释系数的含义呢？
+---
+
+### 二值变量回归模型
+`$$Y_i=\beta_0+\beta_1X_i+u_i$$`
+- 当 `\(X_i=0\)` 时:
+`$$E(Y_i|X_i=0)=E(\beta_0+\beta_1\cdot 0+u_i|X_i=0)\beta_0+E(u_i|X_i=0)=\beta_0$$`
+- 当 `\(X_i=1\)` 时:
+`$$E(Y_i|X_i=1)=E(\beta_0+\beta_1\cdot 1+u_i|X_i=1)\beta_0+E(u_i|X_i=1)=\beta_0+\beta_1$$`
+
+- 由此，我们知道：
+  - `\(\beta_0\)` 是 `\(X_i=0\)` 时 `\(Y\)` 的期望
+  
+  - `\(\beta_1\)` 是 `\(X_i=1\)` 时 `\(Y\)` 的期望与 `\(X_i=0\)` 时 `\(Y\)` 的期望之差
+- 下面，我们回到之前加利福尼亚学区考试分数的例子
+---
+
+###二值变量回归模型实例
+.panelset[
+.panel[
+.panel-name[注]
+- 在 `\(CASchools\)` 数据集中创建一个新的列 `\(D\)` ,这个新列是一个虚拟变量，它的值基于 `\(STR\)` 列的值
+$$
+D=
+\begin{cases}
+1,\quad \text{STR&lt;20}\\
+0,\quad \text{STR &gt;= 20}
+\end{cases}
+\tag{1}
+$$
+- 绘制散点图，其中 `\(x\)` 轴是虚拟变量 `\(D\)` ， `\(y\)` 轴是测试分数 `\(score\)`
+]
+.panel[.panel-name[]
+.panel[.panel-name[Code]
+
+```r
+#install.packages('AER') # 仅仅在第一次使用
+library('AER') # 每次需要载入包时，用library
+data(CASchools)#引用数据
+
+CASchools$score &lt;- (CASchools$read+CASchools$math)/2#阅读和数学的平均水平赋给CASchools$test_score
+
+CASchools$STR &lt;- CASchools$students/CASchools$teachers#班级规模赋给CASchools$STR
+
+# 在CASchools数据集中创建一个新的列D,这个新列是一个虚拟变量，它的值基于STR列的值。如果STR的值小于20，D的值为TRUE，否则为FALSE
+CASchools$D &lt;- CASchools$STR &lt; 20
+
+# 计算当D为TRUE（即STR小于20）时，score列的平均值
+mean.score.for.D.1 &lt;- mean(CASchools$score[CASchools$D == TRUE])
+
+# 计算当D为FALSE（即STR大于或等于20）时，score列的平均值
+mean.score.for.D.0 &lt;- mean(CASchools$score[CASchools$D == FALSE])
+
+# 绘制散点图，其中x轴是虚拟变量D，y轴是测试分数score
+plot( CASchools$score ~ CASchools$D,        # 使用填充的圆圈作为绘图的符号
+      pch = 19,                       # 设置绘图符号的大小为0.5
+      cex = 0.5,  
+      col = "Steelblue",     
+  # 设置x轴的标签为D[i]
+      xlab = expression(D[i]),              # Set title and axis names
+      ylab = "Test Score",
+      main = "Dummy Regression")
+
+# 在散点图上添加每组的平均值
+# 当D为FALSE（即STR大于或等于20）时，平均分数用红色的填充圆圈标记在x=0的位置；当D为TRUE（即STR小于20）时，平均分数用红色的填充圆圈标记在x=1的位置
+points( y = mean.score.for.D.0, x = 0,   col="red", pch = 19)
+points( y = mean.score.for.D.1, x = 1,   col="red", pch = 19)
+```
+
+
+
+]
+
+.panel[.panel-name[Output]
+
+![](Lecture_4_Simple_Linear_Regression_Inference_files/figure-html/unnamed-chunk-8-1.png)&lt;!-- --&gt;
+
+]
+]
+]
+---
+
+###二值变量回归模型实例
+`$$TestScore_i=\beta_0+\beta_1D_i+u_i$$`
+- 令 `\(D_i\)` 为二值变量：
+$$
+D_i=
+\begin{cases}
+1,\quad \text{STR&lt;20}\\
+0,\quad \text{STR &gt;= 20}
+\end{cases}
+\tag{1}
+$$
+- 则
+`$$Y_i=\beta_0+u_i(D_i=0),\quad Y_i=\beta_0+\beta_1+u_i(D_i=1)$$`
+
+- `\(\beta_0\)`:班级规模较大时测试成绩的总体均值
+`$$\beta_0=E(TestScore_i|D_i=0)$$`
+
+- `\(\beta_1\)`:班级规模较小时考试分数的期望值班级规模较大时考试分数的期望值之差
+`$$\beta_1=E(TestScore_i|D_i=1)-E(TestScore_i|D_i=0)$$`
+- `\(\beta_1\)` 为总体均值之差， `\(OLS\)` 估计量 `\(\beta_1\)` 可视为两组抽样的 `\(Y_i\)` 的样本均值之差
+---
+
+### `\(\hat \beta_1\)` 的OLS估计量的性质
+- 回顾三个最小二乘假设：
+  - 假设1： `\(E(u_i|X_i)=0\)`
+
+  - 假设2： `\((X_i,Y_i),i=1,2,···,n\)` 独立同分布
+  
+  - 假设3：大的异常值不太可能出现
+- 如果三个最小二乘假设成立，那么 `\(\hat \beta_1\)` 的OLS估计量满足：
+   - 是 `\(\hat \beta_1\)` 的无偏估计量
+   
+   - 是 `\(\hat \beta_1\)` 的一致估计量
+   
+   - 大样本下抽样分布近似正态分布
+---
+
+### 最佳线性无偏估计量BLUE
+&lt;font color=darkred&gt;高斯-马尔可夫定理&lt;/font&gt;
+
+- 如果我们在以上三个最小二乘假设的基础上再增加一个假设
+  
+  - 假设4：误差项是同方差的，即该条件分布的方差不依赖于 `\(X_i\)`,给定 `\(X_i\)` 时 `\(u_i\)` 的条件分布方差为常数：
+  `$$var(u_i|X_i)=\sigma_u^2$$`
+  
+- 那么 `\(\hat \beta_1^{OLS}\)` 是&lt;font color=darkred&gt;最佳线性无偏估计量（BLUE）&lt;/font&gt;
+
+  - 在由 `\(Y_1,Y_2,···,Y_n\)` 的线性函数组成的条件分布无偏的估计 `\(\tilde{\beta_1}\)` 中， `\(OLS\)` 估计量是方差最小的，即是最有效的，称为&lt;font color=darkred&gt;最佳线性无偏估计量&lt;/font&gt;
+  
+  - `\(\tilde{\beta_1}=\sum_{i=1}^{n}a_iY_i ,\quad a_i\)` 取决于 `\(X_i\)`,但是与 `\(Y_i\)` 无关（线性）
+  
+  - `\(E(\tilde{\beta_1}|X_1,X_2,···,X_n)=\beta_1\)` （条件无偏)
+  
+  - `\(var(\hat \beta_1^{OLS}|X_1,···,X_n)&lt;var(\stackrel{\sim}{\beta_1}|X_1,···,X_n)\)` （最有效）
+---
+
+### 高斯-马尔可夫定理
+- 如果满足三个高斯-马尔可夫条件，即
+  
+  - `\(E(u_i|X_1,···,X_n)=0\)`
+  
+  - `\(var(u_i|X_1,···,X_n)=\sigma_u^2,0&lt;\sigma_u^2&lt;\infty\)`
+  
+  - `\(E(u_iu_j|X_1,···,X_n),i\ne j\)`
+- 那么，OLS估计量就是最佳线性无偏估计量
+  - `\(\bar Y\)` 是 `\(Y_i\)` 的估计量 `\(\hat \mu_Y=\frac{1}{n}\sum_{i=1}^{n}a_iY_i\)` 中最有效的一个，即最佳线性无偏估计量
+  
+  - `\(\hat \beta_1^{OLS}\)` 是 `\(\beta_1\)` 的估计量  `\(\stackrel{\sim}{\beta_1}=\sum_{i=1}^{n}a_iY_i\)`  中最有效的一个，即最佳线性无偏估计量
+- 高斯-马尔可夫条件在实际应用中可能不成立，尤其是异方差存在时
+
+- 即使定理条件成立，也存在着其他非线性的条件无偏估计量，并且在某些条件下，这些估计量比OLS估计量更有效(如**加权最小二乘估计量，最小绝对变差估计量**)
+---
+
+###仿真模拟： `\(BLUE\)` 估计量
+.panelset[
+.panel[.panel-name[]
+.panel[.panel-name[Code]
+
+```r
+# 设置样本大小100
+n &lt;- 100 
+# 设置重复次数为100,000次
+reps &lt;- 1e5
+
+# 选择epsilon的值为0.8
+# 创建一个权重向量w，其中前一半权重为(1 + epsilon) / n，后一半权重为(1 - epsilon) / n
+epsilon &lt;- 0.8
+w &lt;- c(rep((1 + epsilon) / n, n / 2), 
+       rep((1 - epsilon) / n, n / 2) )
+
+# 初始化两个向量ols和weightedestimator，用于存储每次重复的估计结果
+ols &lt;- rep(NA, reps)
+weightedestimator &lt;- rep(NA, reps)
+
+# 使用for循环进行重复估计
+for (i in 1:reps) {
+# 从标准正态分布中抽取一个大小为n的随机样本  
+  y &lt;- rnorm(n)
+# 计算样本y的均值（即普通最小二乘（OLS）估计）
+  ols[i] &lt;- mean(y)
+# 使用权重向量w和样本y进行加权估计。这里crossprod(w, y)实际上是计算w和y的内积，即加权和
+  weightedestimator[i] &lt;- crossprod(w, y)
+  
+}
+
+# 使用plot函数绘制OLS估计量的核密度估计图
+
+# OLS
+plot(density(ols), 
+     col = "red", 
+     lwd = 2, 
+     main = "Density of OLS and Weighted Estimator",
+     xlab = "Estimates")
+
+# 使用lines函数在相同的图上添加加权估计量的核密度估计图
+lines(density(weightedestimator), 
+      col = "steelblue", 
+      lwd = 2) 
+
+# 在y=0的位置添加一条虚线
+abline(v = 0, lty = 2)
+
+# 在图的右上角添加图例，标识两种估计量
+legend('topright', 
+       c("OLS", "Weighted"), 
+       col = c("red", "steelblue"), 
+       lwd = 2)
+```
+
+
+
+]
+
+.panel[.panel-name[Output]
+
+![](Lecture_4_Simple_Linear_Regression_Inference_files/figure-html/unnamed-chunk-9-1.png)&lt;!-- --&gt;
+
+]
+
+]
+.panel[.panel-name[注]
+- 两个估计量都是无偏的：它们的分布的均值为零
+
+- 使用**与OLS隐含的权重不同**的权重进行估计时，其效率**低于**OLS估计量
+
+ - 当权重为 `\(w_i = \frac{1 \pm 0.8}{100}\)` 而不是OLS解所要求的 `\(w_i = \frac{1}{100}\)` 时，分散程度更高
+ 
+ - 在OLS中，**通常假设每个观测值的权重是相等的，即每个观测值对估计的贡献是相同的**。然而，在某些情况下，研究者可能会选择使用不同的权重，这可能会导致估计结果的效率降低
+
+- 仿真结果支持高斯-马尔可夫定理
+]
+]
+---
+
+### 同方差与异方差
+- 现在，我们学习了四个最小二乘假设
+  
+- 第四个最小二乘假设为**同方差假设**： `\(var(u_i|X_i)=\sigma_u^2\)`
+
+ - 该假设表明误差项的条件分布不依赖于回归量 `\(X\)` 
+      
+ - 在这个假设下OLS估计量的方差可以简化
+`$$\sigma_{\hat\beta_0}^2=\frac{E(X_i^2)\sigma_u^2}{n\sigma_X^2}$$`
+`$$\sigma_{\hat\beta_1}^2=\frac{\sigma_u^2}{n\sigma_X^2}$$`
+
+- 下面我们进一步学习同方差与异方差
+---
+
+### 同方差与异方差
+.panelset[
+.panel[.panel-name[]
+.panel[.panel-name[Code]
+
+```r
+# 加载scales包，用于调整颜色透明度  
+library(scales)  
+  
+# 生成一些异方差数据  
+  
+# 设置随机数生成的种子，以确保结果的可重复性  
+set.seed(123)  
+  
+# 设置x坐标的向量，每个x值（10, 15, 20, 25）重复25次  
+x &lt;- rep(c(10, 15, 20, 25), each = 25)  
+  
+# 初始化一个空的误差向量  
+e &lt;- c()  
+  
+# 采样100个误差，使得误差的方差随着x的增加而增加  
+# 为x=10的组生成标准差为10的正态分布误差  
+e[1:25] &lt;- rnorm(25, sd = 10)  
+# 为x=15的组生成标准差为15的正态分布误差  
+e[26:50] &lt;- rnorm(25, sd = 15)  
+# 为x=20的组生成标准差为20的正态分布误差  
+e[51:75] &lt;- rnorm(25, sd = 20)  
+# 为x=25的组生成标准差为25的正态分布误差  
+e[76:100] &lt;- rnorm(25, sd = 25)  
+  
+# 设置y值，它是基于x的线性关系加上误差e得到的  
+y &lt;- 720 - 3.3 * x + e  
+  
+# 估计线性模型  
+# y是响应变量，x是解释变量  
+mod &lt;- lm(y ~ x)  
+  
+# 绘制数据点  
+# x轴是学生-教师比例，y轴是测试分数  
+# cex控制点的大小，pch控制点的类型  
+# xlim和ylim分别设置x轴和y轴的范围  
+plot(x = x,   
+     y = y,   
+     main = "An Example of Heteroskedasticity", # 图的标题  
+     xlab = "Student-Teacher Ratio",           # x轴标签  
+     ylab = "Test Score",                      # y轴标签  
+     cex = 0.5,                                # 点的大小  
+     pch = 19,                                 # 点的类型（实心圆）  
+     xlim = c(8, 27),                          # x轴的范围  
+     ylim = c(600, 710))                       # y轴的范围  
+  
+# 在图上添加回归线  
+# 使用abline函数，参数col设置线条颜色为暗红色  
+abline(mod, col = "darkred")  
+  
+# 在图上添加箱线图  
+# formula指定了y和x的关系  
+# add=TRUE表示在现有图上添加箱线图，而不是创建新图  
+# at参数指定了箱线图的位置，即x的值  
+# col设置箱线图的填充颜色，alpha用于设置透明度  
+# border设置箱线图的边框颜色  
+boxplot(formula = y ~ x,   
+        add = TRUE,   
+        at = c(10, 15, 20, 25),   
+        col = alpha("gray", 0.4),   
+        border = "black")
+```
+
+
+
+]
+
+.panel[.panel-name[Output]
+
+![](Lecture_4_Simple_Linear_Regression_Inference_files/figure-html/unnamed-chunk-10-1.png)&lt;!-- --&gt;
+
+]
+]
+.panel[.panel-name[注]
+- 同方差与异方差的定义：
+  - 如果对于任意 `\(i=1,2,···,n\)`,给定 `\(X_i\)` 时 `\(u_i\)` 的**条件分布方差为常数且不依赖于 `\(X_i\)` 时**，误差项 `\(u_i\)` 是同方差的，否则就是异方差的
+
+- 这段代码**生成异方差性的数据**，并使用线性模型进行拟合，然后在图上显示这些数据点和拟合线，同时添加箱线图来表示每个 `\(x\)` 值的 `\(y\)` 值的分布
+
+- 通过比较箱线图的宽度，我们可以观察到数据在不同x值处的离散程度
+
+ - 很明显，随着班级规模的增大，围绕回归线分布的点越分散
+
+- 这表明 `\(var(u_i|X_i)\ne \sigma_u^2\)`
+]
+]
+---
+
+###同方差、异方差实例
+- 为了更好地阐明同方差与异方差的定义，我们聚焦于“美国大学毕业生收入的性别差距”实例
+
+- 令二元变量 
+`$$MALE_i=
+\begin{cases}
+1,男性大学毕业生\\
+0,女性大学毕业生\\
+\end{cases}$$`
+
+- 则某人的收入对性别的二元变量回归模型为
+`$$Earnings=\beta_0+\beta_1MALE_i+u_i,\quad i=1,2,···,n$$`
+
+- `\(\beta_1\)` 表示两组样本的总体均值之差：男性大学毕业生与女性大学毕业生的平均收入差异
+---
+
+###同方差、异方差实例
+`$$Earnings=\beta_0+\beta_1MALE_i+u_i,\quad i=1,2,···,n$$`
+
+- 误差项 `\(u_i\)` 
+
+ - 女性：第 `\(i\)` 个女性的收入与女性样本总体平均收入 `\(\beta_0\)` 的偏差
+`$$Earnings_i=\beta_0+u_i\quad (女性)$$`
+
+ - 男性：：第 `\(i\)` 个男性的收入与男性样本总体平均收入 `\(\beta_0+\beta_1\)` 的偏差
+`$$Earnings_i=\beta_0+\beta_1+u_i\quad (男性)$$`
+
+- 这里误差项是同方差的还是异方差的呢？
+ 
+ - 取决于 `\(u_i\)` 的方差是否依赖于 `\(MALE_i\)` `\(\longrightarrow\)` 男女性的收入方差是否相同
+---
+
+###同方差、异方差实例
+.panelset[
+.panel[.panel-name[注]
+- 考虑收入与受教育年限的关系
+
+- 收入分布的均值随教育年限的增加而增加
+
+- 教育年限不同时，收入分布的离散程度不同
+
+- 误差是异方差的
+]
+.panel[.panel-name[]
+.panel[.panel-name[Code]
+
+```r
+# 加载AER包
+library(AER)
+
+# 从AER包中加载CPSSWEducation数据集
+data("CPSSWEducation")
+
+# 将CPSSWEducation数据集附加到搜索路径中，这样就可以直接使用数据集中的变量名，而不需要每次都引用数据集名称
+attach(CPSSWEducation)
+
+# 显示CPSSWEducation数据集的摘要统计信息
+summary(CPSSWEducation)
+```
+
+
+
+]
+
+.panel[.panel-name[Output]
+
+```
+##       age          gender        earnings        education    
+##  Min.   :29.0   female:1202   Min.   : 2.137   Min.   : 6.00  
+##  1st Qu.:29.0   male  :1748   1st Qu.:10.577   1st Qu.:12.00  
+##  Median :29.0                 Median :14.615   Median :13.00  
+##  Mean   :29.5                 Mean   :16.743   Mean   :13.55  
+##  3rd Qu.:30.0                 3rd Qu.:20.192   3rd Qu.:16.00  
+##  Max.   :30.0                 Max.   :97.500   Max.   :18.00
+```
+
+
+
+]
+]
+.panel[.panel-name[]
+.panel[.panel-name[Code]
+
+```r
+# 加载AER包
+library(AER)
+
+# 从AER包中加载CPSSWEducation数据集
+data("CPSSWEducation")
+
+# 使用lm()函数估计一个简单线性回归模型，其中earnings是因变量（收入），education是自变量（教育水平）
+labor_model &lt;- lm(earnings ~ education)
+
+# 使用plot()函数绘制education和earnings的散点图。这里xlab和ylab参数用于设置x轴和y轴的标签，ylim参数设置y轴的范围为0到150
+plot(education, 
+     earnings,
+     xlab="Education",
+     ylab="Earnings",
+     ylim = c(0, 150))
+
+# 在散点图上添加回归线
+abline(labor_model, 
+       col = "steelblue", 
+       lwd = 2)
+```
+
+
+
+]
+
+.panel[.panel-name[Output]
+
+![](Lecture_4_Simple_Linear_Regression_Inference_files/figure-html/unnamed-chunk-12-1.png)&lt;!-- --&gt;
+
+]
+]
+]
+---
+
+###仿真模拟
+.panelset[
+.panel[.panel-name[注]
+- 创建一个从1到500的整数向量，并赋值给变量 `\(X\)`
+
+- 生成500个正态分布的随机数赋值给 `\(Y\)` 
+
+ - `\(Y[i]\)` 是从均值为 `\(X[i]\)` 和标准差为 `\(0.6 \times X[i]\)`  的正态分布中抽取的一个随机值
+
+- 由于 `\(X\)` 是一个向量， `\(rnorm\)` 函数会为 `\(X\)` 中的每个元素生成一个独立的正态随机变量
+ 
+ - 这样，随着 `\(X\)` 的增加， `\(Y\)` 的波动（即方差）也会增加，从而产生了异方差数据
+]
+.panel[.panel-name[]
+.panel[.panel-name[Code]
+
+```r
+# 设置了随机数生成器的种子（seed）为905
+# 设置种子是为了确保每次运行代码时生成的随机数序列都是一样的，从而使得结果可复现
+set.seed(905)
+
+# 创建一个从1到500的整数向量，并赋值给变量X 
+X &lt;- 1:500
+# 生成500个正态分布的随机数，每个随机数的均值（mean）对应X向量中的相应值，标准差（sd）是X向量中相应值的0.6倍。这样，随着X的增加，Y的波动（即方差）也会增加，从而产生了异方差数据
+Y &lt;- rnorm(n = 500, mean = X, sd = 0.6 * X)
+
+# lm()函数估计了一个简单的线性回归模型，其中Y是因变量，X是自变量。模型的结果被存储在变量reg中
+reg &lt;- lm(Y ~ X)
+
+# 绘制散点图
+plot(x = X, y = Y, 
+     pch = 19, 
+     col = "steelblue", 
+# 设置点的大小为默认大小的0.8倍
+     cex = 0.8)
+
+# 使用abline()函数将回归线添加到之前绘制的散点图上
+abline(reg, 
+       col = "red", 
+       lwd = 1.5)
+# 在图的左上角添加了一个图例
+legend("topleft","Regression line",col="red",lwd=1.5)
+```
+
+
+
+]
+
+.panel[.panel-name[Output]
+
+![](Lecture_4_Simple_Linear_Regression_Inference_files/figure-html/unnamed-chunk-13-1.png)&lt;!-- --&gt;
+
+]
+]
+]
+---
+
+###同方差与异方差
+- 同方差的数学含义：
+  - **OLS估计量仍然是无偏的和近似正态的。**不管同方差还是异方差，OLS估计量都是无偏的、一致的、近似正态的
+  
+  - **最小二乘假设成立且误差同方差**，则在 `\(X_1,X_2,···,X_n\)` 条件下，**OLS估计量** `\(\hat \beta_0,\hat \beta_1\)` 在 `\(Y_1,Y_2,···,Y_n\)` 的所有线性类估计量中是**有效且无偏**的（&lt;font color=darkred&gt;高斯-马尔可夫定理&lt;/font&gt;）
+  
+  - 同方差适用公式：(同方差条件下推导而来)&lt;br&gt;
+  `\(SE(\hat \beta_1)=\tilde \sigma_{\hat \beta_1}^2=\frac{S_{\hat u}^2}{\sum_{i=1}^{n}(X_i-\bar X)^2}\)` 和 
+   `\(SE(\hat \beta_0)=\tilde \sigma_{\hat \beta_0}^2=\frac{(\frac{1}{n}\sum_{i=1}^{n}X_i^2)S_{\hat u}^2}{\sum_{i=1}^{n}(X_i-\bar X)^2}\)`
+- **注意**：误差异方差时，利用同方差适用标准误计算的 `\(t\)` 统计量即使在大样本下也不服从标准正态分布; 
+若置信区间是用 `\(\pm1.96\)` **同方差标准误**构造的，则一般情况下，该区间包含系数真值的概率即使在大样本下也不是 `\(95\%\)`
+---
+
+### 同方差与异方差
+- **异方差稳健标准误**: 同方差是异方差的特殊情况，基于 `\(\hat \sigma_{\beta_0}^2,\hat \sigma_{\beta_1}^2\)` 推导的统计结论都是正确的。不管误差是否为异方差，基于我们目前使用的标准误推导的统计推断都是正确的
+`$$SE(\hat \beta_1)=\frac{1}{n}\times \frac{\frac{1}{n-2}\sum_{i=1}^{n}(X_i-\bar X)^2\hat u_i^2}{\left[\frac{1}{n}\sum_{i=1}^{n}(X_i-\bar X)^2\right]^2}$$`
+- 若同方差标准误和异方差标准误相同，则使用异方差标准误不会影响结果
+
+- 若同方差标准误和异方差标准误不同，则应该使用更可靠的允许存在异方差时所使用的标准误
+
+- **注意**：许多软件程序把同方差适用标准误作为其默认设置，所以必须由使用者指定异方差稳健标准误选项，具体操作取决于使用的软件包
+---
+
+###仿真模拟
+.panelset[
+.panel[.panel-name[注]
+
+- 缓解异方差的方法
+
+- 利用cps的数据绘制散点图
+
+- 比较不同模型，发现取对数可缓解异方差，使 `\(y,x\)` 分布更接近正态分布
+
+]
+.panel[.panel-name[]
+.panel[.panel-name[Code]
+
+```r
+library("AER")
+data("CPS1985")
+
+set.seed(123)#设置种子文件，使每次生成的随机文件可复制
+
+plot(wage~education,data = CPS1985)#利用CPS1985的数据绘制散点图
+```
+
+
+
+]
+
+.panel[.panel-name[Output]
+
+![](Lecture_4_Simple_Linear_Regression_Inference_files/figure-html/unnamed-chunk-14-1.png)&lt;!-- --&gt;
+
+]
+]
+.panel[.panel-name[]
+.panel[.panel-name[Code]
+
+```r
+# log
+plot(log(wage)~education,data = CPS1985)#log可缓解异方差，使y|X分布更接近正态分布
+```
+
+
+
+]
+
+.panel[.panel-name[Output]
+
+![](Lecture_4_Simple_Linear_Regression_Inference_files/figure-html/unnamed-chunk-15-1.png)&lt;!-- --&gt;
+
+]
+]
+]
+---
+
+###小结
+- 回归系数的假设检验和置信区间
+ 
+ - 类似总体均值的假设检验和置信区间
+ 
+ - 利用 `\(t\)` 统计量计算 `\(p\)` 值
+ 
+ - 置信区间为估计量 `\(\pm1.96\)` 标准误差
+ 
+- 自变量为二值变量时的回归模型
+
+- 最小二乘假设 `\(\longrightarrow\)` 高斯-马尔可夫定理 `\(\longrightarrow\)` BLUE
+
+- 同方差与异方差
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script>var slideshow = remark.create({
+"highlightStyle": "github",
+"highlightLines": true,
+"countIncrementalSlides": false
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();
+// add `data-at-shortcutkeys` attribute to <body> to resolve conflicts with JAWS
+// screen reader (see PR #262)
+(function(d) {
+  let res = {};
+  d.querySelectorAll('.remark-help-content table tr').forEach(tr => {
+    const t = tr.querySelector('td:nth-child(2)').innerText;
+    tr.querySelectorAll('td:first-child .key').forEach(key => {
+      const k = key.innerText;
+      if (/^[a-z]$/.test(k)) res[k] = t;  // must be a single letter (key)
+    });
+  });
+  d.body.setAttribute('data-at-shortcutkeys', JSON.stringify(res));
+})(document);
+(function() {
+  "use strict"
+  // Replace <script> tags in slides area to make them executable
+  var scripts = document.querySelectorAll(
+    '.remark-slides-area .remark-slide-container script'
+  );
+  if (!scripts.length) return;
+  for (var i = 0; i < scripts.length; i++) {
+    var s = document.createElement('script');
+    var code = document.createTextNode(scripts[i].textContent);
+    s.appendChild(code);
+    var scriptAttrs = scripts[i].attributes;
+    for (var j = 0; j < scriptAttrs.length; j++) {
+      s.setAttribute(scriptAttrs[j].name, scriptAttrs[j].value);
+    }
+    scripts[i].parentElement.replaceChild(s, scripts[i]);
+  }
+})();
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();
+// adds .remark-code-has-line-highlighted class to <pre> parent elements
+// of code chunks containing highlighted lines with class .remark-code-line-highlighted
+(function(d) {
+  const hlines = d.querySelectorAll('.remark-code-line-highlighted');
+  const preParents = [];
+  const findPreParent = function(line, p = 0) {
+    if (p > 1) return null; // traverse up no further than grandparent
+    const el = line.parentElement;
+    return el.tagName === "PRE" ? el : findPreParent(el, ++p);
+  };
+
+  for (let line of hlines) {
+    let pre = findPreParent(line);
+    if (pre && !preParents.includes(pre)) preParents.push(pre);
+  }
+  preParents.forEach(p => p.classList.add("remark-code-has-line-highlighted"));
+})(document);</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>

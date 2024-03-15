@@ -1,0 +1,1027 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+  <head>
+    <title>第五讲：多元线性回归</title>
+    <meta charset="utf-8" />
+    <meta name="author" content="文旷宇" />
+    <script src="libs/header-attrs-2.18/header-attrs.js"></script>
+    <link href="libs/xaringanExtra-banner-0.0.1/banner.css" rel="stylesheet" />
+    <script src="libs/xaringanExtra-banner-0.0.1/banner.js"></script>
+    <script src="libs/fabric-4.3.1/fabric.min.js"></script>
+    <link href="libs/xaringanExtra-scribble-0.0.1/scribble.css" rel="stylesheet" />
+    <script src="libs/xaringanExtra-scribble-0.0.1/scribble.js"></script>
+    <script>document.addEventListener('DOMContentLoaded', function() { window.xeScribble = new Scribble({"pen_color":["#FF0000"],"pen_size":3,"eraser_size":30,"palette":[]}) })</script>
+    <link href="libs/panelset-0.2.6/panelset.css" rel="stylesheet" />
+    <script src="libs/panelset-0.2.6/panelset.js"></script>
+    <script src="libs/xaringanExtra_fit-screen-0.2.6/fit-screen.js"></script>
+    <link rel="stylesheet" href="xaringan-themer.css" type="text/css" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+.title[
+# 第五讲：多元线性回归
+]
+.author[
+### 文旷宇
+]
+.institute[
+### 华中科技大学
+]
+
+---
+
+&lt;style type="text/css"&gt;
+pre{
+  max-height:400px;
+  overflow-y:auto;
+}
+&lt;/style&gt;
+
+<div>
+<style type="text/css">.xaringan-extra-logo {
+width: 55px;
+height: 64px;
+z-index: 0;
+background-image: url(../images/hust-logo.png);
+background-size: contain;
+background-repeat: no-repeat;
+position: absolute;
+top:1em;right:1em;
+}
+</style>
+<script>(function () {
+  let tries = 0
+  function addLogo () {
+    if (typeof slideshow === 'undefined') {
+      tries += 1
+      if (tries < 10) {
+        setTimeout(addLogo, 100)
+      }
+    } else {
+      document.querySelectorAll('.remark-slide-content:not(.title-slide):not(.inverse):not(.hide_logo)')
+        .forEach(function (slide) {
+          const logo = document.createElement('div')
+          logo.classList = 'xaringan-extra-logo'
+          logo.href = null
+          slide.appendChild(logo)
+        })
+    }
+  }
+  document.addEventListener('DOMContentLoaded', addLogo)
+})()</script>
+</div><script>document.addEventListener('DOMContentLoaded',function(){new xeBanner(JSON.parse('{"left":"","right":"","exclude":["title-slide"],"position":"top"}'))})</script>
+<script>document.addEventListener('DOMContentLoaded',function(){new xeBanner(JSON.parse('{"left":"文旷宇/华中科技大学","exclude":["title-slide"],"position":"bottom"}'))})</script>
+
+
+
+
+
+
+
+
+
+### 主要内容
+- 第一个最小二乘假设的反例
+
+- 遗漏变量与遗漏变量偏差
+
+  - 违背无偏性
+  
+  - 违背一致性
+
+- 多元线性回归模型
+
+- 完全多重共线性
+
+- 不完全多重共线性
+
+- 多元回归下OLS估计量的性质
+
+- 多元回归下的假设检验
+
+
+---
+
+###遗漏变量偏差
+- 前面的学习中我们使用了加利福尼亚数据集，并发现较低学生/教师比的学区往往有较高的测试成绩
+
+- 但是小班学区的学生在标准测试中取得好成绩可能源于其他因素，如
+
+ - 教师质量
+ 
+ - 计算机使用频率
+ 
+ - 学区内英语学习者百分率
+
+ - `\(……\)`
+
+- 如果我们遗漏了决定成绩的潜在重要因素，仅仅将其影响归入回归误差项中，会导致 `\(OLS\)` 估计量有偏
+---
+
+###回顾：第一个最小二乘假设
+`$$Y_i=\beta_0+\beta_1X_i+u_i$$`
+- 第一个最小二乘假设：给定 `\(X_i\)` 时 `\(u_i\)` 的条件均值为0
+`$$E(u_i|X_i)=0$$`
+- 所有影响因变量 `\(Y_i\)` 的其他因素都被 `\(u_i\)` 吸收，和 `\(X_i\)` 无关
+
+ - 即给定 `\(X_i\)` 时 其他因素的条件均值为0
+
+- 在讨论加利福尼亚学区考试分数与班级规模大小关系的例子中
+
+ - 所有影响考试分数的其他因素都应该和班级规模大小无关
+ 
+ - 即给定班级规模大小，其他因素的条件均值为0
+---
+
+###回顾：第一个最小二乘假设
+`$$TestScore_i=\beta_0+\beta_1ClassSize_i+u_i$$`
+- 但是，假设小班的移民更少，即英语学习者更少；大班的移民更多，即英语学习者更多
+  
+- 英语学习者的比例影响考试分数，被吸收在 `\(u_i\)` 中，且和班级规模大小 `\(X_i\)` 有关
+  
+- 在这种情况下，第一个最小二乘假设不成立
+  `$$E(u_i|ClassSize_i=small)= E(u_i|ClassSize_i=large)\ne 0$$`
+---
+
+### 遗漏变量
+.panelset[
+.panel[.panel-name[注]
+- 在上述情况中，衡量一个地区英语学习者比例的变量被遗漏了
+`$$TestScore_i=\beta_0+\beta_1ClassSize_i+u_i$$`
+
+- 师生比与英语成绩的相关系数为0.19 `\(\longrightarrow\)` 英语成绩与班级规模相关
+
+- 包含英语成绩与遗漏英语成绩的回归模型的系数不同，且包含英语成绩的回归模型英语成绩的回归系数不为0
+
+ - 这说明英语成绩会导致遗漏变量偏差
+
+- 经济学研究中存在很多遗漏变量的例子：
+
+ - 学区的富裕程度 `\(W_i\)` 影响分数 `\(Y\)`，同时和班级规模 `\(ClassSize\)` （ `\(X\)` ）相关；
+ 
+ - 移民的多少 `\(W_i\)` 影响分数 `\(Y\)`，同时和班级规模 `\(ClassSize\)` （ `\(X\)` ）相关；
+]
+.panel[.panel-name[]
+.panel[.panel-name[Code]
+
+```r
+# 加载AER包，AER包提供了很多用于应用计量经济学的函数和数据集
+library(AER)
+
+# 加载AER包中的CASchools数据集。这个数据集包含了加利福尼亚州各学区的学生、教师、阅读和数学成绩等信息
+data(CASchools)   
+
+# 创建一个新的变量STR，它是学生人数(students)与教师人数(teachers)的比率
+CASchools$STR &lt;- CASchools$students/CASchools$teachers 
+# 创建一个新的变量score，它是阅读和数学成绩(read和math)的平均值。这用于衡量学生的综合成绩
+CASchools$score &lt;- (CASchools$read + CASchools$math)/2
+
+# 计算STR（师生比）和score（综合成绩）之间的相关系数
+# 师生比和学生综合成绩之间的线性关系强度
+cor(CASchools$STR, CASchools$score)
+
+# 计算STR（师生比）和english（英语成绩）之间的相关系数
+# 师生比和英语成绩之间的线性关系强度
+cor(CASchools$STR, CASchools$english)
+
+# 使用线性模型（lm函数）来估计score（综合成绩）和STR（师生比）之间的关系。结果存储在mod变量中
+mod &lt;- lm(score ~ STR, data = CASchools) 
+# 使用线性模型来估计score（综合成绩）与STR（师生比）和english（英语成绩）之间的关系。结果存储在mult.mod变量中。这是一个多元线性回归模型
+mult.mod &lt;- lm(score ~ STR + english, data = CASchools)
+
+# 输出模型摘要，显示模型的系数、R方值、F统计量等
+mod
+
+mult.mod
+```
+
+
+
+]
+
+.panel[.panel-name[Output]
+
+```
+## [1] -0.2263627
+## [1] 0.1876424
+## 
+## Call:
+## lm(formula = score ~ STR, data = CASchools)
+## 
+## Coefficients:
+## (Intercept)          STR  
+##      698.93        -2.28  
+## 
+## 
+## Call:
+## lm(formula = score ~ STR + english, data = CASchools)
+## 
+## Coefficients:
+## (Intercept)          STR      english  
+##    686.0322      -1.1013      -0.6498
+```
+
+
+
+]
+]
+]
+---
+
+###遗漏变量
+- &lt;font color=darkred&gt;遗漏变量&lt;/font&gt;
+
+  - 和解释变量 `\(X\)` 相关
+  
+  - 是因变量 `\(Y\)` 的一个影响因素
+  
+- 遗漏变量 `\(W_i\)` 归入误差项 `\(U_i\)` 中，使 `\(E(U_i|X_i)\ne0\)`，违背外生性假设，导致遗漏变量有偏。
+所以必须将遗漏变量 `\(W_i\)` 纳入回归中：$$Y_i = \beta_0+\beta_1 X_i+\beta_2 W_i+V_i,$$ 
+
+- 但是遗漏变量并不是一定会导致遗漏变量偏差
+
+ - 如考生状态与测试的时间相关 `\(\longrightarrow\)` 测试的时间影响成绩，但是时间与班级规模不相关 `\(\longrightarrow\)` 遗漏测试的时间不会造成遗漏变量偏差
+ 
+ - 如每个学生的停车空间与班级规模相关，但是对学习无直接影响 `\(\longrightarrow\)` 遗漏它不会造成遗漏变量偏差
+---
+
+### 遗漏变量偏差
+- &lt;font color=darkred&gt;遗漏变量偏差&lt;/font&gt;
+  - 模型设定中遗漏了某个或者某些解释变量
+  
+  - 遗漏的变量还与模型中的解释变量相关
+  
+  - 导致估计量**有偏且不一致**（斜率估计量不仅包括 `\(X\)` 对 `\(Y\)` 的影响，还包括遗漏变量对 `\(Y\)` 的影响
+
+- 遗漏变量偏差表达式：
+`$$\hat\beta_1 \to^p \beta_1+\beta_2 \frac{Cov(X,W)}{Var(X)}，$$`
+  - 真实回归为：
+  `$$Y_i=\beta_0+\beta_1 X_i+\beta_2 W_i+u_i,\quad E(u_i|X_i,W_i)=0$$`
+  
+  - 估计回归为：
+  `$$Y_i = \beta_0+\beta_1 X_i+v_i,\quad v_i=\beta_2 W_i+u_i,$$`
+
+---
+
+### 遗漏变量偏差公式的推导 
+- 可作如下推导：
+
+`$$\begin{aligned}
+\hat\beta_1 &amp;=\frac{\sum_{i=1}^{n}(X_i-\bar{X})(Y_i-\bar{Y})}{\sum_{i=1}^{n}(X_i-\bar{X})^2}\\
+&amp;=\frac{\sum_{i=1}^{n}(X_i-\bar{X})[\beta_0+\beta_1 X_i+\beta_2 W_i+u_i-(\beta_0+\beta_1 \bar X+\beta_2  \bar W+ \bar u)]}{\sum_{i=1}^{n}(X_i-\bar{X})^2} \\
+&amp;= \frac{\sum_{i=1}^{n}(X_i-\bar{X})[\beta_1 (X_i-\bar X)+\beta_2 (W_i-\bar W)+ (u_i-\bar u)]}{\sum_{i=1}^{n}(X_i-\bar{X})^2}\\
+&amp;=\beta_1+\beta_2\frac{\frac{1}{n-1}\sum_{i=1}^{n}(X_i-\bar{X})(W_i-\bar{W})}{\frac{1}{n-1}\sum_{i=1}^{n}(X_i-\bar{X})^2}+\frac{\frac{1}{n-1}\sum_{i=1}^{n}(X_i-\bar{X})(u_i-\bar{u})}{\frac{1}{n-1}\sum_{i=1}^{n}(X_i-\bar{X})^2}
+\end{aligned}$$`
+  
+- 由大数定律可知，当样本量足够大时，
+`$$\hat\beta_1\to^p \beta_1+\beta_2\frac{Cov(X,W)}{Var(X)}+\frac{Cov(X,u)}{Var(X)}=\beta_1+\beta_2\frac{Cov(X,W)}{Var(X)}$$`
+
+---
+
+###遗漏变量偏差的分析
+`$$\hat\beta_1\to^p \beta_1+\beta_2\frac{Cov(X,W)}{Var(X)}$$`
+- `\(\beta_1\)` 一致 ： `\(\hat \beta_1\to^p \beta_1\)` 
+  - `\(W_i\)` 和 `\(X_i\)` 无关（即 `\(Cov(X_i,W_i)=0\)` ）
+  
+  - `\(W_i\)` 不影响 `\(Y_i\)` （ `\(\beta_2=0\)` ）
+-  `\(\beta_1\)` 不一致： `\(\hat \beta_1 \nrightarrow^p \beta_1\)`
+  - `\(W_i\)` 对 `\(Y_i\)` 有正向影响， `\(W_i\)` 和 `\(X_i\)` 正相关，即 `\(\beta_2&gt;0,\beta_2\frac{Cov(X,W)}{Var(X)}&gt;0\)` , `\(\beta_1\)` 估计量有正偏差
+
+  - `\(W_i\)` 对 `\(Y_i\)` 有负向影响， `\(W_i\)` 和 `\(X_i\)` 正相关，即 `\(\beta_2&lt;0,\beta_2\frac{Cov(X,W)}{Var(X)}&lt;0\)` , `\(\beta_1\)` 估计量有负偏差
+  
+  -  `\(W_i\)` 和 `\(X_i\)` 负相关时情况相反
+---
+
+### 仿真模拟
+.panelset[
+.panel[.panel-name[注]
+- 遗漏变量
+
+- 注意 `\(fit\)` 和 `\(fit2\)` 的不同估计量结果
+
+- 当我们遗漏收入变量 `\(income\)` 时 `\(STR\)` 的系数估计量改变了
+
+- 试用遗漏变量偏差公式解释这种差异
+]
+.panel[.panel-name[]
+.panel[.panel-name[Code]
+
+```r
+#install.packages(AER)第一次使用时需要下载
+library('AER') # 每次调用一个包时需要使用library函数调用
+
+data(CASchools) #引用CASchool中的数据
+
+CASchools$test_score &lt;- (CASchools$read+CASchools$math)/2
+CASchools$STR &lt;- CASchools$students/CASchools$teachers
+
+plot(test_score~STR,data = CASchools)#绘制散点图
+```
+
+
+
+]
+
+.panel[.panel-name[Output]
+
+![](Lecture_5_Multiple_Linear_Regression_files/figure-html/unnamed-chunk-3-1.png)&lt;!-- --&gt;
+
+]
+]
+.panel[.panel-name[]
+.panel[.panel-name[Code]
+
+```r
+cor(CASchools$income,CASchools$STR)
+cor(CASchools$income,CASchools$test_score)
+
+fit &lt;- lm(test_score~STR,data = CASchools)#进行线性拟合
+fit2 &lt;- lm(test_score~STR+income,data=CASchools)
+
+summary(fit)#summary 是一个类函数，产生不同模型拟合结果的总结
+
+summary(fit2)
+
+library(sandwich)#sandwich包用于构建协方差矩阵估计量
+
+coeftest(fit,vcov=vcovHC)
+```
+
+
+
+]
+
+.panel[.panel-name[Output]
+
+```
+## [1] -0.2321937
+## [1] 0.7124308
+## 
+## Call:
+## lm(formula = test_score ~ STR, data = CASchools)
+## 
+## Residuals:
+##     Min      1Q  Median      3Q     Max 
+## -47.727 -14.251   0.483  12.822  48.540 
+## 
+## Coefficients:
+##             Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept) 698.9329     9.4675  73.825  &lt; 2e-16 ***
+## STR          -2.2798     0.4798  -4.751 2.78e-06 ***
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## Residual standard error: 18.58 on 418 degrees of freedom
+## Multiple R-squared:  0.05124,	Adjusted R-squared:  0.04897 
+## F-statistic: 22.58 on 1 and 418 DF,  p-value: 2.783e-06
+## 
+## 
+## Call:
+## lm(formula = test_score ~ STR + income, data = CASchools)
+## 
+## Residuals:
+##     Min      1Q  Median      3Q     Max 
+## -39.608  -9.052   0.707   9.259  31.898 
+## 
+## Coefficients:
+##              Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept) 638.72916    7.44908  85.746   &lt;2e-16 ***
+## STR          -0.64874    0.35440  -1.831   0.0679 .  
+## income        1.83911    0.09279  19.821   &lt;2e-16 ***
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## Residual standard error: 13.35 on 417 degrees of freedom
+## Multiple R-squared:  0.5115,	Adjusted R-squared:  0.5091 
+## F-statistic: 218.3 on 2 and 417 DF,  p-value: &lt; 2.2e-16
+## 
+## 
+## t test of coefficients:
+## 
+##              Estimate Std. Error t value  Pr(&gt;|t|)    
+## (Intercept) 698.93295   10.46054 66.8162 &lt; 2.2e-16 ***
+## STR          -2.27981    0.52436 -4.3478 1.729e-05 ***
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+```
+
+
+
+]
+]
+]
+---
+
+### 二元线性回归模型
+- 由以上学习可知，一元回归容易遭受遗漏变量偏差
+  - 因为如果遗漏变量是因变量的一个决定因素且与回归变量相关时，斜率系数OLS估计量是**有偏**的，它同时反映了回归变量的效应和遗漏变量的效应
+  
+  - 因此，我们考虑引入**多元回归**，多元回归可以通过把遗漏变量加入到回归中而**减缓遗漏变量偏差**
+
+- 首先，我们探讨一下二元回归模型
+`$$Y_i=\beta_0+\beta_1X_1+\beta_2X_2+u_i$$`
+
+- 假设保持 `\(X_2\)` 不变，将 `\(X_1\)` 增加为 `\(X_1+\Delta X\)`,则
+`$$E(Y|X_1,X_2)=\beta_0+\beta_1X_1+\beta_2X_2$$`
+`$$E(Y|(X_1+\Delta X),X_2)=\beta_0+\beta_1(X_1+\Delta X)+\beta_2X_2$$`
+`$$\Delta Y=E(Y|(X_1+\Delta X),X_2)-E(Y|X_1,X_2)=\beta_1 \Delta X_1$$`
+- 所以 `\(\beta_1\)` 是保持 `\(X_2\)` 不变时， `\(X_1\)` 变化1单位导致的因变量 `\(Y\)` 的变化量（**偏效应**）
+---
+
+###二元线性回归模型
+- 二元回归模型
+`$$Y_i=\beta_0+\beta_1X_1+\beta_2X_2+u_i$$`
+- 用前面遗漏英语学习变量的例子进行探讨学习：
+
+```r
+summary(mult.mod)$coef
+##                Estimate Std. Error    t value      Pr(&gt;|t|)
+## (Intercept) 686.0322445 7.41131160  92.565565 3.871327e-280
+## STR          -1.1012956 0.38027827  -2.896026  3.978059e-03
+## english      -0.6497768 0.03934254 -16.515882  1.657448e-47
+```
+`$$\widehat{TestScore}=686.03-1.10\times STR-0.65\times english$$`
+- 这个多元回归模型的**总体回归线/总体回归函数**为：
+`$$E(TestScore|STR,english)=686.03-1.10\times STR-0.65\times english$$`
+---
+
+### 多元回归估计
+- 由前面的学习我们知道，简单线性回归不能完全符合外生性假设，所以我们引入了多元线性回归：
+`$$Y_i=\beta_0+\beta_1X_1+\beta_2X_2+···+\beta_k X_k+u_i$$`
+- 系数 `\(\beta_k\)` 表示保持其他变量不变时，第 `\(k\)` 个变量变化一单位导致的因变量的平均变化量
+
+- 类比一元回归模型， `\(OLS\)` 方法也可以用于估计多元回归模型中的系数
+
+ - 令 `\(b_0,···,b_k\)` 为 `\(\beta_0,···,\beta_k\)` 的估计量
+ 
+ - **最小二乘（OLS）估计量** `\(\hat \beta_0,···,\hat \beta_k\)` 是使误差平方和 `\(\sum_{i}^{n}(Y_i-b_0-b_1X_{1i}-···-b_k X_{ki})^2\)` 最小时  `\(b_0,···,b_k\)` 的取值
+ 
+ - **OLS预测值** `\(\hat Y_i=\hat \beta_0+\hat \beta_1X_{1i}+···+\hat \beta_kX_{ki}\)`
+ 
+ - **样本残差** `\(\hat u_i=Y_i-\hat Y_i\)`
+
+---
+
+### 最小二乘假设回顾
+前面我们学习了三个最小二乘假设
+- 外生性假设（估计量无偏或者一致的关键）:
+
+  - 残差 `\(u_i\)` 和所有解释变量不相关
+`$$E(u_i|X_{1i},X_{2i},···,X_{ki})=0$$`  
+
+- 独立同分布假设:
+`\((Y_i,X_{1i},X_{2i},···,X_{ki})\)` 独立同分布
+ - 简单随机抽样获取的数据满足该假设
+
+- 有限峰度假设:
+
+  - 所有变量 `\(Y_i,X_{1i},X_{2i},···,X_{ki}\)` 的四阶矩皆存在且有限，即不大可能出现**大异常值**（远远落在数据通常取值范围之外的观测）
+---
+
+### 最小二乘假设
+- 现在我们将添加一个新的假设： &lt;font color=darkred&gt;非完全多重共线性假设&lt;/font&gt;
+
+- &lt;font color=darkred&gt;完全多重共线性&lt;/font&gt;
+
+ - 一个回归变量是其他回归变量的完全线性函数 `\(\longrightarrow\)` 回归变量间是**完全多重共线的**
+ 
+     - 例如，某个人以磅度量的体重和这个人以千克度量的体重；
+ 
+     - 又如，当数据来自所有男校时男生的比例和常数项；
+ 
+ - 一个变量固定不变时，另一个变量也固定不变， `\(\longrightarrow\)` 无法在假定其中一个回归变量不变的条件下确定另一个回归变量的变化效应，即在共线性回归变量中**不存在独立变化**
+     
+ - 我们无法在假定其中一个回归变量不变的条件下确定另一个回归变量的变化效应
+ 
+- &lt;font color=darkred&gt;虚拟变量陷阱：&lt;/font&gt;回归中包含多个二元/虚拟变量时可能产生完全多重共线性
+ 
+ - 避免方法：剔除其中一个二元变量 `\(\longrightarrow\)` `\(n\)` 个二元变量中只有 `\(n-1\)` 个是回归变量
+---
+
+###多重共线性 
+- &lt;font color=darkred&gt;完全多重共线性：&lt;/font&gt;
+  - 当一个回归变量是其他回归变量的完全线性组合时产生
+      
+  - OLS公式除数为 `\(0 \longrightarrow\)` 软件无法计算OLS估计量
+  
+      - 丢掉某个/某些解释变量
+      
+      - 拒绝计算OLS估计值并提示出错的信息
+  
+  - 解决方法：出错后计算机软件无法计算OLS估计量，提醒我们修改回归以消除共线性
+  
+- &lt;font color=darkred&gt;不完全多重共线性：&lt;/font&gt;
+  - 当一个回归变量和其他回归变量高度相关但不完全相关时产生
+  
+  - 不妨碍回归的估计，也不意味着回归变量选择中存在逻辑问题，但是意味着无法得到其中一个或者多个回归系数的精确估计
+---
+
+###完全多重共线性
+.panelset[
+.panel[.panel-name[注]
+- 多重共线性意味着多元回归模型中的两个或多个回归变量具有强相关性
+
+- 强多重共线性会导致 OLS 估计量的方差很大
+
+- 我们将另一个变量 `\(FracEL\)` 添加到 `\(CASchools\)` 
+
+ - `\(FracEL\)` 是英语学习者的百分数
+ 
+ - 其中的观测值是 `\(english\)` 观测值的缩放值
+ 
+ - `\(english\)` 和 `\(FracEL\)` 是完全共线的
+ 
+- 然后将其与 `\(STR\)` 和 `\(english\)` 一起用作多元回归模型中的回归变量
+
+- 观察代码运行结果，有什么发现？
+]
+.panel[.panel-name[]
+.panel[.panel-name[Code]
+
+```r
+# 加载AER包，AER包提供了很多用于应用计量经济学的函数和数据集
+library(AER)
+
+# 加载AER包中的CASchools数据集。这个数据集包含了加利福尼亚州各学区的学生、教师、阅读和数学成绩等信息
+data(CASchools)   
+
+# 创建一个新的变量STR，它是学生人数(students)与教师人数(teachers)的比率
+CASchools$STR &lt;- CASchools$students/CASchools$teachers 
+# 创建一个新的变量score，它是阅读和数学成绩(read和math)的平均值。这用于衡量学生的综合成绩
+CASchools$score &lt;- (CASchools$read + CASchools$math)/2
+
+# 定义英语学习者的比例       
+CASchools$FracEL &lt;- CASchools$english / 100
+
+# 使用lm函数来拟合一个线性模，。因变量是score（学校的测试分数），而自变量包括STR（师生比例）、english（英语学习者的百分比）和新创建的FracEL（英语学习者的比例）
+mult.mod &lt;- lm(score ~ STR + english + FracEL, data = CASchools) 
+
+# 获取并显示线性模型的摘要（通常包括模型的系数、标准误差、t值和p值，以及模型的R平方值、F统计量和其他）
+summary(mult.mod) 
+```
+
+
+
+]
+
+.panel[.panel-name[Output]
+
+```
+## 
+## Call:
+## lm(formula = score ~ STR + english + FracEL, data = CASchools)
+## 
+## Residuals:
+##     Min      1Q  Median      3Q     Max 
+## -48.845 -10.240  -0.308   9.815  43.461 
+## 
+## Coefficients: (1 not defined because of singularities)
+##              Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept) 686.03224    7.41131  92.566  &lt; 2e-16 ***
+## STR          -1.10130    0.38028  -2.896  0.00398 ** 
+## english      -0.64978    0.03934 -16.516  &lt; 2e-16 ***
+## FracEL             NA         NA      NA       NA    
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## Residual standard error: 14.46 on 417 degrees of freedom
+## Multiple R-squared:  0.4264,	Adjusted R-squared:  0.4237 
+## F-statistic:   155 on 2 and 417 DF,  p-value: &lt; 2.2e-16
+```
+
+
+
+]
+]
+]
+---
+
+###不完全多重共线性
+.panelset[
+.panel[.panel-name[注]
+- 该例通过模拟来探究当两个自变量（ `\(X_1\)` 和 `\(X_2\)` ）之间的协方差变化时，线性回归系数的估计值的方差如何变化
+
+- 输出结果显示
+
+ - 当 `\(X_1\)` 和 `\(X_2\)` 之间的协方差从 `\(0.25\)` 增加到 `\(0.85\)` 时（共线性程度增加），回归系数的估计值的方差也相应增加
+
+ - 由于高共线性，方差 `\(\hat \beta_1,\hat \beta_2\)` 增加了两倍多，这意味着更难精确估计真实系数
+
+- 这表明，当预测变量之间的相关性增加时，回归系数的估计值的不确定性也会增加
+]
+.panel[.panel-name[]
+.panel[.panel-name[Code]
+
+```r
+# 加载MASS包，该包提供了多元正态分布的随机变量生成函数
+library(MASS)
+# 加载mvtnorm包，虽然在这个例子中它似乎没有被直接使用，但rmvnorm函数实际上来自这个包
+library(mvtnorm)
+
+# 设置模拟的观察值数量为50
+n &lt;- 50
+
+# 使用cbind函数初始化两个矩阵coefs1和coefs2，每个矩阵都有10000行和2列，分别用于存储两种不同协方差结构下的回归系数估计值
+coefs1 &lt;- cbind("hat_beta_1" = numeric(10000), "hat_beta_2" = numeric(10000))
+coefs2 &lt;- coefs1
+
+# 设置随机种子以确保模拟结果的可重复性
+set.seed(1)
+
+# 使用for循环进行10000次模拟
+for (i in 1:10000) {
+  
+  # 在每次模拟中，首先生成一个具有特定协方差结构的多元正态分布的预测变量矩阵X
+  # cov(X_1,X_2) = 0.25
+  X &lt;- rmvnorm(n, c(0, 0), sigma = cbind(c(10, 2.5), c(2.5, 10)))
+  u &lt;- rnorm(n, sd = 5)
+  Y &lt;- 5 + 2.5 * X[, 1] + 3 * X[, 2] + u
+  coefs1[i, ] &lt;- lm(Y ~ X[, 1] + X[, 2])$coefficients[-1]
+  
+  # cov(X_1,X_2) = 0.85
+  X &lt;- rmvnorm(n, c(0, 0), sigma = cbind(c(10, 8.5), c(8.5, 10)))
+  Y &lt;- 5 + 2.5 * X[, 1] + 3 * X[, 2] + u
+  coefs2[i, ] &lt;- lm(Y ~ X[, 1] + X[, 2])$coefficients[-1]
+  
+}
+
+# 使用var函数计算coefs1和coefs2矩阵中每一列的方差，并使用diag函数提取对角线上的值（即每个系数的方差）
+diag(var(coefs1))
+diag(var(coefs2))
+```
+
+
+
+]
+
+.panel[.panel-name[Output]
+
+```
+## hat_beta_1 hat_beta_2 
+## 0.05674375 0.05712459 
+## hat_beta_1 hat_beta_2 
+##  0.1904949  0.1909056
+```
+
+
+
+]
+]
+]
+---
+
+###最小二乘假设
+- 满足以上四个最小乘假设的多元回归变量，有以下三条性质:
+
+  - 无偏性: `$$E(\hat\beta_1)=\beta_1$$`
+  
+  - 一致性: `$$\hat\beta_1\rightarrow\beta_1$$`
+  
+  - 大样本下近似正态分布： `$$\hat\beta_1\sim N(\beta_1,\sigma_{\hat\beta_1}^2)$$`
+
+---
+
+###OLS估计量的方差
+- 当回归只包含2个解释变量时，在同方差假设条件下，
+`$$Var(\hat\beta_1)=\frac{\sigma_u^2}{n(1-\rho_{X_1X_2}^2)\sigma_{X_1}^2}$$`
+
+  - `\(\sigma_{X_1}^2\)` 越大，说明 `\(X_1\)` 取值范围越广，包含信息越多，估计越准确， `\(\sigma_{\hat\beta_1}^2\)` 越小。
+  
+  - `\(\sigma_u^2\)` 越小，说明误差噪音越小，干扰信息越少，估计越准确， `\(\sigma_{\hat\beta_1}^2\)` 越小。
+  
+  - **近似多重共线性**:  `\(X_1\)` 与 `\(X_2\)` 之间虽然没有完全确定的线性关系，但相关系数 `\(\rho_{X_1X_2}\)` 的绝对值很大，其线性相关度很高，使得估计量方差严重膨胀，估计不准确。即当 `\(\rho_{X_1X_2}^2\rightarrow1\)` 时， `\(Var(\hat\beta_1)\rightarrow\infty\)`
+
+---
+
+###仿真模拟
+.panelset[
+.panel[.panel-name[注]
+
+- `\(Y_i=1+2X_i+W_i+U_i\)`
+
+- `\(X_i= \rho W_i+\epsilon_i\)`
+
+- `\(U\sim N(0,1),W\sim N(0,1),\epsilon\sim N(0,1)\)`
+
+- 利用OLS估计量的方差**演示不完全多重共线性的效果**
+
+- `\(\rho\)` 改变时 `\(X\)` 的方差也改变，观察具体是怎么改变的，为什么？
+]
+.panel[.panel-name[]
+.panel[.panel-name[Code]
+
+```r
+N &lt;- 100  
+  
+# 设定rho的取值范围，例如从5到50，步长为5  
+rho_values &lt;- seq(5, 50, by = 5)  
+  
+# 初始化一个列表来存储不同rho下的b1的估计值  
+b1_estimates &lt;- list()  
+  
+# 遍历每一个rho值  
+for (rho in rho_values) {  
+    
+  # 初始化存储每次模拟中b1估计值的向量  
+  b1 &lt;- rep(NA, 1000)  
+    
+  # 对于每一个rho值，进行1000次模拟  
+  for (i in 1:1000) {  
+    W &lt;- rnorm(N)  
+    X &lt;- rho * W + rnorm(N) # 注意这里假设rho是控制X和W之间关系的参数  
+    U &lt;- rnorm(N)  
+    Y &lt;- 1 + 2 * X + W + U  
+      
+    fit &lt;- lm(Y ~ X + W)  
+    b1[i] &lt;- coef(fit)[3] # 假设W是模型中的第三个变量（包括截距项）  
+  }  
+    
+  # 存储当前rho值下所有b1的估计值  
+  b1_estimates[[rho]] &lt;- b1  
+    
+  # 输出或记录当前rho下b1的标准差  
+  cat("rho =", rho, ", sd(b1) =", sd(b1), "\n")  
+}  
+```
+
+
+
+]
+
+.panel[.panel-name[Output]
+
+```
+## rho = 5 , sd(b1) = 0.5055735 
+## rho = 10 , sd(b1) = 1.02814 
+## rho = 15 , sd(b1) = 1.540896 
+## rho = 20 , sd(b1) = 2.022168 
+## rho = 25 , sd(b1) = 2.547829 
+## rho = 30 , sd(b1) = 3.164674 
+## rho = 35 , sd(b1) = 3.572175 
+## rho = 40 , sd(b1) = 4.129088 
+## rho = 45 , sd(b1) = 4.63021 
+## rho = 50 , sd(b1) = 5.339587
+```
+
+
+
+]
+]
+.panel[.panel-name[注]
+- 观察运行结果可知：
+ 
+ - `\(\rho\)` 越大时方差也越大
+ 
+- `\(\rho=\frac{Cov(X,W)}{\sqrt{Var(X)Var(W)}}=\frac{Cov(\rho W+\epsilon,W)}{\sqrt{Var(\rho W+\epsilon)Var(W)}}=\frac{\rho Var(W)}{\sqrt{[\rho^2 Var(W)+Var(\epsilon)]Var(W)}}\)`
+
+- `\(\rho=\frac{\rho}{1+\rho^2}=\sqrt{\frac{\rho^2}{1+\rho^2}}\)` 
+
+ - `\(rho\)` 越大 `\(\longrightarrow\)` 线性相关程度越大 `\(\longrightarrow\)` 共线性程度越大 `\(\longrightarrow\)` 估计越不准确 `\(\longrightarrow\)` 方差越大
+]
+]
+---
+
+### 回顾 `\(R^2\)` 
+- 可由 `\(X_i\)` 解释（或预测）的 `\(Y_i\)` 样本方差的比例
+      
+- 将因变量 `\(Y_i\)` 写成预测值 `\(\hat Y_i\)` 与残差 `\(u_i\)` 之和： `\(Y_i=\hat Y_i+u_i\)` 
+
+ - `\(R^2\)` 则为预测值 `\(\hat Y_i\)` 的样本方差与 `\(Y_i\)`  样本方差之比
+      
+- 被解释平方和与总平方和之比: `\(R^2=\frac{ESS}{TSS}=1-\frac{SSR}{TSS}\)`
+
+ - 被解释平方和 `\(ESS=\sum_{i=1}^{n}(\hat Y_i-\bar Y)^2\)`
+      
+ - 总平方和 `\(TSS=\sum_{i=1}^{n}(Y_i-\bar Y)^2\)`
+      
+ - 残差平方和 `\(SSR=\sum_{i=1}^{n}\hat u_i^2=(Y_i-\hat Y_i)^2\)`
+
+- 取值范围 `\((0,1)\)`
+
+ - `\(R^2=0\)`, `\(X_i\)` 不能解释 `\(Y_i\)` 的变化
+      
+ - `\(R^2=1\)`, `\(X_i\)` 能解释 `\(Y_i\)` 的所有变化
+---
+
+###调整拟合优度 `\({\bar R}^2\)`
+- 但是，由于增加新变量后 `\(R^2\)` 会增大， `\(R^2\)` 增大并不意味着增加一个变量实际上提高了模型的拟合优度，即 `\(R^2\)`夸大地估计了回归拟合数据的效果
+
+- 于是，我们引入了修正方法：用某个因子缩小来降低 `\(R^2\)` 
+
+- `\({\bar R}^2=1-\frac{(n-1)SSR}{(n-k-1)TSS}=1-\frac{(n-1)}{(n-k-1)}(1-R^2)\)`
+
+- `\({\bar R}^2=1-\frac{(n-1)}{(n-k-1)}(1-R^2)\)`
+
+- 其中 `\(k\)` 为解释变量的个数，该式引入 `\(k\)` 是为了尽可能抵消变量个数增加引起的 `\(R^2\)` 的增加
+
+- 注意 `\(R^2\)` 不能和因果推断建立强的联系， `\(R^2\)` 仅仅是一个样本内的拟合优度，不宜作回归质量评判标准。
+---
+
+###调整 `\(R^2\)`
+.panelset[
+.panel[.panel-name[]
+.panel[.panel-name[Code]
+
+```r
+# 定义了所需的变量和组件
+n &lt;- nrow(CASchools)                            # 观察值的数量（即数据集中的行数）
+k &lt;- 2                                          # 回归变量的数量（在这个例子中是2，因为我们有两个自变量：STR 和 english 或 FracEL
+
+y_mean &lt;- mean(CASchools$score)                 # 因变量（平均测试分数）的均值
+
+SSR &lt;- sum(residuals(mult.mod)^2)               # 残差平方和，衡量模型未能解释的部分变异
+TSS &lt;- sum((CASchools$score - y_mean )^2)       # 总平方和，衡量因变量的总变异
+ESS &lt;- sum((fitted(mult.mod) - y_mean)^2)       # 解释平方和，衡量模型所解释的部分变异
+
+# 标准误差，用于估计回归线的平均误差大小
+SER &lt;- sqrt(1/(n-k-1) * SSR) 
+
+# 决定系数，表示模型所解释的因变量变异的百分比。计算公式为 (1 - \frac{SSR}{TSS})
+Rsq &lt;- 1 - (SSR / TSS)          
+
+# 调整后的决定系数，考虑了模型中自变量的数量。它是对 (R^2) 的一个调整，以避免添加不必要的自变量。计算公式为 (1 - \frac{n-1}{n-k-1} \times \frac{SSR}{TSS})
+adj_Rsq &lt;- 1 - (n-1)/(n-k-1) * SSR/TSS          # adj. R^2
+
+# 使用 c函数将这些度量指标组合成一个命名向量，并使用 print 方法（在这里是隐式的，因为代码是在 R 环境中运行的，所以结果会自动打印到控制台）将其输出到控制台
+c("SER" = SER, "R2" = Rsq, "Adj.R2" = adj_Rsq)
+```
+
+
+
+]
+
+.panel[.panel-name[Output]
+
+```
+##        SER         R2     Adj.R2 
+## 14.4644831  0.4264315  0.4236805
+```
+
+
+
+]
+]
+.panel[.panel-name[注]
+- 计算并输出线性回归模型的各种度量指标
+
+ - 标准误差
+ 
+ -  `\(R^2\)`
+ 
+ - 调整 `\(R^2\)`
+]
+]
+---
+
+###小结
+- 遗漏变量与回归变量相关且是因变量的决定因素时产生遗漏变量偏差
+
+- 多元回归模型
+
+- 完全多重共线性出现在某个回归变量是其他回归变量的完全线性函数时
+
+ - 通常由多元回归中选择回归变量出错引起
+ 
+ - 解决方法：改变回归变量集
+ 
+- 满足四个最小二乘假设时OLS估计量无偏、一致、大样本下服从正态分布
+
+- 回归标准误 `\(SER,R^2,\bar R^2\)` 都是多元回归模型的拟合优度 
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script>var slideshow = remark.create({
+"highlightStyle": "github",
+"highlightLines": true,
+"countIncrementalSlides": false
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();
+// add `data-at-shortcutkeys` attribute to <body> to resolve conflicts with JAWS
+// screen reader (see PR #262)
+(function(d) {
+  let res = {};
+  d.querySelectorAll('.remark-help-content table tr').forEach(tr => {
+    const t = tr.querySelector('td:nth-child(2)').innerText;
+    tr.querySelectorAll('td:first-child .key').forEach(key => {
+      const k = key.innerText;
+      if (/^[a-z]$/.test(k)) res[k] = t;  // must be a single letter (key)
+    });
+  });
+  d.body.setAttribute('data-at-shortcutkeys', JSON.stringify(res));
+})(document);
+(function() {
+  "use strict"
+  // Replace <script> tags in slides area to make them executable
+  var scripts = document.querySelectorAll(
+    '.remark-slides-area .remark-slide-container script'
+  );
+  if (!scripts.length) return;
+  for (var i = 0; i < scripts.length; i++) {
+    var s = document.createElement('script');
+    var code = document.createTextNode(scripts[i].textContent);
+    s.appendChild(code);
+    var scriptAttrs = scripts[i].attributes;
+    for (var j = 0; j < scriptAttrs.length; j++) {
+      s.setAttribute(scriptAttrs[j].name, scriptAttrs[j].value);
+    }
+    scripts[i].parentElement.replaceChild(s, scripts[i]);
+  }
+})();
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();
+// adds .remark-code-has-line-highlighted class to <pre> parent elements
+// of code chunks containing highlighted lines with class .remark-code-line-highlighted
+(function(d) {
+  const hlines = d.querySelectorAll('.remark-code-line-highlighted');
+  const preParents = [];
+  const findPreParent = function(line, p = 0) {
+    if (p > 1) return null; // traverse up no further than grandparent
+    const el = line.parentElement;
+    return el.tagName === "PRE" ? el : findPreParent(el, ++p);
+  };
+
+  for (let line of hlines) {
+    let pre = findPreParent(line);
+    if (pre && !preParents.includes(pre)) preParents.push(pre);
+  }
+  preParents.forEach(p => p.classList.add("remark-code-has-line-highlighted"));
+})(document);</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>
