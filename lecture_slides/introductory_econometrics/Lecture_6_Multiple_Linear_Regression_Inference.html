@@ -1,0 +1,1132 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+  <head>
+    <title>第六讲: 多元回归中的假设检验和置信区间</title>
+    <meta charset="utf-8" />
+    <meta name="author" content="文旷宇" />
+    <script src="libs/header-attrs-2.20/header-attrs.js"></script>
+    <link href="libs/xaringanExtra-banner-0.0.1/banner.css" rel="stylesheet" />
+    <script src="libs/xaringanExtra-banner-0.0.1/banner.js"></script>
+    <script src="libs/fabric-4.3.1/fabric.min.js"></script>
+    <link href="libs/xaringanExtra-scribble-0.0.1/scribble.css" rel="stylesheet" />
+    <script src="libs/xaringanExtra-scribble-0.0.1/scribble.js"></script>
+    <script>document.addEventListener('DOMContentLoaded', function() { window.xeScribble = new Scribble({"pen_color":["#FF0000"],"pen_size":3,"eraser_size":30,"palette":[]}) })</script>
+    <link href="libs/panelset-0.2.6/panelset.css" rel="stylesheet" />
+    <script src="libs/panelset-0.2.6/panelset.js"></script>
+    <script src="libs/xaringanExtra_fit-screen-0.2.6/fit-screen.js"></script>
+    <link rel="stylesheet" href="xaringan-themer.css" type="text/css" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+.title[
+# 第六讲: 多元回归中的假设检验和置信区间
+]
+.author[
+### 文旷宇
+]
+.institute[
+### 华中科技大学
+]
+
+---
+
+&lt;style type="text/css"&gt;
+pre{
+  max-height:400px;
+  overflow-y:auto;
+}
+&lt;/style&gt;
+
+<div>
+<style type="text/css">.xaringan-extra-logo {
+width: 55px;
+height: 64px;
+z-index: 0;
+background-image: url(../images/hust-logo.png);
+background-size: contain;
+background-repeat: no-repeat;
+position: absolute;
+top:1em;right:1em;
+}
+</style>
+<script>(function () {
+  let tries = 0
+  function addLogo () {
+    if (typeof slideshow === 'undefined') {
+      tries += 1
+      if (tries < 10) {
+        setTimeout(addLogo, 100)
+      }
+    } else {
+      document.querySelectorAll('.remark-slide-content:not(.title-slide):not(.inverse):not(.hide_logo)')
+        .forEach(function (slide) {
+          const logo = document.createElement('div')
+          logo.classList = 'xaringan-extra-logo'
+          logo.href = null
+          slide.appendChild(logo)
+        })
+    }
+  }
+  document.addEventListener('DOMContentLoaded', addLogo)
+})()</script>
+</div><script>document.addEventListener('DOMContentLoaded',function(){new xeBanner(JSON.parse('{"left":"","right":"","exclude":["title-slide"],"position":"top"}'))})</script>
+<script>document.addEventListener('DOMContentLoaded',function(){new xeBanner(JSON.parse('{"left":"文旷宇/华中科技大学","exclude":["title-slide"],"position":"bottom"}'))})</script>
+
+
+
+
+
+
+
+
+
+### 主要内容
+- 多元回归分析中单个系数的假设检验
+
+- 多个系数的假设检验
+  - `\(F\)` 统计量
+- 对于涉及多个系数的单个限制条件进行检验
+
+- 多元回归分析中单个系数的置信区间
+
+- 多元线性回归模型的拟合优度
+  - `\(SER,R^2,\bar R^2\)`
+  
+  - 同方差的 `\(F\)` 统计量和 `\(\bar R^2\)` 之间的关系
+  
+  - 拟合优度的解释
+- 多元回归中的遗漏变量偏差与控制变量
+---
+
+###多元回归分析中单个系数的假设检验
+- 多元回归模型最小二乘估计的4个假设：
+  - 假设1： `\(E(u_i|X_{1i},X_{2i},···,X_{ni})=0\)`
+  
+  - 假设2： `\(Y_i,X_{1i},X_{2i},···,X_{ni}\)` 独立同分布
+  
+  - 假设3： 大的异常值不太可能出现
+  
+  - 假设4： 不存在完全多重共线性
+- 满足上述假设时， `\(OLS\)` 估计量在大样本下近似正态分布
+`$$t=\frac{\hat \beta_j-\beta_{j0}}{SE(\hat \beta_j)}\sim N(0,1)$$`
+- 因此，我们可以借鉴一元回归模型的方法，在多元回归模型中进行假设检验
+---
+
+###多元回归分析中单个系数的假设检验
+`$$H_0：\beta_j=\beta_{j0}  \qquad H_1:\beta_j \ne \beta_{j0}$$`
+- 第一步：用最小二乘法估计 `\(Y_i\)`
+`$$Y_i=\beta_0+\beta_1 X_{1i}+\beta_2X_{2i}+···+\beta_kX_{ki}+u_i$$`
+- 第二步：计算 `\(\beta_j\)` 的标准误 `\(SE(\hat \beta_j)\)`
+
+- 第三步：计算 `\(t\)` 统计量
+`$$t^{act}=\frac{\hat \beta_j-\beta_{j0}}{SE(\hat \beta_j)}$$`
+- 第四步：计算 `\(p\)` 值，
+`$$p=2\phi(-|t^{act}|)$$` 
+如果 `\(|t^{act}|&gt;1.96\)` 或者 `\(P&lt;0.05\)` 就在 `\(5\%\)` 置信水平下拒绝原假设
+---
+
+###多元回归分析中单个系数的假设检验（例子）
+仍然用加利福尼亚学区考试分数的例子来分析一下：
+
+在 `\(5\%\)` 置信水平下，保持英语学习者比例不变，改变班级规模大小，是否会显著影响考试分数呢？不妨先进行假设检验：
+`$$H_0：\beta_{ClassSize}=0 \qquad H_1:\beta_{ClassSize}\ne 0$$`
+- 第一步： `\(\beta_{ClassSize}=-1.10\)`
+- 第二步：计算 `\(\beta_j\)` 的标准误 `\(SE(\hat \beta_j)=0.43\)`
+
+- 第三步：计算 `\(t\)` 统计量
+`$$t^{act}=\frac{\hat \beta_j-\beta_{j0}}{SE(\hat \beta_j)}=\frac{-1.10-0}{0.43}=-2.54$$`
+- 第四步： `\(|-2.54|&gt;1.96,\quad P=0.011&lt;0.05\)` &lt;br&gt;所以拒绝原假设，即改变班级规模大小会显著影响考试分数
+---
+
+### 例子
+`$$TestScore=\beta_0+\beta_1\times STR+\beta_2\times english+u$$`
+.panelset[
+.panel[.panel-name[]
+.panel[.panel-name[Code]
+
+```r
+# 加载AER包，AER包提供了很多用于应用计量经济学的函数和数据集
+library(AER)
+
+# 加载AER包中的CASchools数据集。这个数据集包含了加利福尼亚州各学区的学生、教师、阅读和数学成绩等信息
+data(CASchools)   
+
+# 创建一个新的变量STR，它是学生人数(students)与教师人数(teachers)的比率
+CASchools$STR &lt;- CASchools$students/CASchools$teachers 
+# 创建一个新的变量score，它是阅读和数学成绩(read和math)的平均值。这用于衡量学生的综合成绩
+CASchools$score &lt;- (CASchools$read + CASchools$math)/2
+
+# 建立一个线性回归模型。模型中的因变量是score，自变量是STR和english。数据来自CASchools数据集
+model &lt;- lm(score ~ STR + english, data = CASchools)
+# 计算模型的系数和它们的标准误。coeftest函数用于估计线性模型的系数，vcovHC是一个函数，用于计算异方差性稳健的协方差矩阵。type="HC1"指定了异方差性稳健协方差矩阵的类型
+coeftest(model, vcov. = vcovHC, type = "HC1")
+```
+
+
+
+]
+
+.panel[.panel-name[Output]
+
+```
+## 
+## t test of coefficients:
+## 
+##               Estimate Std. Error  t value Pr(&gt;|t|)    
+## (Intercept) 686.032245   8.728225  78.5993  &lt; 2e-16 ***
+## STR          -1.101296   0.432847  -2.5443  0.01131 *  
+## english      -0.649777   0.031032 -20.9391  &lt; 2e-16 ***
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+```
+
+
+
+]
+]
+.panel[.panel-name[]
+.panel[.panel-name[Code]
+
+```r
+# 计算第二个自变量（english）的系数的双侧p值。coeftest函数返回的结果是一个矩阵，其中第二行第三列是english系数的t统计量。pt函数用于计算t分布的累积分布函数值，abs函数用于取绝对值，df =model$df.residual指定了t分布的自由度（即模型的残差自由度）
+2 * (1 - pt(abs(coeftest(model, vcov. = vcovHC, type = "HC1")[2, 3]),
+            df = model$df.residual))
+```
+
+
+
+]
+
+.panel[.panel-name[Output]
+
+```
+## [1] 0.01130921
+```
+
+
+
+]
+]
+]
+---
+
+###两个或多个系数的假设检验
+- **联合假设**：
+  - 对回归系数施加了两个或两个以上约束的假设
+  
+  - 原假设： `\(H_0:\beta_j=\beta_{j,0}, j=1\cdots,q\)`。共 `\(q\)` 个约束条件
+  
+  - 备择假设： `\(H_0\)` 中的约束条件至少有一个不成立
+- 首先思考一个问题：
+  - 前面我们学习了对一个系数的假设检验，那么我们能不能运用前面学习的知识，**一次只检验一个系数约束条件来检验联合假设**呢？
+  
+  - 答案是否定的，为什么？
+  
+---
+
+###两个或多个系数的假设检验
+**为什么不能一次只检验一个系数？**
+.panelset[
+.panel[.panel-name[1]
+- 首先考虑 `\(t\)` 统计量不相关因而独立的特殊情况：
+  - 只有当 `\(|t_1|\leq1.96\)` 且 `\(|t_2|\leq1.96\)` 时不能拒绝原假设(假设置信水平为 `\(5\%\)`)
+  
+  - `\(t\)` 统计量之间是独立的
+$$
+`\begin{aligned}
+P(|t_1|\leq1.96 \quad \&amp; \quad |t_2|\leq1.96) &amp;=P(|t_1|\leq1.96)P(|t_2|\leq1.96)
+&amp;\\=0.95^2=0.9025=90.25\%&lt;95\%
+\end{aligned}`
+$$
+  - 所以原假设为真时拒绝原假设的概率为 `\(1-0.95^2=9.75\%&gt;5 \%\)`
+] 
+.panel[.panel-name[2]
+- 若回归变量相关，情况更加复杂，“一次一个”步骤的水平取决于回归变量的相关系数取值
+
+- 综上:
+
+ - **“一次一个”检验方法的水平不正确**
+ 
+ - 即**原假设下的拒绝率不等于要求的显著水平**
+ 
+     - 因为“一次一个” 的方法给了我们太多的机会
+     
+     - 也就是说，当我们用第一个 `\(t\)` 统计量无法拒绝时，还可以尝试用第二个 `\(t\)` 统计量，所以**过多地拒绝了原假设** 
+]]
+---
+
+###仿真模拟
+.panelset[
+.panel[.panel-name[]
+.panel[.panel-name[Code]
+
+```r
+# 展示“一次一个”方法为什么不正确
+
+# Y=1+0*X+0*W+U
+
+N &lt;- 200
+
+reject &lt;- rep(NA,1000)
+
+for (i in 1:1000) {
+  
+  X &lt;- rnorm(N)
+  W &lt;- rnorm(N)
+  U &lt;- rnorm(N)
+  Y &lt;- 1+U
+  
+#lm()为线性回归函数  
+  fit &lt;- lm(Y~X+W)
+#查看线性回归系数（期望值） 
+  b1 &lt;- coef(fit)[2]
+  b2 &lt;- coef(fit)[3]
+#查看线性回归系数（方差值）并计算标准差  
+  se1 &lt;- sqrt(vcov(fit)[2,2])
+  se2 &lt;- sqrt(vcov(fit)[3,3])
+  
+  reject[i] &lt;- (abs(b1/se1)&gt;1.96 | abs(b2/se2)&gt;1.96)
+  
+}
+# 结果的尺度大小不是 5%.
+mean(reject)
+```
+
+
+
+]
+
+.panel[.panel-name[Output]
+
+```
+## [1] 0.108
+```
+
+
+
+]
+]
+]
+---
+
+###F统计量
+- 通过前面的学习我们知道，**“一次一个”检验方法的水平不正确**，我们需要采用新的方法
+
+  - **Bonferroni方法:**一种途径是修改“一次一个”方法使它采用不同的临界值以确保其水平等于显著水平
+  
+      - 该方法应用广泛，但是当备择假设实际上为真时通常无法拒绝原假设
+      
+  - 另一种方法基于** `\(F\)` 统计量**，更为有效，尤其是当回归变量间呈现高度相关时检验联合假设的方法
+- ** `\(F\)` 统计量**
+  - 用于检验回归系数的联合假设
+  
+  - 其公式已编入回归软件
+---
+
+###仿真模拟
+.panelset[
+.panel[.panel-name[]
+.panel[.panel-name[Code]
+
+```r
+# 两种计算F统计量的方法
+# Y=1+0*X+1*W+U
+
+N &lt;- 200
+X &lt;- rnorm(N)
+W &lt;- rnorm(N)
+U &lt;- rnorm(N)
+Y &lt;- 1+W+U
+
+fit &lt;- lm(Y~X+W)
+fit2 &lt;- lm(Y~1)
+
+SSR_u &lt;- sum(resid(fit)^2)
+SSR_r &lt;- sum(resid(fit2)^2)
+# 计算F统计量的第一种方法（同方差下）
+((SSR_r-SSR_u)/2)/(SSR_u/(N-2-1)) 
+
+qf(.95,2,N-2-1)
+# 计算F统计量的第二种方法
+anova(fit,fit2) 
+```
+
+
+
+]
+
+.panel[.panel-name[Output]
+
+```
+## [1] 103.4679
+## [1] 3.041753
+## Analysis of Variance Table
+## 
+## Model 1: Y ~ X + W
+## Model 2: Y ~ 1
+##   Res.Df    RSS Df Sum of Sq      F    Pr(&gt;F)    
+## 1    197 220.37                                  
+## 2    199 451.85 -2   -231.48 103.47 &lt; 2.2e-16 ***
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+```
+
+
+
+]
+]
+]
+---
+
+###两个或多个系数的假设检验
+- `\(q=2\)` 个约束的 `\(F\)` 统计量
+`$$H_0:\beta_1=0 \text{ 和 } \beta_2=0 \qquad H_1:\beta_1 \ne 0 \text{ 或 } \beta_2 \ne 0$$`
+  - `\(F=\frac{1}{2}\left(\frac{t_1^2+t_2^2-2 \hat \rho_{t_1,t_2}t_1t_2}{1-\hat \rho_{t_1,t_2}^2}\right)\)`
+  
+  - `\(\hat \rho_{t_1,t_2}\)`表示两个 `\(t\)` 统计量的相关系数估计量
+  
+  - 若 `\(t\)` 统计量不相关， `\(F=\frac{1}{2}(t_1^2+t_2^2)\)` ,是 `\(t\)` 统计量平方的均值，在原假设下近似服从 `\(F_{2,\infty}\)` 分布，备择假设下 `\(t\)` 统计量大， `\(F\)` 统计量大，拒绝原假设
+  
+  - 一般情况下 `\(t\)` 统计量相关，加上相关系数估计量 `\(\hat \rho_{t_1,t_2}\)` 修正了相关性，使得无论 `\(t\)` 统计量是否相关， `\(F\)` 统计量在大样本下都服从 `\(F_{2,\infty}\)` 分布
+---
+
+###仿真模拟
+.panelset[
+.panel[.panel-name[]
+.panel[.panel-name[Code]
+
+```r
+# 2个约束F统计量模型
+# Y=1+.6*X1+.4*X2+.4*X3+U
+# Test H0: beta1+beta2=1; beta2=beta3.
+X1 &lt;- rnorm(N)
+X2 &lt;- rnorm(N)
+X3 &lt;- rnorm(N)
+U &lt;- rnorm(N)
+Y &lt;- 1+.6*X1+.4*X2+.6*X3+U
+
+fit &lt;- lm(Y~X1+X2+X3)
+fit2 &lt;- lm(Y~I(X2+X3-X1),offset=X1) 
+anova(fit,fit2)
+```
+
+
+
+]
+
+.panel[.panel-name[Output]
+
+```
+## Analysis of Variance Table
+## 
+## Model 1: Y ~ X1 + X2 + X3
+## Model 2: Y ~ I(X2 + X3 - X1)
+##   Res.Df    RSS Df Sum of Sq      F  Pr(&gt;F)  
+## 1    196 195.49                              
+## 2    198 200.76 -2   -5.2743 2.6441 0.07361 .
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+```
+
+
+
+]
+]]
+---
+
+###两个或多个系数的假设检验
+.panelset[
+.panel[.panel-name[1]
+- `\(q\)` 个约束的 `\(F\)` 统计量
+  - 大样本下，在原假设成立时近似服从 `\(F_{q,\infty}\)` 分布
+  
+  - 由于历史原因，大多数软件默认状态为计算同方差适用标准误，所以在某些软件包中必须选择“稳健”选项后才会利用异方差稳健标准误
+]
+.panel[.panel-name[2]
+`$$H_0:\beta_1=\beta_{1,0},···,\beta_q=\beta_{q,0}$$`
+`$$H_1:H_0 \text{的条件至少有一个不成立}$$`
+
+- 第一步：通过OLS法估计回归方程
+`$$Y_i=\beta_0+\beta_1X_{1i}+\cdots +\beta_1X_{ki}+u_i$$`
+
+- 第二步：计算 `\(F\)` 统计量
+
+- 如果 `\(F&gt;F_{1-\alpha;q,\infty}\)` 则拒绝原假设，其中 `\(F_{1-\alpha;q,\infty}\)` 是 `\(F_{q,\infty}\)` 分布的下分位数。
+]]
+---
+
+###F统计量
+-  `\(F\)` 统计量还可以计算 `\(P\)` 值：( `\(F\)` 统计量服从大样本 `\(F_{q,\infty}\)` 分布)
+`$$p=P(F_{q,\infty}&gt;F^{act})$$`
+- “总”回归的 `\(F\)` 统计量
+  - 检验了所有斜率系数为 `\(0\)` 的联合假设
+  
+  - 原假设（所有斜率系数为 `\(0\)` ）为真时 `\(F\)` 统计量服从大样本 `\(F_{q,\infty}\)` 分布
+`$$H_0:\beta_1=\beta_{1,0},···,\beta_k=\beta_{k,0}$$`
+`$$H_1:H_0 \text{的条件至少有一个不成立}$$`
+- `\(q=1\)` 时的 `\(F\)` 统计量
+  - 联合假设化为单个回归系数的原假设
+  
+  -  `\(F\)` 统计量是 `\(t\)` 统计量的平方
+---
+
+###同方差适用 `\(F\)` 统计量
+`$$F=\frac{(SSR_r-SSR_u)/q}{SSR_u/(n-k-1)}$$`
+- 同方差适用 `\(F\)` 统计量是基于两个回归的残差平方和的简单公式计算得到的
+
+ - 受约束回归
+
+     - 第一个回归，假定原假设正确
+ 
+     - 把约束条件带入到回归中
+     
+ - 无约束回归
+ 
+     - 第二个回归，允许备择假设为真
+     
+     - 若残差平方和比受约束回归中小很多 `\(\longrightarrow\)` 拒绝原假设
+---
+
+###同方差适用 `\(F\)` 统计量
+`$$F=\frac{(R_u^2-R_r^2)/q}{(1-R_u^2)/(n-k-1)}$$`
+- 大样本时误差同方差 `\(\longrightarrow\)` 同方差适用 `\(F\)` 统计量和异方差稳健 `\(F\)` 统计量接近  `\(\longrightarrow\)` 原假设下 `\(F\sim F_{q,\infty}\)`
+
+- 小样本时误差同方差且服从正态分布 `\(\longrightarrow\)` 原假设下 `\(F\sim F_{q,n-k-1}\)`
+
+- 这只是同方差下的经验公式，适用范围较小，是特例，与异方差稳健公式相比不够可靠
+
+---
+
+###涉及多个系数的单个约束检验
+`$$H_0:\beta_1=\beta_2 \qquad H_1:\beta_1 \ne \beta_2$$`
+- 回归变换
+  - 不妨假设只有两个回归变量 `\(X_{1,i},X_{2,i}\)`,则总回归为
+  `$$Y_i=\beta_0+\beta_1X_{1,i}+\beta_2X_{2,i}+u_i$$`
+  
+  - 然后利用一个小技巧：减去然后加上 `\(\beta_2X_{1,i}\)` ,则回归变为
+$$
+`\begin{aligned}
+Y_i&amp;=\beta_0+\beta_1X_{1,i}-\beta_2X_{1,i}+\beta_2X_{1,i}+\beta_2X_{2,i}+u_i
+\\&amp;=\beta_0+(\beta_1-\beta_2)X_{1,i}+\beta_2(X_{1,i}+X_{2,i})+u_i
+\end{aligned}`
+$$
+  - 令 `\(\gamma_1=\beta_1-\beta_2,W_i=X_{1,i}+X_{2,i}\)` ,则
+`$$Y_i=\beta_0+\gamma_1X_{1,i}+\beta_2W_i+u_i$$`
+- 这样，我们就把两个回归系数的约束化为了单个回归系数的约束,检验 `\(\gamma_1\)` 是否等于0即可
+- 除此之外，我们还可以利用软件直接检验约束
+---
+
+###涉及多个系数的多个约束检验
+.panelset[
+.panel[.panel-name[注]
+- 第一段代码输出显示此联合假设检验的同方差适用 `\(F\)` 统计量约为 8.01（大于4.61）,相应的 `\(p\)` 值是0.0004
+
+ - 因此，我们可以在1%水平下拒绝原假设
+ 
+ - 即在实践中常用的任何显著性水平上，两个系数都为零
+ 
+- 第二段代码输出异方差稳健 `\(F\)` 统计量为5.43，与不太可靠的同方差适用经验值8.01相差很大
+]
+.panel[.panel-name[]
+.panel[.panel-name[Code]
+
+```r
+
+# 加载AER包，AER包提供了很多用于应用计量经济学的函数和数据集
+library(AER)
+
+# 加载AER包中的CASchools数据集。这个数据集包含了加利福尼亚州各学区的学生、教师、阅读和数学成绩等信息
+data(CASchools)   
+
+# 创建一个新的变量STR，它是学生人数(students)与教师人数(teachers)的比率
+CASchools$STR &lt;- CASchools$students/CASchools$teachers 
+# 创建一个新的变量score，它是阅读和数学成绩(read和math)的平均值。这用于衡量学生的综合成绩
+CASchools$score &lt;- (CASchools$read + CASchools$math)/2
+
+# 使用lm函数估计一个多重线性回归模型。模型中的因变量是score，而自变量则包括了STR、english和expenditure。数据来源于CASchools数据集
+model &lt;- lm(score ~ STR + english + expenditure, data = CASchools)
+
+# 测试两个线性假设:linearHypothesis函数会计算每个假设的F统计量和对应的p值，如果某个假设的p值小于某个显著性水平（例如0.05），则可以拒绝该假设，认为对应的自变量对因变量有显著影响
+# 第一个假设是STR的系数等于0（即STR对score没有影响）,第二个假设是expenditure的系数等于0（即expenditure对score没有影响）
+linearHypothesis(model, c("STR=0", "expenditure=0"))
+```
+
+
+
+]
+
+.panel[.panel-name[Output]
+
+```
+## Linear hypothesis test
+## 
+## Hypothesis:
+## STR = 0
+## expenditure = 0
+## 
+## Model 1: restricted model
+## Model 2: score ~ STR + english + expenditure
+## 
+##   Res.Df   RSS Df Sum of Sq      F   Pr(&gt;F)    
+## 1    418 89000                                 
+## 2    416 85700  2    3300.3 8.0101 0.000386 ***
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+```
+
+
+
+]
+]
+.panel[.panel-name[]
+.panel[.panel-name[Code]
+
+```r
+# 异方差稳健的 F-检验
+# 对于异方差性稳健的F-检验，linearHypothesis函数本身并不直接提供异方差性稳健的调整
+linearHypothesis(model, c("STR=0", "expenditure=0"), white.adjust = "hc1")
+```
+
+
+
+]
+
+.panel[.panel-name[Output]
+
+```
+## Linear hypothesis test
+## 
+## Hypothesis:
+## STR = 0
+## expenditure = 0
+## 
+## Model 1: restricted model
+## Model 2: score ~ STR + english + expenditure
+## 
+## Note: Coefficient covariance matrix supplied.
+## 
+##   Res.Df Df      F   Pr(&gt;F)   
+## 1    418                      
+## 2    416  2 5.4337 0.004682 **
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+```
+
+
+
+]
+]]
+---
+
+### 置信集
+- 前面介绍了如何利用 `\(F\)` 统计量检验 `\(\beta_1=\beta_{1,0}\)` 和 `\(\beta_2=\beta_{2,0}\)` 的联合原假设
+
+ - 因为检验的显著水平为5%，所以在95%的所有样本中不会拒绝 `\(\beta_1,\beta_2\)` 的总体真值
+
+ - 在5%水平下利用 `\(F\)` 统计量不能拒绝的取值集合组成了 `\(\beta_1,\beta_2\)` 的95%&lt;font color=darkred&gt;置信集&lt;/font&gt;
+ 
+ - 通过查看置信集，我们可以了解回归系数估计的精确性和可靠性
+ 
+     - 如果置信集较窄，说明我们对回归系数的估计比较确定
+     
+     - 如果置信集较宽，则意味着我们对回归系数的估计存在较大的不确定性
+
+- &lt;font color=darkred&gt;置信集&lt;/font&gt;
+是单个系数置信区间到两个/多个系数的推广
+
+- 如何计算置信集呢？
+
+ - 对每一组可能的 `\((\beta_{1,0},\beta_{2,0})\)` 构造 `\(F\)` 统计量，若大于5%水平下临界值3.00 `\(\longrightarrow\)` 拒绝这组取值
+ 
+ - 但是这未免太复杂，计算量太大了！
+---
+
+###置信集
+.panelset[
+.panel[.panel-name[]
+.panel[.panel-name[Code]
+
+```r
+# 加载AER包，AER包提供了很多用于应用计量经济学的函数和数据集
+library(AER)
+
+# 加载AER包中的CASchools数据集。这个数据集包含了加利福尼亚州各学区的学生、教师、阅读和数学成绩等信息
+data(CASchools)   
+
+# 创建一个新的变量STR，它是学生人数(students)与教师人数(teachers)的比率
+CASchools$STR &lt;- CASchools$students/CASchools$teachers 
+# 创建一个新的变量score，它是阅读和数学成绩(read和math)的平均值。这用于衡量学生的综合成绩
+CASchools$score &lt;- (CASchools$read + CASchools$math)/2
+
+# 使用lm函数估计一个多重线性回归模型。模型中的因变量是score，而自变量则包括了STR、english和expenditure。数据来源于CASchools数据集
+model &lt;- lm(score ~ STR + english + expenditure, data = CASchools)
+
+# 绘制STR和expenditure系数的95%置信集
+# 异方差稳健标准误情况下 
+confidenceEllipse(model, 
+                  fill = T,
+                  lwd = 0,
+                  which.coef = c("STR", "expenditure"),
+                  main = "95% Confidence Sets",
+                  vcov. = vcovHC(model, type = "HC1"),
+                  col = "red",
+                  ylab="Coefficients of Expenditure",
+                  xlab="Coefficients of STR")
+
+# confidenceEllipse函数通常不是基础包的一部分，用于绘制回归系数的置信椭圆图，可视化线性模型中特定系数的联合置信区域
+# 默认情况下，confidenceEllipse（） 使用仅同源性标准误差
+confidenceEllipse(model, 
+                  fill = T,
+                  lwd = 0,
+                  which.coef = c("STR", "expenditure"),
+                  add = T)
+```
+
+
+
+]
+
+.panel[.panel-name[Output]
+
+![](Lecture_6_Multiple_Linear_Regression_Inference_files/figure-html/unnamed-chunk-9-1.png)&lt;!-- --&gt;
+
+]
+]
+.panel[.panel-name[注]
+- `\(TestScore=\beta_0+\beta_1\times STR+\beta_2\times english+\beta_3 expenditure+u\)`
+
+- 椭圆的中心是 `\((-0.29,3.87)\)` ，说明了什么？
+
+- 椭圆不包括 `\((0,0)\)` `\(\longrightarrow\)` 可以拒绝原假设 `\(H_0:\beta_1=0,\beta_3=0\)` 
+
+- 这个例子中异方差稳健标准误比同方差下有效标准误稍大 `\(\longrightarrow\)` 异方差下置信集范围更大
+]]
+---
+
+###多元回归模型中的拟合优度
+- 检验回归系数可以知道回归模型是否准确，可以了解哪些变量在模型中发挥了重要作用，哪些变量可能不显著，从而帮助我们优化模型和提高预测精度
+
+- 置信集可以提供关于回归系数估计的可靠性信息。如果我们多次重复样本的抽取和估计过程，那么真实参数值落在置信集内的比例将接近于我们选择的置信水平
+
+- 但是想要知道回归模型的适配程度，我们还需要观察拟合优度，以下列举了3种方法
+
+ - 回归标准误( `\(SER\)` )
+`$$SER=\sqrt{\frac{1}{n-k-1}\sum_{i=1}^{n}\hat u_i}$$`
+      - 估计了误差项的标准差
+
+      - 衡量了因变量 `\(Y\)` 围绕回归线的分布
+
+      - `\(n-k-1\)` 是自由度纠正项
+---
+
+###多元回归模型中的 `\(R^2\)`
+`$$R^2=\frac{ESS}{TSS}=\frac{\sum_{i=1}^{n}(\hat Y_i-\bar Y)^2}{\sum_{i=1}^{n}( Y_i-\bar Y)^2}=1-\frac{SSR}{TSS}$$`
+  - `\(R^2\)` 衡量了 `\(Y_i\)` 能被 `\(X_i\)`  解释的部分
+  
+  - 是 `\(\hat Y_i\)`  的样本方差和 `\(Y_i\)` 的样本方差之比
+  
+  - 误差同方差时：
+`$$F=\frac{(SSR_r-SSR_u)/q}{SSR_u/(n-k-1)}$$`
+      - `\(SSR_r:\)` 原假设成立时，假设有 `\(q\)` 个限制条件的残差平方和
+      
+      - `\(SSR_u:\)` 原假设不成立时，无约束条件下的残差平方和
+`$$F=\frac{(R^2_u-R^2_r)/q}{(1-R^2_u)/(n-k-1)}$$`
+---
+
+###多元回归模型中的 `\(R^2\)` 和调整 `\(\bar R^2\)`
+- 同方差且已知 `\(R^2\)` 时， `\(F\)` 统计量计算较为简便。但是， `\(R^2\)` 有一个缺点，每增加一个回归变量，即使 `\(Y_i\)` 能被 `\(X_i\)`  解释的部分很小， `\(R^2\)` 仍然会增大
+  
+  - 因为增加一个回归变量时：
+  
+      - 系数估计量不是 `\(0\)` 时 残差平方和 `\(SSR=\sum_{i=1}^{n} \hat u_i^2\)` 也会减小
+      
+      - `\(k\)` 增加时， `\(\frac{n-1}{n-k-1}\)` 增大
+  
+- 因此，我们需要引入调整的 `\(\bar R^2\)`
+`$$\bar R^2=1-\frac{n-1}{n-k-1}\frac{SSR}{TSS}$$`
+---
+
+### `\(R^2\)` 和调整 `\(\bar R^2\)`注意事项
+- 二者**接近1**表明回归变量**可以很好地**预测或者解释因变量值的变化，**接近0**意味着**不能**
+      
+- 但是要注意我们不能过多地依赖 `\(R^2\)` 或 `\(\bar R^2\)`，它们通常无法回答经济学中一些有意义的问题，仅作参考而已
+  - `\(R^2\)` 或 `\(\bar R^2\)` 值较大时不能说明某个变量统计显著，我们仍需要借助 `\(t\)` 统计量或者 `\(F\)` 统计量进行假设检验判断
+      
+ - `\(R^2\)` 或 `\(\bar R^2\)` 值较大时不能确保系数衡量回归量的真实因果效应
+ 
+ - `\(R^2\)` 或 `\(\bar R^2\)` 值较大时不能说明是否存在遗漏变量偏差，即无法评估外生性假设是否准确
+ 
+ - `\(R^2\)` 或 `\(\bar R^2\)` 值较大时也无法确定我们是否选择了最优的回归变量集
+      - 是否最优取决于我们感兴趣的问题，且估计因果相应时OLS假设必须成立
+---
+
+###仿真模拟
+.panelset[
+.panel[.panel-name[]
+.panel[.panel-name[Code]
+
+```r
+# 设置了随机数生成器的种子为1,设置一个固定的种子可以确保每次运行代码时都能得到相同的随机数序列，保证结果的可重复性
+set.seed(1)
+
+# 为CASchools数据集中的PLS列（停车空间）生成新的观察值
+CASchools$PLS &lt;- c(22 * CASchools$income 
+                   - 15 * CASchools$STR 
+                   + 0.2 * CASchools$expenditure
+                   + rnorm(nrow(CASchools), sd = 80) + 3000)
+
+# 绘制CASchools数据集中停车空间（PLS）与测试分数（score）之间的散点图
+plot(CASchools$PLS, 
+     CASchools$score,
+     xlab = "Parking Lot Space",
+     ylab = "Test Score",
+     pch = 20,
+     col = "steelblue")
+```
+
+
+
+]
+
+.panel[.panel-name[Output]
+
+![](Lecture_6_Multiple_Linear_Regression_Inference_files/figure-html/unnamed-chunk-10-1.png)&lt;!-- --&gt;
+
+]
+]
+.panel[.panel-name[]
+.panel[.panel-name[Code]
+
+```r
+# 执行线性回归并显示其摘要统计信息
+summary(lm(score ~ PLS, data = CASchools))
+```
+
+
+
+]
+
+.panel[.panel-name[Output]
+
+```
+## 
+## Call:
+## lm(formula = score ~ PLS, data = CASchools)
+## 
+## Residuals:
+##     Min      1Q  Median      3Q     Max 
+## -42.608 -11.049   0.342  12.558  37.105 
+## 
+## Coefficients:
+##              Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept) 4.897e+02  1.227e+01   39.90   &lt;2e-16 ***
+## PLS         4.002e-02  2.981e-03   13.43   &lt;2e-16 ***
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## Residual standard error: 15.95 on 418 degrees of freedom
+## Multiple R-squared:  0.3013,	Adjusted R-squared:  0.2996 
+## F-statistic: 180.2 on 1 and 418 DF,  p-value: &lt; 2.2e-16
+```
+
+
+
+]
+]
+.panel[.panel-name[注]
+
+- 模型的决定系数 `\(R^2\)`，表示模型解释的因变量变化的百分比。这里的值是0.3013，意味着模型解释了约30.13%的score 变化
+
+-  `\(R^2\)` 通常会随自变量增加而增加，即使这些自变量并不真正解释更多的变异
+
+- 调整后的 `\(\bar R^2\)` 考虑了模型中自变量的数量，提供了一个更保守的估计：这里的值是0.2996
+
+- 高 `\(R^2\)` 不能用来得出结论，即停车场空间与测试成绩之间的估计关系具有因果性
+
+ - 高 `\(R^2\)` （相对）是由于 `\(PLS\)` 与其他决定因素和/或控制变量之间的相关性
+]]
+---
+
+###多元回归中的遗漏变量偏差
+- 尽管拟合优度有助于我们了解回归模型的适配程度，但是设立正确的回归模型仍然很困难
+.panelset[
+.panel[.panel-name[1]
+- 类似一元回归，多元回归中也可能产生遗漏变量偏差（ `\(OLS\)` 估计量**有偏**）
+
+ - 遗漏变量是 `\(Y_i\)` 的一个决定因素
+ 
+ - 至少与其中一个回归变量有关
+ 
+     - `\(E(u_i|X_{1i},···,X_{ki})\ne0\)`
+     
+     - 违反了第一个最小二乘假设
+     
+     - `\(OLS\)` 估计量**非一致**
+]
+.panel[.panel-name[2]
+- 遗漏变量偏差的一种情况是遗漏了&lt;font color=darkred&gt;控制变量&lt;/font&gt;
+
+ - 控制变量不是感兴趣的目标变量
+ 
+ - 为了保持对应元素不变而引入回归模型
+ 
+ - 能控制既影响 `\(Y_i\)` 又与 `\(X_{1i}\)` 相关的因素
+]]
+---
+
+###多元回归模型中的控制变量
+- 为了直接区分感兴趣的变量与控制变量，我们引入新的第一个最小二乘假设：&lt;font color=darkred&gt;条件均值独立假设&lt;/font&gt;
+`$$E(u_i|X_{1i},X_{2i})=E(u_i|X_{2i})$$`
+.panelset[
+.panel[.panel-name[1]
+ - 误差 `\(u_i\)` 的条件期望不依赖于感兴趣的变量 `\(X_{1i}\)` ，但可以依赖于控制变量 `\(X_{2i}\)`
+ 
+ - 一旦控制住 `\(X_{2i}\)` ， `\(X_{1i}\)` 可以看作是随机赋值的 `\(\longrightarrow\)` `\(X_{1i}\)` 与误差项不相关 `\(\longrightarrow\)` `\(OLS\)` 可以估计出 `\(X_{1i}\)` 的变化引起的对 `\(Y_i\)` 的因果效应
+ 
+ - 但是控制变量仍与误差项相关，其系数仍有遗漏变量偏差，不能解释为因果效应
+ 
+- `\(X_{1i}\)` 的系数即控制住 `\(X_{2i}\)` 后 `\(X_{1i}\)` 对 `\(Y_i\)` 的影响
+
+- 采用控制变量控制了其本身的直接影响（如果有的话），也控制了与之相关的遗漏因素 `\(\longrightarrow\)` 保证条件独立性满足
+]
+.panel[.panel-name[2]
+- 此时兴趣变量 `\(X_{1i}\)` 的OLS估计 `\(\beta_1\)` 无偏，但控制变量 `\(X_{2i}\)` 的OLS估计 `\(\beta_2\)` 不是无偏的
+
+`$$Y_i=\beta_0+\beta_1X_{1i}+\beta_2X_{2i}+u_i$$`
+- 假设 `\(E(u_i|X_{2i})=\gamma_0+\gamma_2X_{2i}\)` （线性假设，可以放宽）
+
+- 定义 `\(v_i=u_i-E(u_i|X_{1i},X_{2i})\)`
+
+- 则
+$$
+`\begin{aligned}
+E(v_i|X_{1i},X_{2i})
+&amp;=E(u_i-E(u_i|X_{1i},X_{2i})|X_{1i},X_{2i})\\
+&amp;=E(u_i|X_{1i},X_{2i})-E(u_i|X_{1i},X_{2i})\\
+&amp;=0
+\end{aligned}`
+$$
+]
+.panel[.panel-name[3]
+$$
+`\begin{aligned}
+Y_i
+&amp;=\beta_0+\beta_1X_{1i}+\beta_2X_{2i}+u_i\\
+&amp;=\beta_0+\beta_1X_{1i}+\beta_2X_{2i}+v_i+E(u_i|X_{1i},X_{2i})\\
+&amp;=\beta_0+\beta_1X_{1i}+\beta_2X_{2i}+v_i+(\gamma_0+\gamma_2X_{2i})\\
+&amp;=(\beta_0+\gamma_0)+\beta_1X_{1i}+(\beta_2+\gamma_2)X_{2i}\\
+&amp;=0
+\end{aligned}`
+$$
+- 因为 `\(E(v_i|X_{1i},X_{2i})=0\)`
+
+- 所以变形后多元回归模型的误差项具有零条件均值，满足第一个最小二乘假设
+
+- 若其他三个假设也成立，则 `\(Y_i\)` 对 `\(X_{1i}\)` 和 `\(X_{2i}\)` 的OLS回归将得到 `\((\beta_0+\gamma_0),\beta_1,(\beta_2+\gamma_2)\)` 的无偏一致估计
+]]
+---
+
+###仿真模拟——多元回归模型中的控制变量
+.panelset[
+.panel[.panel-name[注]
+- 原来的模型是：
+`$$\widehat{TestScore}=686.0-1.10\times STR-0.650\times english$$`
+- 现在用变量午餐来扩充模型，即由于家庭收入低于某个阈值而有资格在学校获得免费或补贴午餐的学生百分比，并重新估计模型
+
+- 变量 `\(Lunch\)` 计量了该地区经济条件较差的孩子的比例，经济条件较差代表着外部学习机会较少
+
+- 对于具有相同 `\(english\)` 值和 `\(lunch\)` 值的学校，班级规模 `\(STR\)` “好像”是随机赋值的
+
+- 将 `\(english\)` 和 `\(lunch\)` 引入模型控制了遗漏因素，使得 `\(STR\)` 与误差项不相关
+]
+.panel[.panel-name[]
+.panel[.panel-name[Code]
+
+```r
+# 使用lm函数来拟合一个线性回归模型
+model &lt;- lm(score ~ STR + english + lunch, data = CASchools)
+
+# coeftest函数用于计算线性回归模型的系数估计和它们的标准误
+# vcov.=vcovHC指定了使用异方差一致性协方差（Heteroskedasticity-Consistent Covariance）估计来计算系数的标准误。异方差性是指误差项的方差不是常数，这在许多实际数据中是一个常见的问题。vcovHC函数提供了一个方法来处理异方差性，从而得到更稳健的系数标准误估计
+# type = "HC1" 指定了异方差一致性协方差估计的类型。"HC1" 是White(1980)提出的一种调整方法
+coeftest(model, vcov. = vcovHC, type = "HC1")
+```
+
+
+
+]
+
+.panel[.panel-name[Output]
+
+```
+## 
+## t test of coefficients:
+## 
+##               Estimate Std. Error  t value  Pr(&gt;|t|)    
+## (Intercept) 700.149957   5.568453 125.7351 &lt; 2.2e-16 ***
+## STR          -0.998309   0.270080  -3.6963 0.0002480 ***
+## english      -0.121573   0.032832  -3.7029 0.0002418 ***
+## lunch        -0.547345   0.024107 -22.7046 &lt; 2.2e-16 ***
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+```
+
+
+
+]
+]
+]
+---
+
+###小结
+- 多元线性回归中单个系数的假设检验和置信区间类似于一元线性回归
+
+- 涉及多个约束的假设称为联合假设
+
+ - 可用 `\(F\)` 统计量检验
+ 
+ - 软件计算 `\(F\)` 统计量有两种方法
+ 
+- 回归形式的设定首先要选定一个**处理关心的遗漏变量偏差**的基础设定
+
+ - 可以**增加**处理其他遗漏变量偏差来源的**回归变量**修正基础设定
+ 
+ - 仅仅选择具有最高 `\(R^2\)` 的设定形式可能缺乏感兴趣的因果效应
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script>var slideshow = remark.create({
+"highlightStyle": "github",
+"highlightLines": true,
+"countIncrementalSlides": false
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();
+// add `data-at-shortcutkeys` attribute to <body> to resolve conflicts with JAWS
+// screen reader (see PR #262)
+(function(d) {
+  let res = {};
+  d.querySelectorAll('.remark-help-content table tr').forEach(tr => {
+    const t = tr.querySelector('td:nth-child(2)').innerText;
+    tr.querySelectorAll('td:first-child .key').forEach(key => {
+      const k = key.innerText;
+      if (/^[a-z]$/.test(k)) res[k] = t;  // must be a single letter (key)
+    });
+  });
+  d.body.setAttribute('data-at-shortcutkeys', JSON.stringify(res));
+})(document);
+(function() {
+  "use strict"
+  // Replace <script> tags in slides area to make them executable
+  var scripts = document.querySelectorAll(
+    '.remark-slides-area .remark-slide-container script'
+  );
+  if (!scripts.length) return;
+  for (var i = 0; i < scripts.length; i++) {
+    var s = document.createElement('script');
+    var code = document.createTextNode(scripts[i].textContent);
+    s.appendChild(code);
+    var scriptAttrs = scripts[i].attributes;
+    for (var j = 0; j < scriptAttrs.length; j++) {
+      s.setAttribute(scriptAttrs[j].name, scriptAttrs[j].value);
+    }
+    scripts[i].parentElement.replaceChild(s, scripts[i]);
+  }
+})();
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();
+// adds .remark-code-has-line-highlighted class to <pre> parent elements
+// of code chunks containing highlighted lines with class .remark-code-line-highlighted
+(function(d) {
+  const hlines = d.querySelectorAll('.remark-code-line-highlighted');
+  const preParents = [];
+  const findPreParent = function(line, p = 0) {
+    if (p > 1) return null; // traverse up no further than grandparent
+    const el = line.parentElement;
+    return el.tagName === "PRE" ? el : findPreParent(el, ++p);
+  };
+
+  for (let line of hlines) {
+    let pre = findPreParent(line);
+    if (pre && !preParents.includes(pre)) preParents.push(pre);
+  }
+  preParents.forEach(p => p.classList.add("remark-code-has-line-highlighted"));
+})(document);</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>
