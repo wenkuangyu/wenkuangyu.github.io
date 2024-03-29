@@ -1,0 +1,1080 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+  <head>
+    <title>第十讲：面板数据回归</title>
+    <meta charset="utf-8" />
+    <meta name="author" content="文旷宇" />
+    <script src="libs/header-attrs-2.18/header-attrs.js"></script>
+    <link href="libs/xaringanExtra-banner-0.0.1/banner.css" rel="stylesheet" />
+    <script src="libs/xaringanExtra-banner-0.0.1/banner.js"></script>
+    <script src="libs/fabric-4.3.1/fabric.min.js"></script>
+    <link href="libs/xaringanExtra-scribble-0.0.1/scribble.css" rel="stylesheet" />
+    <script src="libs/xaringanExtra-scribble-0.0.1/scribble.js"></script>
+    <script>document.addEventListener('DOMContentLoaded', function() { window.xeScribble = new Scribble({"pen_color":["#FF0000"],"pen_size":3,"eraser_size":30,"palette":[]}) })</script>
+    <link href="libs/panelset-0.2.6/panelset.css" rel="stylesheet" />
+    <script src="libs/panelset-0.2.6/panelset.js"></script>
+    <script src="libs/xaringanExtra_fit-screen-0.2.6/fit-screen.js"></script>
+    <link rel="stylesheet" href="xaringan-themer.css" type="text/css" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+.title[
+# 第十讲：面板数据回归
+]
+.author[
+### 文旷宇
+]
+.institute[
+### 华中科技大学
+]
+
+---
+
+&lt;style type="text/css"&gt;
+pre{
+  max-height:400px;
+  overflow-y:auto;
+}
+&lt;/style&gt;
+
+<div>
+<style type="text/css">.xaringan-extra-logo {
+width: 55px;
+height: 64px;
+z-index: 0;
+background-image: url(../images/hust-logo.png);
+background-size: contain;
+background-repeat: no-repeat;
+position: absolute;
+top:1em;right:1em;
+}
+</style>
+<script>(function () {
+  let tries = 0
+  function addLogo () {
+    if (typeof slideshow === 'undefined') {
+      tries += 1
+      if (tries < 10) {
+        setTimeout(addLogo, 100)
+      }
+    } else {
+      document.querySelectorAll('.remark-slide-content:not(.title-slide):not(.inverse):not(.hide_logo)')
+        .forEach(function (slide) {
+          const logo = document.createElement('div')
+          logo.classList = 'xaringan-extra-logo'
+          logo.href = null
+          slide.appendChild(logo)
+        })
+    }
+  }
+  document.addEventListener('DOMContentLoaded', addLogo)
+})()</script>
+</div><script>document.addEventListener('DOMContentLoaded',function(){new xeBanner(JSON.parse('{"left":"","right":"","exclude":["title-slide"],"position":"top"}'))})</script>
+<script>document.addEventListener('DOMContentLoaded',function(){new xeBanner(JSON.parse('{"left":"文旷宇/华中科技大学","exclude":["title-slide"],"position":"bottom"}'))})</script>
+
+
+
+
+
+
+
+
+
+### 主要内容
+- 面板数据
+
+- 具有两个时期的面板数据:“前后”比较
+
+- 固定效应回归
+ 
+ - 固定效应回归模型
+ 
+ - 估计和推断
+ 
+ - 应用
+
+- 时间固定效应回归
+ 
+ - 只有时间效应
+ 
+ - 个体和时间固定效应
+
+- 固定效应回归假设和固定效应回归的标准误
+---
+
+###面板数据
+- 前面我们已经学习了多元回归，它是控制变量效应的强大工具
+
+- 但是这是建立在数据可获得的基础之上，**如果数据不可获得呢**？
+
+- 那我们就无法把它们加入到回归中，回归系数的OLS估计量**可能存在遗漏变量偏差**
+
+- 因此我们引入一种特殊的数据类型——**面板数据（纵向数据）**
+ - 定义： `\(n\)` 个不同个体在 `\(T\)` 个不同时期上的观测数据
+ 
+ - 描述：双下标表示，第一个下标 `\(i\)` 表示个体，第二个下标 `\(t\)` 表示观测时间
+ 
+ - `\(Y_{it}\)` 表示 `\(n\)` 个个体中第 `\(i\)` 个个体在 `\(T\)` 期中第 `\(t\)` 个时期内变量 `\(Y\)` 的观测值
+- 平衡面板
+
+ - 所有的观测值，变量在每个个体和每一时期中都能被观测到
+ 
+- 非平衡面板
+ - 至少有一个个体在至少一个时期中的数据没有被观测到（如平衡面板数据缺失）
+---
+
+###实例：交通事故死亡人数和酒精税
+- 美国每年在高速公路上发生的交通事故死亡大约有40000起
+
+- 在这一章节，我们将研究抑制酒后驾车的政府政策如何有效降低实际交通事故死亡人数
+
+- 我们将引入一个新的数据集——**面板数据集**，它包含了与交通事故死亡和酒精有关的变量，包括
+
+ - 交通事故死亡人数，用死亡率（州内总人口中每年每万人中死于交通事故的人数）表示
+ 
+ - 每州每年的酒后驾车法律类型
+ 
+ - 各州啤酒税收，用通货膨胀调整后1988年美元表示
+---
+
+###实例：交通事故死亡人数和酒精税
+.panelset[
+.panel[.panel-name[注]
+- 该数据集由34个变量的336个观测值组成
+
+ - 变量状态是一个具有48个水平的因子变量（美国48个相邻的联邦州中的每一个州一个）
+
+ - 年份也是一个因子变量，有7个水平，用于标识进行观测的时间段
+
+ - 这给了我们 `\(7 \times 48=336\)` 个总观测值
+
+- 由于在所有实体和所有时间段内都观察到所有变量，因此面板是**平衡**的。如果至少一个实体在某个时间段内缺少数据，我们将称面板为**不平衡**
+]
+.panel[.panel-name[]
+.panel[.panel-name[Code]
+
+```r
+# 加载两个包（AER和plm）以及一个名为Fatalities的数据集
+library(AER)
+library(plm)
+data(Fatalities)
+# pdata.frame函数将数据集转换为面板数据格式，其中索引由"state"和"year"两列组成
+Fatalities&lt;- pdata.frame(Fatalities, index = c("state", "year"))
+
+# is.data.frame(Fatalities) 是一个函数调用，用于检查变量 "Fatalities"是否为数据框。如果返回值为 TRUE，则说明 "Fatalities"是数据框；否则不是
+is.data.frame(Fatalities)
+```
+
+
+
+]
+
+.panel[.panel-name[Output]
+
+```
+## [1] TRUE
+```
+
+
+
+]
+]
+.panel[.panel-name[]
+.panel[.panel-name[Code]
+
+```r
+# dim(Fatalities)是一个函数调用，用于获取数据框"Fatalities"的维度。在这个例子中，维度为 336 行和 34 列
+dim(Fatalities)
+```
+
+
+
+]
+
+.panel[.panel-name[Output]
+
+```
+## [1] 336  34
+```
+
+
+
+]
+]
+.panel[.panel-name[]
+.panel[.panel-name[Code]
+
+```r
+# 显示数据框 "Fatalities" 中第1列和第2列的汇总统计信息
+summary(Fatalities[, c(1, 2)])
+```
+
+
+
+]
+
+.panel[.panel-name[Output]
+
+```
+##      state       year   
+##  al     :  7   1982:48  
+##  az     :  7   1983:48  
+##  ar     :  7   1984:48  
+##  ca     :  7   1985:48  
+##  co     :  7   1986:48  
+##  ct     :  7   1987:48  
+##  (Other):294   1988:48
+```
+
+
+
+]
+]]
+---
+
+###仿真模拟
+.panelset[
+.panel[.panel-name[]
+.panel[.panel-name[Code]
+
+```r
+# 定义死亡率
+# 定义了一个名为"fatal_rate"的新列，该列是Fatalities数据框中的死亡人数"fatal"列除以总人数"pop"列的结果乘以10000
+Fatalities$fatal_rate &lt;- Fatalities$fatal / Fatalities$pop * 10000
+
+# 从Fatalities数据框中提取了1982年和1988年的子集，分别存储在Fatalities1982和Fatalities1988变量中
+Fatalities1982 &lt;- subset(Fatalities, year == "1982")
+Fatalities1988 &lt;- subset(Fatalities, year == "1988")
+
+# 使用1982和1988的数据，利用lm函数估计简单的线性模型，通过"beertax"变量来预测"fatal_rate"变量的值
+fatal1982_mod &lt;- lm(fatal_rate ~ beertax, data = Fatalities1982)
+fatal1988_mod &lt;- lm(fatal_rate ~ beertax, data = Fatalities1988)
+
+# 使用coeftest函数对模型进行假设检验，检查模型中的系数是否显著。
+#vcovHC是一个协方差矩阵，type = "HC1"表示使用Hansen-Cholesky分解方法来计算协方差矩阵
+# coeftest函数返回一个包含检验结果的对象
+coeftest(fatal1982_mod, vcov. = vcovHC, type = "HC1")
+
+# 使用coeftest函数对模型进行假设检验，检查模型中的系数是否显著。
+#vcovHC是一个协方差矩阵，type = "HC1"表示使用Hansen-Cholesky分解方法来计算协方差矩阵
+# coeftest函数返回一个包含检验结果的对象
+coeftest(fatal1988_mod, vcov. = vcovHC, type = "HC1")
+```
+
+
+
+]
+
+.panel[.panel-name[Output]
+
+```
+## 
+## t test of coefficients:
+## 
+##             Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept)  2.01038    0.14957 13.4408   &lt;2e-16 ***
+## beertax      0.14846    0.13261  1.1196   0.2687    
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## 
+## t test of coefficients:
+## 
+##             Estimate Std. Error t value  Pr(&gt;|t|)    
+## (Intercept)  1.85907    0.11461 16.2205 &lt; 2.2e-16 ***
+## beertax      0.43875    0.12786  3.4314  0.001279 ** 
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+```
+
+
+
+]
+]
+.panel[.panel-name[注]
+- 使用1982和1988的数据，估计简单的线性模型，通过 `\(beertax\)` 变量来预测 `\(fatalityrate\)` 变量的值
+
+`$$\widehat{FatelityRate}=2.01+0.15\times BeerTax,\quad(1982)$$`
+`$$\widehat{FatelityRate}=1.86+0.44\times BeerTax,\quad(1988)$$`
+- 使用 `\(coeftest\)` 函数对模型进行假设检验，检查模型中的系数是否显著
+]]
+---
+
+###仿真模拟
+.panelset[
+.panel[.panel-name[]
+.panel[.panel-name[Code]
+
+```r
+# 绘制1982年交通死亡率与啤酒税之间的关系图，并添加估计的回归线
+# plot()函数用于绘制图形，其中参数x和y分别表示横轴和纵轴的数据，xlab和ylab分别表示横轴和纵轴的标签，main表示图形的标题，ylim表示纵轴的范围，pch表示点的形状，col表示点的颜色
+plot(x = as.double(Fatalities1982$beertax), 
+     y = as.double(Fatalities1982$fatal_rate), 
+     xlab = "Beer tax (in 1988 dollars)",
+     ylab = "Fatality rate (fatalities per 10000)",
+     main = "Traffic Fatality Rates and Beer Taxes in 1982",
+     ylim = c(0, 4.5),
+     pch = 20, 
+     col = "steelblue")
+
+# abline()函数用于在图形上添加一条直线，其中参数fatal1982_mod表示要添加的直线对象，lwd表示线的宽度，col表示线的颜色
+abline(fatal1982_mod, lwd = 1.5, col="darkred")
+
+# legend()函数用于添加图例，其中参数"topright"表示图例的位置，lty=1表示线型，col="darkred"表示线的颜色，最后的字符串"Estimated Regression Line"表示图例的标签
+legend("topright",lty=1,col="darkred","Estimated Regression Line")
+```
+
+
+
+]
+
+.panel[.panel-name[Output]
+
+![](Lecture_9_Panel_Data_files/figure-html/unnamed-chunk-6-1.png)&lt;!-- --&gt;
+
+]
+]
+.panel[.panel-name[]
+.panel[.panel-name[Code]
+
+```r
+# 绘制1988年交通死亡率与啤酒税之间的关系图，并添加估计的回归线
+# plot()函数用于绘制图形，其中参数x和y分别表示横轴和纵轴的数据，xlab和ylab分别表示横轴和纵轴的标签，main表示图形的标题，ylim表示纵轴的范围，pch表示点的形状，col表示点的颜色
+plot(x = as.double(Fatalities1988$beertax), 
+     y = as.double(Fatalities1988$fatal_rate), 
+     xlab = "Beer tax (in 1988 dollars)",
+     ylab = "Fatality rate (fatalities per 10000)",
+     main = "Traffic Fatality Rates and Beer Taxes in 1988",
+     ylim = c(0, 4.5),
+     pch = 20, 
+     col = "steelblue")
+
+# abline()函数用于在图形上添加一条直线，其中参数fatal1982_mod表示要添加的直线对象，lwd表示线的宽度，col表示线的颜色
+abline(fatal1988_mod, lwd = 1.5,col="darkred")
+
+# legend()函数用于添加图例，其中参数"topright"表示图例的位置，lty=1表示线型，col="darkred"表示线的颜色，最后的字符串"Estimated Regression Line"表示图例的标签
+legend("bottomright",lty=1,col="darkred","Estimated Regression Line")
+```
+
+
+
+]
+
+.panel[.panel-name[Output]
+
+![](Lecture_9_Panel_Data_files/figure-html/unnamed-chunk-7-1.png)&lt;!-- --&gt;
+
+]
+]]
+---
+
+###实例：交通事故死亡人数和酒精税
+`$$\widehat{FatelityRate}=2.01+0.15\times BeerTax,\quad(1982)$$`
+- 啤酒税系数为正，但在10%水平下统计不显著
+`$$\widehat{FatelityRate}=1.86+0.44\times BeerTax,\quad(1988)$$`
+- 啤酒税系数为正，在1%水平下统计显著（ `\(t=3.43\)` ）
+
+- 奇怪的是，由拟合函数和作图结果看，似乎是较高的啤酒税对应更多的交通事故死亡人数
+
+- 这是为什么？按我们的预计，理应较高的啤酒税对应更少的交通事故死亡人数
+
+- 我们要考虑的是：真的能由此得出增加啤酒税导致更多的交通事故死亡人数的结论吗？
+---
+
+###实例：交通事故死亡人数和酒精税
+- 实际上，影响死亡率的因素很多
+ - 州内驾驶的汽车的质量、高速公路的维修情况是否良好、大部分驾驶路程是在乡下还是市内、路上汽车的密度、社会文化能否接受酒后驾车……
+ 
+ - 这些因素都可能与酒精税有关，相关则会导致遗漏变量偏差
+ 
+- 解决潜在遗漏变量偏差**根源的方法**
+ 
+ - 收集这些变量的数据，加入截面数据回归中
+
+- 但是，我们很难度量某些变量，如酒后驾车的文化接受程度
+
+- 虽然无法度量，但是我们有**面板数据**，可以固定这些因素不变
+
+- 如果这些因素在给定某个州内不会随时间变化，我们可以采用**固定效应OLS回归**
+---
+
+###具有两个时期的面板数据：“前后”比较
+- 当得到每个州2个时期的数据后，就可以比较第一个时期和第二个时期的因变量取值
+
+- 这种**“前后”比较**通过关注**因变量的变化**实际上**固定了随个体（州）变化但不随时间变化的不可观测变量**
+
+- 令 `\(Z_i\)` 表示决定第 `\(i\)` 个州死亡率但是不随时间变化的变量
+ - 如酒后驾车接受度，通过影响酒后驾车的程度进而影响死亡率
+ 
+ - 这种态度与文化变化缓慢，短期内可认为不变
+
+`$$FatalityRate_{it}=\beta_0+\beta_1BeerTax_{it}+\beta_2Z_i+u_{it}$$`
+`$$i=1,2,···,n \qquad t=1,2,···,T$$`
+- `\(Z_i\)` 不随时间变化，因而不会引起1982年和1988年的死亡率变化，将两个年份的回归方程式相减即可消除 `\(Z_i\)` 的效应
+`$$FatalityRate_{i1988}-FatalityRate_{i1982}\\=\beta_1(BeerTax_{i1988}-BeerTax_{i1982})+u_{i1988}-u_{i1982}$$`
+---
+
+###仿真模拟
+.panelset[
+.panel[.panel-name[]
+.panel[.panel-name[Code]
+
+```r
+# 计算1982年和1988年之间交通死亡率与啤酒税的差异
+diff_fatal_rate &lt;- Fatalities1988$fatal_rate - Fatalities1982$fatal_rate
+diff_beertax &lt;- Fatalities1988$beertax - Fatalities1982$beertax
+
+# 使用差异数据来拟合一个线性回归模型 fatal_diff_mod
+fatal_diff_mod &lt;- lm(diff_fatal_rate ~ diff_beertax)
+
+#对模型系数进行了假设检验，以确定它们是否显著不同
+#fatal_diff_mod：模型对象，包含了拟合后的模型结果
+#vcov = vcovHC：协方差矩阵，用于计算假设检验的统计量
+#type = "HC1"：假设检验的类型，这里使用的是"HC1"，即使用Hansen-Cholesky分解方法来计算协方差矩阵
+coeftest(fatal_diff_mod, vcov = vcovHC, type = "HC1")
+```
+
+
+
+]
+
+.panel[.panel-name[Output]
+
+```
+## 
+## t test of coefficients:
+## 
+##               Estimate Std. Error t value Pr(&gt;|t|)   
+## (Intercept)  -0.072037   0.065355 -1.1022 0.276091   
+## diff_beertax -1.040973   0.355006 -2.9323 0.005229 **
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+```
+
+
+
+]
+]
+.panel[.panel-name[注]
+- 根据输出结果，我们可以看到
+
+ - 第一个系数（截距）的估计值为-0.072，标准误差为0.065，t值为-1.102，p值为0.276，表明在原假设下系数不显著
+ 
+ - 第二个系数（斜率）的估计值为-1.041，标准误差为0.355，t值为2.932，p值为0.0052，表明在原假设下1%水平下显著
+]]
+---
+
+###仿真模拟
+.panelset[
+.panel[.panel-name[]
+.panel[.panel-name[Code]
+
+```r
+# 使用plot函数绘制1982年至1988年间交通死亡率和啤酒税的变化情况
+plot(x = as.double(diff_beertax), 
+#将变量diff_beertax转换为双精度浮点数类型，并将其作为x轴的值
+     y = as.double(diff_fatal_rate), 
+#将变量diff_fatal_rate转换为双精度浮点数类型，并将其作为y轴的值
+     xlab = "Change in beer tax (in 1988 dollars)",
+#设置x轴的标签为"Change in beer tax (in 1988 dollars)"
+     ylab = "Change in fatality rate (fatalities per 10000)",
+#设置y轴的标签为"Change in fatality rate (fatalities per 10000)"
+     main = "Changes in Traffic Fatality Rates and Beer Taxes in 1982-1988",
+#设置图形的主标题
+     cex.main=1,
+#设置主标题的字体大小为1
+     xlim = c(-0.6, 0.6),
+#设置x轴的范围为从-0.6到0.6
+     ylim = c(-1.5, 1),
+#设置y轴的范围为从-1.5到1
+     pch = 20, 
+#设置数据点的样式为圆圈
+     col = "steelblue")
+
+# 使用abline()函数在图上添加回归线，表示两个变量之间的线性关系
+abline(fatal_diff_mod, lwd = 1.5,col="darkred")
+# 使用legend()函数在图的右上角添加图例，以标识回归线
+legend("topright",lty=1,col="darkred","Estimated Regression Line")
+```
+
+
+
+]
+
+.panel[.panel-name[Output]
+
+![](Lecture_9_Panel_Data_files/figure-html/unnamed-chunk-9-1.png)&lt;!-- --&gt;
+
+]
+]]
+---
+
+###具有两个时期的面板数据：“前后”比较
+`$$\widehat{FatalityRate_{i1988}-FatalityRate_{i1982}}\\=-0.072-1.04(BeerTax_{i1988}-BeerTax_{i1982})$$`
+- 截距项考虑了啤酒税不变情况下死亡率的平均变化
+
+ - 负截距（ `\(-0.072\)` ）项反映 `\(1982-1988\)` 年间汽车安全的改善情况，即平均死亡率减少了
+ 
+- 与截面回归相比，啤酒税变化的效应估计值为负（ `\(-1.04\)` ），同经济理论预测的一样
+
+ - `\(p\)` 值为 `\(0.276\)` ，可在 `\(5%\)` 的显著水平下拒绝总体斜率系数为 `\(0\)` 的原假设
+ 
+ - 如果啤酒税上涨 `\(1\)` 美元/杯，则交通死亡率减少 `\(1.04\)` 人/万人
+- 但是，目前我们依然不能得出有关啤酒税对交通死亡死亡人数的效应的基本结论
+
+ - 依然存在很多其他影响交通安全的因素，如果它们随时间变化且与啤酒税有关，遗漏时就会产生遗漏变量偏差
+
+---
+
+###固定效应回归
+- 前面的数据是在两个不同年份里观测得到的，使用“前后”比较方法很有效
+
+- 但是我们的数据集包含了 `\(7\)` 个不同年份的观测值，继续使用“前后”比较方法可能丢弃有用的数据，即** `\(T&gt;2\)`时不能直接应用“前后”比较方法**
+
+- 为此我们引入一种新的方法——&lt;font color=darkred&gt;固定效应回归&lt;/font&gt;
+
+ - 一种**控制面板数据中随个体变化但不随时间变化的遗漏变量**的方法
+
+ - 适用于每个个体存在多个观测值的情形
+
+- 固定效应模型
+
+ - 有 `\(n\)` 个不同的截距
+ 
+ - 一个截距对应一个个体，可用一系列二值/指示变量表示
+ 
+ - 包含所有在个体间不同但不随时间变化的遗漏变量的影响
+---
+
+###固定效应模型——特定州截距
+- 记因变量（ `\(FatalityRate\)` ）和观测变量（ `\(BeerTax\)` ）为 `\(Y_{it},X_{it}\)` ，则
+`$$Y_{it}=\beta_0+\beta_1X_{it}+\beta_2Z_i+u_{it}$$`
+- 我们想要估计 `\(\beta_1\)` ，即固定不可观测的州特征 `\(Z\)` 的情况下 `\(X\)` 对 `\(Y\)` 的效应
+
+- 由于 `\(Z_i\)` 随州变化但不随时间变化，可令 `\(\alpha_i=\beta_0+\beta_2Z_i\)`，则
+`$$Y_{it}=\beta_1X_{it}+\alpha_i+u_{it}$$`
+总体回归模型可以解释为含有 `\(n\)` 个截距，一个截距对应一个个体
+ - `\(\alpha_1,\alpha_2,···,\alpha_n\)` 可视为待估的未知截距，一个州对应一个截距
+ 
+ - `\(\alpha_i\)` 为第 `\(i\)` 个个体的效应，称为&lt;font color=darkred&gt;个体固定效应&lt;/font&gt;,其差异来源于个体变化但不随时间变化
+ 
+ - `\(\alpha_i\)` 来自第 `\(i\)` 个州的总体回归线 `\(\alpha_i+\beta_1X_{it}\)` ，斜率 `\(\beta_1\)` 对所有州都相同，截距 `\(\alpha_i\)` 对不同州取值不同
+---
+
+###固定效应模型——二值变量
+- 固定效应模型中特定州截距也可用表示州的二值变量表述
+
+- 第8章我们讨论了**观测值属于两组中的一组**且**两组总体回归线斜率相同但截距不同**的情形，数学上常利用表示两组中一组的单个**二值变量**来表示这种总体回归线
+
+- 为了用二值变量构建固定效应回归模型，令
+`$$D1_i=
+\begin{cases}
+1,\quad i=1\\
+0,\quad i\ne1
+\end{cases}$$`
+`$$……$$`
+`$$Dn_i=
+\begin{cases}
+1,\quad i=n\\
+0,\quad i\ne n
+\end{cases}$$`
+- 但回归方程中不能包含所有 `\(n\)` 个二值变量和一个公共截距，否则存在多重共线性（虚拟变量陷阱），故任意略去第一组二值变量 `\(D1_i\)` ，得
+`$$Y_{it}=\beta_0+\beta_1X_{it}+\gamma_2D2_i+\gamma_3D3_i+···+\gamma_nDn_i+u_i$$`
+---
+
+###固定效应模型——二值变量
+`$$Y_{it}=\beta_1X_{it}+\alpha_i+u_{it},\qquad \alpha_i=\beta_0+\beta_2Z_i$$`
+`$$Y_{it}=\beta_0+\beta_1X_{it}+\gamma_2D2_i+\gamma_3D3_i+···+\gamma_nDn_i+u_i$$`
+- 为推导待估未知系数 `\(\beta_0,\beta_1,\gamma_1,···,\gamma_n\)` 与前面截距 `\(\alpha_i\)` 的关系，我们需要比较两式中每个州的总体回归线
+
+- 第1个州总体回归方程为 `\(\beta_0+\beta_1X_{it}\)` `\(\longrightarrow\)` `\(\alpha_1=\beta_0\)` 
+- 第 i 个州总体回归方程为 `\(\beta_0+\beta_1X_{it}+\gamma_i\)` `\(\longrightarrow\)` `\(\alpha_i=\beta_0+\gamma_i\)` 
+
+- 现在我们有2种表述固定效应回归模型的等价方法
+ - `\(n\)` 个&lt;font color=darkred&gt;特定州的截距&lt;/font&gt;
+ 
+ - `\(n-1\)` 个&lt;font color=darkred&gt;二值回归变量和相同的截距&lt;/font&gt;
+- 两种方法中 `\(X\)` 的斜率系数均不随州变化，特定州截距和二值变量都来自随州变化但不随时间变化的不可观测变量 `\(Z_i\)`
+---
+
+###估计和推断——“个体中心化”OLS算法/均值算法
+- 原则上可由OLS估计固定效应回归模型的二值变量形式，但这个回归中有 `\(k+n\)` 个回归变量（ `\(k\)` 个 `\(X\)` , `\(n-1\)` 个二值变量和截距）
+
+- 当个体数较大时无法用某些软件包执行，所以要进行简化
+
+- &lt;font color=darkred&gt;“个体中心化”OLS算法/均值算法&lt;/font&gt;
+ - 每个变量减去特定个体的平均值
+     - 平均： `\(\bar Y_i=\beta_1 \bar X_i+\alpha_i+\bar u_i,\quad \bar Y_i=\frac{1}{T}\sum_{t=1}^{T}Y_{it},\quad \bar X_i=\frac{1}{T}\sum_{t=1}^{T}X_{it}\)`
+     
+     - 相减： `\(Y_{it}-\bar Y_i=\beta_1(X_{it}-\bar X_i)+(u_{it}-\bar u_i)\)` 
+     
+     - 变形：令 `\(\tilde Y_{it}=Y_{it}-\bar Y_i,\quad \tilde X_{it}=X_{it}-\bar X_i,\quad \tilde u_{it}=u_{it}-\bar u_i\)` ，则
+`$$\tilde Y_{it}=\beta_1\tilde X_{it}+\tilde u_{it}$$`
+ 
+ - 利用“个体中心化”变量估计回归
+  
+      - 用“个体中心化”的变量 `\(\widetilde Y_{it}\)`关于 `\(\widetilde X_{it}\)` 的OLS回归进行估计
+---
+
+###估计和推断——“前后”（差分）回归VS二值变量设定
+- 回顾前面讲的“前后”比较：
+`$$FatalityRate_{it}=\beta_0+\beta_1BeerTax_{it}+\beta_2Z_i+u_{it}$$`
+`$$i=1,2,···,n \qquad t=1,2,···,T$$`
+- `\(Z_i\)` 不随时间变化，因而不会引起1982年和1988年的死亡率变化，将两个年份的回归方程式相减即可消除 `\(Z_i\)` 的效应
+`$$FatalityRate_{i1988}-FatalityRate_{i1982}\\=\beta_1(BeerTax_{i1988}-BeerTax_{i1982})+u_{i1988}-u_{i1982}$$`
+
+- `\(T=2\)` 的特殊情况下
+
+ - 二值变量形式中的 `\(\beta_1\)` 的OLS估计量和“前后”形式中包含截距项的 `\(\beta_1\)` 的OLS估计量一样
+
+ - 此时OLS估计 `\(\beta_1\)` 有3种方法：**“前后”比较（无截距）、二值变量、“个体中心化”** 
+---
+
+###在交通事故死亡人数中的应用
+.panelset[
+.panel[.panel-name[]
+.panel[.panel-name[Code]
+
+```r
+# 使用lm()函数拟合一个线性回归模型，其中fatal_rate是因变量，beertax和state是自变量,state-1 是为了避免多重共线性
+fatal_fe_lm_mod &lt;- lm(fatal_rate ~ beertax + state - 1, data = Fatalities)
+
+# 计算数据的均值中心化（demeaned）版本，即每个州/年份的fatal_rate和beertax都减去该州/年份的平均值
+# 使用with()函数来操作Fatalities数据集
+#通过data.frame()函数创建一个新的数据框，其中包含两个列：fatal_rate和beertax。利用ave函数计算了每个州/年份的fatal_rate和beertax的平均值，并从原始的列数据中减去这个平均值；最后，将这个新的数据框赋值给变量fatal_demeaned。这样得到的fatal_demeaned数据框就包含了每个州/年份的fatal_rate和beertax的中心化值，可以用于进一步的分析或建模
+fatal_demeaned &lt;- with(Fatalities,
+            data.frame(fatal_rate = fatal_rate - ave(fatal_rate, state),
+            beertax = beertax - ave(beertax, state)))
+
+# 拟了一个线性回归模型，这次只考虑beertax作为自变量，并使用plm()函数进行固定效应回归
+summary(lm(fatal_rate ~ beertax - 1, data = fatal_demeaned))
+# 安装和加载 'plm' 包
+#install.packages("plm")
+library(plm)
+
+# 使了plm()函数来拟合一个面板数据模型
+# 使用fatal_rate作为因变量，beertax作为自变量，并指定了索引为state和year。模型类型为"within"，表示在每个州/年份内进行固定效应回归
+fatal_fe_mod &lt;- plm(fatal_rate ~ beertax, 
+                    data = Fatalities,
+                    index = c("state", "year"), 
+                    model = "within")
+
+# 使用coeftest()函数对固定效应回归模型进行假设检验
+coeftest(fatal_fe_mod, vcov. = vcovHC, type = "HC1")
+```
+
+
+
+]
+
+.panel[.panel-name[Output]
+
+```
+## 
+## Call:
+## lm(formula = fatal_rate ~ beertax - 1, data = fatal_demeaned)
+## 
+## Residuals:
+##      Min       1Q   Median       3Q      Max 
+## -0.58696 -0.08284 -0.00127  0.07955  0.89780 
+## 
+## Coefficients:
+##         Estimate Std. Error t value Pr(&gt;|t|)    
+## beertax  -0.6559     0.1739  -3.772 0.000191 ***
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## Residual standard error: 0.1757 on 335 degrees of freedom
+## Multiple R-squared:  0.04074,	Adjusted R-squared:  0.03788 
+## F-statistic: 14.23 on 1 and 335 DF,  p-value: 0.0001913
+## 
+## 
+## t test of coefficients:
+## 
+##         Estimate Std. Error t value Pr(&gt;|t|)  
+## beertax -0.65587    0.28880  -2.271  0.02388 *
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+```
+
+
+
+]
+]
+.panel[.panel-name[注]
+- 基于所有7年数据（336个观测值）得到的啤酒税和死亡率的固定效应回归线的OLS估计为
+`$$\widehat FatalityRate=-0.66BeerTax+\text{州固定效应}$$`
+- 斜率为负（ `\(-0.66\)` ）且 `\(5\%\)` 水平下显著
+
+- 实际啤酒税增加 `\(1\)` 美元，估计交通死亡人数减少为 `\(0.66\)` 人/万人，这已经相当高
+
+- 尽管州固定效应可以消除由于省略随州变化不随时间变化的因素导致的偏差风险，但还有其他遗漏的变量会随时间变化，从而导致偏差。
+]]
+---
+
+###时间固定效应
+- 由于还存在随时间变化的变量带来的遗漏变量威胁，类比个体固定效应我们引入一个新的变量 `\(S_t\)` 
+
+- &lt;font color=darkred&gt;时间固定效应&lt;/font&gt;
+ 
+ - 控制在个体间相同但随时间变化的变量
+ 
+ - 如**汽车性能** `\(S_t\)` 
+ 
+     - 汽车安全性能的提高是发生在全国范围内的，能减少所有州的交通死亡事故
+     
+     - 不可观测
+`$$Y_{it}=\beta_0+\beta_1X_{it}+\beta_2Z_i+\beta_3S_t+u_{it}$$`
+- 由于 `\(\beta_3S_t\)` 表示决定 `\(Y_{it}\)` 的变量，如果 `\(S_t\)` 与 `\(X_{it}\)` 相关，遗漏 `\(S_t\)` 就会导致**遗漏变量偏差**
+---
+
+###只有时间固定效应
+- 简单起见，我们暂时假设 `\(Z_i\)` 不出现，类比个体固定效应，我们也可以消除 `\(S_t\)` 的影响
+
+- 一元回归变量 `\(X\)` 的&lt;font color=green&gt;时间固定效应模型&lt;/font&gt;
+`$$Y_{it}=\beta_1X_{it}+\lambda_t+u_{it},\quad \lambda_t=\beta_0+\beta_3S_t$$`
+ - 该模型中每个时期的截距 `\(\lambda_t\)` 不同，可视为年/时期 `\(t\)` 对 `\(Y\)` 的效应，称 `\(\lambda_1,\lambda_2,···,\lambda_t\)` 为&lt;font color=darkred&gt;时间固定效应&lt;/font&gt;
+ 
+- 类比个体固定效应模型可以用 `\(n-1\)` 个二值指示变量表示。时间固定效应模型也可以用 `\(T-1\)` 个&lt;font color=darkred&gt;二值指示变量&lt;/font&gt;表示
+`$$Y_{it}=\beta_0+\beta_1X_{it}+\delta_2B2_t+···+\delta_TBT_t+u_{it}$$`
+
+ - `\(t=2 \longrightarrow B2_t=0，···\quad t=T \longrightarrow BT_t=0\)` ，否则为 `\(0\)`
+
+ - 包含一个截距项
+ 
+ - 为避免多重共线性随机省略第一个二值变量 `\(B1_t\)`
+---
+
+###个体和时间固定效应
+- 刚刚我们暂时忽略了只随个体变化的 `\(Z_i\)` ，只考虑了只随时间变化的 `\(S_t\)` 
+
+- 但是实际上可能出现某些遗漏变量只随州变化（如对酒后驾车文化的接受程度），而另一些只随时间变化（如国家安全标准）的情况
+
+- 因此在模型中同时加入个体（州）和时间效应更合适，即采用&lt;font color=darkred&gt;联合个体与时间效应回归模型&lt;/font&gt;
+`$$Y_{it}=\beta_1X_{it}+\alpha_i+\lambda_t+u_{it}$$`
+ - 消除了由于时间上相同的不可观测变量和在州间相同的不可观测变量引起的遗漏变量偏差
+ 
+- 该模型还可用&lt;font color=darkred&gt;二值指示变量和截距项&lt;/font&gt;等价表示
+`$$Y_{it}=\beta_0+\beta_1X_{it}+\gamma_2D2_i+···+\gamma_nDn_i+\delta_2B2_t+\delta_TBT_t+u_{it}$$`
+---
+
+###在交通死亡人数中的应用
+.panelset[
+.panel[.panel-name[]
+.panel[.panel-name[Code]
+
+```r
+# 使用lm()函数拟合一个线性回归模型，其中fatal_rate是因变量，beertax、state和year是自变量
+fatal_tefe_lm_mod &lt;- lm(fatal_rate ~ beertax + state + year - 1, data = Fatalities)
+
+# 使用plm()函数拟合了一个面板数据模型，同样使用fatal_rate作为因变量，beertax作为自变量# 指定了索引为state和year
+# 在面板数据模型中，使用了"within"模型类型，表示在每个州/年份内进行固定效应回归。同时，还指定了effect参数为"twoways"，表示进行两因素交互作用的固定效应回归
+fatal_tefe_mod &lt;- plm(fatal_rate ~ beertax, 
+                      data = Fatalities,
+                      index = c("state", "year"), 
+                      model = "within", 
+                      effect = "twoways")
+
+# 使用coeftest()函数对面板数据模型进行假设检验
+coeftest(fatal_tefe_mod, vcov = vcovHC, type = "HC1")
+```
+
+
+
+]
+
+.panel[.panel-name[Output]
+
+```
+## 
+## t test of coefficients:
+## 
+##         Estimate Std. Error t value Pr(&gt;|t|)  
+## beertax -0.63998    0.35015 -1.8277  0.06865 .
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+```
+
+
+
+]
+]
+.panel[.panel-name[注]
+- 州固定效应回归中加入时间固定效应得回归线的OLS估计为
+`$$\widehat{FatalityRate}=-0.64BeerTax+州固定效应+时间固定效应$$`
+- 上式包含啤酒税、47 个州二值变量（州固定效应）、6个年二值变量（时间固定效应）、截距项
+
+- 共有 `\(1+47+6+1=55\)` 个变量
+
+- 由于 `\(t=-0.64/0.36\)` ， `\(5\%\)` 水平下啤酒税的系数仍然显著，可见加入时间效应对啤酒税和死亡率之间的关系估计没什么影响
+]]
+---
+
+###固定效应回归假设
+`$$Y_{it}=\beta_1X_{it}+\alpha_i+u_{it},\quad i=1,2,···,n,\quad t=1,2,···,T$$`
+- `\(E(u_{it}|X_{i1},X_{i2},···,X_{iT},\alpha_i)=0\)`
+
+ - 给定某个体 `\(X\)` 的所有 `\(T\)` 个取值，误差项的条件均值等于0
+ 
+ - 保证没有遗漏变量偏差
+ 
+- `\((X_{i1},X_{i2},···,X_{iT},u_{i1},u_{i2},···,u_{iT})\)` 是从联合总体中抽取的独立同分布的样本
+
+ - 单个个体的变量分布相同，且与另一个个体的变量独立
+ 
+ - &lt;font color=darkred&gt; 要求不同个体对应的变量独立，但不对同一个体内的变量施加约束&lt;/font&gt;，**允许同一个体的 `\(X_{it}\)` 跨时间相关**
+ 
+ - 简单随机抽样即可满足
+
+- 大的异常值不太可能出现，即 `\((X_{it},u_{it})\)` 具有非零有限四阶矩
+
+- 不存在完全多重共线性
+---
+
+###固定效应回归的回归假设——假设2
+- 假设2&lt;font color=darkred&gt; 要求不同个体对应的变量独立，但不对同一个体内的变量施加约束&lt;/font&gt;，**允许同一个体的 `\(X_{it}\)` 跨时间相关**
+
+- **自相关/序列相关**
+
+ - 对于不同 `\(s,t\)` ， `\(X_{is},X_{it}\)` 相关，即**给定个体的 `\(X_{it}\)` 跨时间相关**
+ 
+ - 常见于**时间序列数据**：今年发生的事情往往与下一年发生的事情相关
+ 
+ - 交通事故死亡率实例中，第 `\(t\)` 年第 `\(i\)` 个州的啤酒税 `\(X_{it}\)` 自相关
+ 
+     - 多数情况下州议会不会改变啤酒税 `\(\longrightarrow\)` 如果第 `\(i\)` 个州的啤酒税相当于平均值处于高位，明年往往也是这样
+
+- 误差项 `\(u_{it}\)` 自相关
+
+ - `\(u_{it}\)` 包含随时间变化的决定因素
+ 
+ - 遗漏掉持续多年有效的变量导致自相关
+ 
+ - 但并不是所有遗漏变量都会导致 `\(u_{it}\)` 自相关
+---
+
+###固定效应回归的标准误——群聚标准误
+- 如果回归误差项存在自相关，通常用于横截面回归的异方差稳健标准误公式不再正确
+
+ - 这些公式是在错误的假设（无序列相关假设）下推出的
+ 
+- 如果 `\(u_{it}\)` 存在潜在异方差和潜在同一个体跨时间自相关时的标准误，则称**异方差和自相关一致的标准误 / `\(HAC\)` 标准误**
+ 
+ - 包括**群聚标准误**
+ 
+ - 允许同一群组内回归误差项具有任意形式的相关性，但假设不同群组的误差项之间不相关
+ 
+ - 面板数据中每个群组包含一个个体 `\(\longrightarrow\)` 允许存在异方差，同一个体之内回归误差项可自相关，跨个体误差项不相关
+ 
+ - **不论是否存在异方差、自相关还是二者都存在，群聚标准误都正确**
+---
+
+###仿真模拟
+.panelset[
+.panel[.panel-name[]
+.panel[.panel-name[Code]
+
+```r
+# 检查和分析一个模型对象（fatal_tefe_lm_mod）
+# 通过class()函数查看模型对象的类
+class(fatal_tefe_lm_mod)
+
+# 使用coeftest()函数获取基于异方差稳健标准误差的模型摘要（不调整异方差）
+coeftest(fatal_tefe_lm_mod, vcov = vcovHC, type = "HC1")[1, ]
+
+# 再次检查模型对象的类，这次是针对面板模型对象（plm）
+class(fatal_tefe_mod)
+
+# 使用coeftest()函数获取基于群聚标准误的模型摘要（考虑自相关和异方差）
+# coeftest()函数用于进行线性回归模型的系数检验。它接受三个参数：fatal_tefe_mod：一个已经拟合好的线性回归模型对象。vcov =vcovHC：异方差稳健协方差矩阵，用于在计算标准误时考虑自相关和异方差的影响。type = "HC1"：指定使用HC1方法进行系数检验。
+# 返回信息列表：t：系数的t统计量。p-value：系数的p值。sd：系数的标准误。z：系数的标准化值。
+coeftest(fatal_tefe_mod, vcov = vcovHC, type = "HC1")
+```
+
+
+
+]
+
+.panel[.panel-name[Output]
+
+```
+## [1] "lm"
+##   Estimate Std. Error    t value   Pr(&gt;|t|) 
+## -0.6399800  0.2547149 -2.5125346  0.0125470 
+## [1] "plm"        "panelmodel"
+## 
+## t test of coefficients:
+## 
+##         Estimate Std. Error t value Pr(&gt;|t|)  
+## beertax -0.63998    0.35015 -1.8277  0.06865 .
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+```
+
+
+
+]
+]
+.panel[.panel-name[注]
+- `\(BeerTax\)` 系数的常规（横截面数据）异方差稳健标准误为 `\(0.25\)` ，明显小于群聚标准误 `\(0.35\)`
+
+- 检验 `\(\beta_1=0\)` 的 `\(t\)` 统计量在使用异方差稳健标准误情况下为 `\(-2.51\)` ，在使用群聚标准误时为 `\(-1.83\)`
+
+- 群聚标准误允许同一个体内部 `\(u_{it}\)` 存在序列相关性，但通常的异方差稳健标准误不允许
+]]
+---
+
+###小结
+- 面板数据
+
+ - 多个个体在两个/多个时期的观测数据组成
+
+- 个体固定效应：控制在个体间不同但在时间上相同的不可观测变量
+
+ - “前后”比较回归分析
+
+ - 二值变量： `\(n-1\)` 个个体二值变量+可观测自变量 `\((X)+\)` 截距项 `\(\longrightarrow\)` 回归估计
+
+- 时间固定效应
+
+ - 二值变量： `\(n-1\)` 个个体二值变量 `\(+\)` `\(T-1\)` 个时间二值变量 `\(+X+\)` 截距项 `\(\longrightarrow\)` 回归估计
+ 
+- 自相关与群聚标准误
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script>var slideshow = remark.create({
+"highlightStyle": "github",
+"highlightLines": true,
+"countIncrementalSlides": false
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();
+// add `data-at-shortcutkeys` attribute to <body> to resolve conflicts with JAWS
+// screen reader (see PR #262)
+(function(d) {
+  let res = {};
+  d.querySelectorAll('.remark-help-content table tr').forEach(tr => {
+    const t = tr.querySelector('td:nth-child(2)').innerText;
+    tr.querySelectorAll('td:first-child .key').forEach(key => {
+      const k = key.innerText;
+      if (/^[a-z]$/.test(k)) res[k] = t;  // must be a single letter (key)
+    });
+  });
+  d.body.setAttribute('data-at-shortcutkeys', JSON.stringify(res));
+})(document);
+(function() {
+  "use strict"
+  // Replace <script> tags in slides area to make them executable
+  var scripts = document.querySelectorAll(
+    '.remark-slides-area .remark-slide-container script'
+  );
+  if (!scripts.length) return;
+  for (var i = 0; i < scripts.length; i++) {
+    var s = document.createElement('script');
+    var code = document.createTextNode(scripts[i].textContent);
+    s.appendChild(code);
+    var scriptAttrs = scripts[i].attributes;
+    for (var j = 0; j < scriptAttrs.length; j++) {
+      s.setAttribute(scriptAttrs[j].name, scriptAttrs[j].value);
+    }
+    scripts[i].parentElement.replaceChild(s, scripts[i]);
+  }
+})();
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();
+// adds .remark-code-has-line-highlighted class to <pre> parent elements
+// of code chunks containing highlighted lines with class .remark-code-line-highlighted
+(function(d) {
+  const hlines = d.querySelectorAll('.remark-code-line-highlighted');
+  const preParents = [];
+  const findPreParent = function(line, p = 0) {
+    if (p > 1) return null; // traverse up no further than grandparent
+    const el = line.parentElement;
+    return el.tagName === "PRE" ? el : findPreParent(el, ++p);
+  };
+
+  for (let line of hlines) {
+    let pre = findPreParent(line);
+    if (pre && !preParents.includes(pre)) preParents.push(pre);
+  }
+  preParents.forEach(p => p.classList.add("remark-code-has-line-highlighted"));
+})(document);</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>
