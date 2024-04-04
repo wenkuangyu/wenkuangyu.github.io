@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html lang="" xml:lang="">
   <head>
-    <title>第九讲: 多元回归的有效性评估</title>
+    <title>第八讲: 多元回归的有效性评估</title>
     <meta charset="utf-8" />
     <meta name="author" content="文旷宇" />
-    <script src="libs/header-attrs-2.18/header-attrs.js"></script>
+    <script src="libs/header-attrs-2.26/header-attrs.js"></script>
     <link href="libs/xaringanExtra-banner-0.0.1/banner.css" rel="stylesheet" />
     <script src="libs/xaringanExtra-banner-0.0.1/banner.js"></script>
     <script src="libs/fabric-4.3.1/fabric.min.js"></script>
@@ -21,7 +21,7 @@
 class: center, middle, inverse, title-slide
 
 .title[
-# 第九讲: 多元回归的有效性评估
+# 第八讲: 多元回归的有效性评估
 ]
 .author[
 ### 文旷宇
@@ -348,6 +348,21 @@ set.seed(1)
 
 # 加载mvtnorm包，该包提供了多元正态分布的相关函数
 library(mvtnorm)
+```
+
+
+
+]
+
+.panel[.panel-name[Output]
+
+```
+## Warning: 程辑包'mvtnorm'是用R版本4.3.3 来建造的
+```
+
+.panel[.panel-name[Code]
+
+```r
 #使用rmvnorm函数生成1000个样本点，这些样本点来自均值为(50, 100)、协方差矩阵为[[10, 5], [5, 10]]的二维正态分布
 #将生成的数据存储在名为dat的数据框中
 dat &lt;- data.frame(

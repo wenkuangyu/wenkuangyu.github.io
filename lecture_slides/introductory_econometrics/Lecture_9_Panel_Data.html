@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html lang="" xml:lang="">
   <head>
-    <title>第十讲：面板数据回归</title>
+    <title>第九讲：面板数据回归</title>
     <meta charset="utf-8" />
     <meta name="author" content="文旷宇" />
-    <script src="libs/header-attrs-2.18/header-attrs.js"></script>
+    <script src="libs/header-attrs-2.26/header-attrs.js"></script>
     <link href="libs/xaringanExtra-banner-0.0.1/banner.css" rel="stylesheet" />
     <script src="libs/xaringanExtra-banner-0.0.1/banner.js"></script>
     <script src="libs/fabric-4.3.1/fabric.min.js"></script>
@@ -21,7 +21,7 @@
 class: center, middle, inverse, title-slide
 
 .title[
-# 第十讲：面板数据回归
+# 第九讲：面板数据回归
 ]
 .author[
 ### 文旷宇
@@ -158,7 +158,40 @@ top:1em;right:1em;
 ```r
 # 加载两个包（AER和plm）以及一个名为Fatalities的数据集
 library(AER)
+```
+
+
+
+]
+
+.panel[.panel-name[Output]
+
+```
+## Warning: 程辑包'AER'是用R版本4.3.3 来建造的
+## Warning: 程辑包'car'是用R版本4.3.3 来建造的
+## Warning: 程辑包'zoo'是用R版本4.3.3 来建造的
+## Warning: 程辑包'sandwich'是用R版本4.3.3 来建造的
+```
+
+.panel[.panel-name[Code]
+
+```r
 library(plm)
+```
+
+
+
+]
+
+.panel[.panel-name[Output]
+
+```
+## Warning: 程辑包'plm'是用R版本4.3.3 来建造的
+```
+
+.panel[.panel-name[Code]
+
+```r
 data(Fatalities)
 # pdata.frame函数将数据集转换为面板数据格式，其中索引由"state"和"year"两列组成
 Fatalities&lt;- pdata.frame(Fatalities, index = c("state", "year"))

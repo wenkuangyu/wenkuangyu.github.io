@@ -1,0 +1,1058 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+  <head>
+    <title>第十讲：工具变量回归</title>
+    <meta charset="utf-8" />
+    <meta name="author" content="文旷宇" />
+    <script src="libs/header-attrs-2.26/header-attrs.js"></script>
+    <link href="libs/xaringanExtra-banner-0.0.1/banner.css" rel="stylesheet" />
+    <script src="libs/xaringanExtra-banner-0.0.1/banner.js"></script>
+    <script src="libs/fabric-4.3.1/fabric.min.js"></script>
+    <link href="libs/xaringanExtra-scribble-0.0.1/scribble.css" rel="stylesheet" />
+    <script src="libs/xaringanExtra-scribble-0.0.1/scribble.js"></script>
+    <script>document.addEventListener('DOMContentLoaded', function() { window.xeScribble = new Scribble({"pen_color":["#FF0000"],"pen_size":3,"eraser_size":30,"palette":[]}) })</script>
+    <link href="libs/panelset-0.2.6/panelset.css" rel="stylesheet" />
+    <script src="libs/panelset-0.2.6/panelset.js"></script>
+    <script src="libs/xaringanExtra_fit-screen-0.2.6/fit-screen.js"></script>
+    <link rel="stylesheet" href="xaringan-themer.css" type="text/css" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+.title[
+# 第十讲：工具变量回归
+]
+.author[
+### 文旷宇
+]
+.institute[
+### 华中科技大学
+]
+
+---
+
+&lt;style type="text/css"&gt;
+pre{
+  max-height:400px;
+  overflow-y:auto;
+}
+&lt;/style&gt;
+
+<div>
+<style type="text/css">.xaringan-extra-logo {
+width: 55px;
+height: 64px;
+z-index: 0;
+background-image: url(./images/hust-logo.png);
+background-size: contain;
+background-repeat: no-repeat;
+position: absolute;
+top:1em;right:1em;
+}
+</style>
+<script>(function () {
+  let tries = 0
+  function addLogo () {
+    if (typeof slideshow === 'undefined') {
+      tries += 1
+      if (tries < 10) {
+        setTimeout(addLogo, 100)
+      }
+    } else {
+      document.querySelectorAll('.remark-slide-content:not(.title-slide):not(.inverse):not(.hide_logo)')
+        .forEach(function (slide) {
+          const logo = document.createElement('div')
+          logo.classList = 'xaringan-extra-logo'
+          logo.href = null
+          slide.appendChild(logo)
+        })
+    }
+  }
+  document.addEventListener('DOMContentLoaded', addLogo)
+})()</script>
+</div><script>document.addEventListener('DOMContentLoaded',function(){new xeBanner(JSON.parse('{"left":"","right":"","exclude":["title-slide"],"position":"top"}'))})</script>
+<script>document.addEventListener('DOMContentLoaded',function(){new xeBanner(JSON.parse('{"left":"文旷宇/华中科技大学","exclude":["title-slide"],"position":"bottom"}'))})</script>
+
+
+
+
+
+
+
+
+
+### 主要内容
+- 单个回归变量和单个工具变量的 `\(IV\)` 估计量
+
+ - 工具变量（ `\(IV\)` ）模型和假设
+
+ - 两阶段最小二乘估计量
+ 
+- 为什么 `\(IV\)` 回归有效
+
+- 什么是有效的工具变量
+
+- 一般 `\(IV\)` 回归模型
+
+- 工具变量有效性的检验
+
+- 在香烟需求中的应用
+
+- 有效工具变量的来源
+---
+
+### `\(IV\)` 模型和假设
+- 第9章我们学习了误差项与回归变量相关的问题，其中遗漏变量偏差可采用在多元回归中加入遗漏变量的方法解决
+
+- 但是如果没有遗漏变量的数据呢？如果存在双向因果关系偏差呢？
+
+- 此时仅用多元回归是无法消除这一偏差的，因此我们引入&lt;font color=darkred&gt;工具变量&lt;/font&gt;
+
+`$$Y_i=\beta_0+\beta_1X_i+u_i,\quad i=1,2,···,n$$`
+- `\(u_i\)` 代表决定 `\(Y_i\)` 的遗漏因素的误差项，若 `\(X_i\)` 和 `\(u_i\)` 相关 `\(\longrightarrow\)`  OLS估计量非一致 `\(\longrightarrow\)`  即使样本容量很大也不会接近回归系数的真值
+
+- 回归变量 `\(X\)` 的变化可分为与 `\(u\)` 相关及与 `\(u\)` 无关的两部分，&lt;font color=darkred&gt;工具变量&lt;/font&gt;可分离出后者
+ - 使回归系数的估计量具有**一致性**
+ 
+ - 与误差项相关的变量 `\(\longrightarrow\)` &lt;font color=darkred&gt;内生变量&lt;/font&gt; `\(\longrightarrow\)` 由模型内部决定 
+ 
+ - 与误差项不相关的变量 `\(\longrightarrow\)` &lt;font color=darkred&gt;外生变量&lt;/font&gt; `\(\longrightarrow\)` 由模型外部决定
+     - 例如，低测试成绩 `\(\longrightarrow\)` 政策干预和经费增加 `\(\longrightarrow\)` 学生/教师比下降
+---
+
+### `\(IV\)` 模型和假设——工具变量有效的条件
+- 有效的工具变量必须满足
+ 
+ - &lt;font color=darkred&gt; 相关性&lt;/font&gt; 
+ 
+     - `\(corr(Z_i,X_i)\ne0\)`
+     
+     - 工具变量中的变动与 `\(X_i\)` 中的变动有关
+ 
+ - &lt;font color=darkred&gt; 外生性&lt;/font&gt;
+     
+     - `\(corr(Z_i,u_i)=0\)`
+     
+     - “抓住” `\(X_i\)` 中变动部分的工具变量是外生的
+- 相关和外生的工具变量“捕获”了 `\(X_i\)` 中与误差项不相关的外生变动
+---
+
+###两阶段最小二乘估计量
+- 工具变量 `\(Z\)` 满足相关性和外生性条件 `\(\longrightarrow\)` 称为&lt;font color=darkred&gt;两阶段最小二乘的IV估计量&lt;/font&gt;
+ 
+- 第一阶段把 `\(X\)` 分解为两部分
+`$$X_i=\pi_0+\pi_1Z_i+v_i$$`
+ - 与误差项相关、会引发问题的一部分： `\(v_i\)`
+     
+ - 与误差项无关、不会引发问题的一部分： `\(\pi_0+\pi_1Z_i\)`
+
+- 第二阶段利用没有问题的一部分估计 `\(\beta_1\)`
+     
+     - 但是 `\(\pi_0,\pi_1\)` 未知 `\(\longrightarrow\)` 第一阶段利用OLS估计建立 `\(X_i\)` 关于 `\(\hat Z_i\)` 的回归
+`$$\hat X_i=\hat \pi_0+\hat \pi_1Z_i$$`
+
+     - 第二阶段利用OLS建立 `\(Y_i\)` 关于 `\(\hat X_i\)` 的回归 `\(\longrightarrow\)` TSLS估计量 `\(\hat \beta_0^{TSLS},\hat \beta_1^{TSLS}\)`
+`$$\hat Y_i=\hat \beta_0^{TSLS}+\hat \beta_1^{TSLS}\hat X_i$$`
+---
+
+###仿真模拟
+.panelset[
+.panel[.panel-name[]
+.panel[.panel-name[Code]
+
+```r
+# Y=1+2*X+U
+# X=.5*U+.7*Z+V
+
+##1.生成模拟数据：
+# 设置样本数量N为500
+N &lt;- 500
+
+# 生成两个正态分布的随机变量U和Z，每个都有500个观测值
+U &lt;- rnorm(N)
+Z &lt;- rnorm(N)
+
+# 使用这两个随机变量以及另一个正态分布的随机扰动来生成X
+X &lt;- .5*U+.7*Z+rnorm(N)
+# 使用X和U来生成Y
+Y &lt;- 1+2*X+U
+
+##2.线性回归模型拟合：
+# 使用lm()函数，拟合一个模型fit1，其中X是响应变量，Z是预测变量
+fit1 &lt;- lm(X~Z)
+# 提取fit1的拟合值（即X的预测值），存储在Xhat中
+Xhat &lt;- fitted(fit1)
+# 使用Xhat作为预测变量来拟合Y，得到模型fit2
+fit2 &lt;- lm(Y~Xhat)
+
+##3.工具变量回归：
+# 加载AER包
+library(AER)
+```
+
+
+
+]
+
+.panel[.panel-name[Output]
+
+```
+## Warning: 程辑包'AER'是用R版本4.3.3 来建造的
+## Warning: 程辑包'car'是用R版本4.3.3 来建造的
+## Warning: 程辑包'zoo'是用R版本4.3.3 来建造的
+## Warning: 程辑包'sandwich'是用R版本4.3.3 来建造的
+```
+
+.panel[.panel-name[Code]
+
+```r
+# 使用ivreg()函数进行工具变量回归，其中Y是因变量，X是内生解释变量，Z是作为工具变量的外生解释变量。回归模型存储在fit3中
+fit3 &lt;- ivreg(Y~X|Z)
+
+##4.HMDA数据集的回归分析：
+# 加载HMDA数据集（这个数据集通常包含有关房屋抵押贷款申请的信息）
+library(AER)
+data(HMDA)
+
+# 将HMDA数据集中的deny列转换为数值型，并将其值减1（将“是”和“否”的答案转换为1和0）
+HMDA$deny &lt;- as.numeric(HMDA$deny)-1
+
+# 使用lm()函数拟合一个线性回归模型fit1，其中deny是因变量，pirat是预测变量
+fit1 &lt;- lm(deny~pirat,data=HMDA)
+# fit1是一个线性回归模型拟合对象，summary函数返回模型的详细统计信息
+summary(fit1)
+# 提取fit1模型的拟合值，并将这些值存储在fitted_p变量中
+fitted_p &lt;- fitted(fit1)
+# 查看fit1模型的分度值信息
+summary(fitted_p)
+```
+
+
+
+]
+
+.panel[.panel-name[Output]
+
+```
+## 
+## Call:
+## lm(formula = deny ~ pirat, data = HMDA)
+## 
+## Residuals:
+##      Min       1Q   Median       3Q      Max 
+## -0.73070 -0.13736 -0.11322 -0.07097  1.05577 
+## 
+## Coefficients:
+##             Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept) -0.07991    0.02116  -3.777 0.000163 ***
+## pirat        0.60353    0.06084   9.920  &lt; 2e-16 ***
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## Residual standard error: 0.3183 on 2378 degrees of freedom
+## Multiple R-squared:  0.03974,	Adjusted R-squared:  0.03933 
+## F-statistic: 98.41 on 1 and 2378 DF,  p-value: &lt; 2.2e-16
+## 
+##     Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
+## -0.07991  0.08908  0.11926  0.11975  0.14340  1.73070
+```
+
+
+
+]
+]
+.panel[.panel-name[]
+.panel[.panel-name[Code]
+
+```r
+# 使用glm()函数拟合两个广义线性模型fit2和fit3，分别使用probit链接和logit链接，以预测deny。这两个模型都假设响应变量遵循二项分布
+fit2 &lt;- glm(deny~pirat,family=binomial(link="probit"),data=HMDA)
+fit3 &lt;- glm(deny~pirat,family=binomial(link="logit"),data=HMDA)
+
+# 查看fit2和fit3的摘要
+summary(fit2)
+summary(fit3)
+```
+
+
+
+]
+
+.panel[.panel-name[Output]
+
+```
+## 
+## Call:
+## glm(formula = deny ~ pirat, family = binomial(link = "probit"), 
+##     data = HMDA)
+## 
+## Coefficients:
+##             Estimate Std. Error z value Pr(&gt;|z|)    
+## (Intercept)  -2.1941     0.1378 -15.927  &lt; 2e-16 ***
+## pirat         2.9679     0.3858   7.694 1.43e-14 ***
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## (Dispersion parameter for binomial family taken to be 1)
+## 
+##     Null deviance: 1744.2  on 2379  degrees of freedom
+## Residual deviance: 1663.6  on 2378  degrees of freedom
+## AIC: 1667.6
+## 
+## Number of Fisher Scoring iterations: 6
+## 
+## 
+## Call:
+## glm(formula = deny ~ pirat, family = binomial(link = "logit"), 
+##     data = HMDA)
+## 
+## Coefficients:
+##             Estimate Std. Error z value Pr(&gt;|z|)    
+## (Intercept)  -4.0284     0.2686 -14.999  &lt; 2e-16 ***
+## pirat         5.8845     0.7336   8.021 1.05e-15 ***
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## (Dispersion parameter for binomial family taken to be 1)
+## 
+##     Null deviance: 1744.2  on 2379  degrees of freedom
+## Residual deviance: 1660.2  on 2378  degrees of freedom
+## AIC: 1664.2
+## 
+## Number of Fisher Scoring iterations: 5
+```
+
+
+
+]
+]]
+---
+
+###为什么 `\(IV\)` 回归是有效的——供给和需求弹性问题
+- **工具变量回归**
+
+ - 当回归变量 `\(X\)` 与误差项 `\(u\)` 相关时获得总体回归方程未知系数一致估计量的一般方法
+ 
+- **供给弹性**
+ 
+ - 价格上涨 `\(1\%\)` 引起的供给量的百分率变化
+ 
+- **需求弹性**
+ 
+ - 价格上涨 `\(1\%\)` 引起的需求量的百分率变化
+
+- 考虑黄油的需求弹性估计问题
+ - 在第8章使用对数函数进行一元非线性函数回归时我们提到过弹性
+`$$\log(X+\Delta X)-\log(X)=\log(1+\frac{\Delta X}{X}) \approx \frac{\Delta X}{X}, \qquad (\frac{\Delta X}{X}\text{很小时})$$`
+---
+
+###为什么 `\(IV\)` 回归是有效的——供给和需求弹性问题
+`$$\ln(Q_i^{butter})=\beta_0+\beta_1\ln(P_i^{butter})+u_i$$`
+- 黄油价格上涨1%对应需求的百分率变化为 `\(\beta_1\)` `\(\longrightarrow\)`  `\(\beta_1\)` 表示需求弹性
+
+- 收集1912-1922年间黄油年消费量和年均价格数据，利用OLS很容易估计出需求弹性
+
+- 但是由于供给和需求的相互关系，回归变量 `\(ln(P_i^{butter})\)` 很可能和误差项相关
+ 
+ - 均衡量和均衡价格由需求和供给两者的变化确定　
+`\(\longrightarrow\)`　用OLS估计拟合均衡点得到的直线既不是需求曲线也不是供给曲线的估计
+
+ - 找到影响供给但不影响需求的第三个变量
+ 
+     - 如天气
+     
+     - 牧场降雨量低于平均值 `\(\longrightarrow\)` 牧草减少 `\(\longrightarrow\)` 给定价格时黄油产量减少 `\(\longrightarrow\)` 供给曲线左移 `\(\longrightarrow\)` 均衡价格上升
+     
+     - 牧场降雨量对黄油需求无直接影响 `\(\longrightarrow\)` 与 `\(u_i\)` 无关 `\(\longrightarrow\)` 外生性
+---
+
+###为什么 `\(IV\)` 回归是有效的——班级规模对测试成绩的效应估计
+- 之前的课堂上，我们控制了学生和地区特征
+
+- 但是由于校外学习机会、教师质量等不可测变量的影响，仍可能存在遗漏变量偏差
+ 
+ - 若这些变量数据可得 `\(\longrightarrow\)` 加入回归中
+ 
+ - 若变量数据不可得 `\(\longrightarrow\)` 工具变量
+- 不妨考虑一个假想例子
+
+ - 假设发生了地震，为了进行灾后修复工作，必须关闭加利福尼亚学区某些学校
+ 
+ - 到震中的距离近 `\(\longrightarrow\)` 学校关闭 `\(\longrightarrow\)` 被迫将班级规模扩大 `\(\longrightarrow\)` 到震中的距离与班级规模相关
+ 
+ - 到震中的距离与其他影响学生成绩的因素无关 `\(\longrightarrow\)` 与误差项无关 `\(\longrightarrow\)` 外生
+
+- 到震中的距离可用来避免遗漏变量偏差和估计班级规模对测试成绩的效应
+---
+
+###TSLS估计量的抽样分布
+- 一元工具变量的&lt;font color=darkred&gt;TSLS估计量&lt;/font&gt;为
+`$$\hat \beta_1^{TSLS}=\frac{cov(Z,Y)}{cov(Z,X)}=\frac{s_{ZY}}{s_{ZX}}=样本协方差之比$$`
+- 证明如下：
+ - TSLS 第一阶段： `\(\hat X_i=\hat \pi_0+\hat \pi_1Z_i\)`
+ 
+     - `\(\hat \pi_1\)` 为OLS斜率系数 `\(\longrightarrow \hat \pi_1=s_{ZX}/s_Z^2\)`
+     
+ - TSLS 第二阶段： `\(\hat Y_i=\hat \beta_0^{TSLS}+\hat \beta_1^{TSLS}\hat X_i\)`
+ 
+ - 由协方差定义知 `\(s_{\hat X Y}=\hat \pi_1s_{ZY},\quad s_{\hat X}^2=\hat \pi_1^2s_Z^2\)`
+ 
+     - `\(\longrightarrow \hat \beta_1^{TSLS}=s_{\hat X Y}/s_{\hat X}^2=s_{ZY}/(\hat \pi_1s_Z^2)\)`
+ 
+ - `\(\hat \beta_1^{TSLS}=s_{ZY}/(\hat \pi_1s_Z^2)=s_{ZY}/((s_{ZX}/s_Z^2)s_Z^2)=s_{ZY}/s_{ZX}\)`
+
+---
+
+###TSLS估计量的抽样分布
+- &lt;font color=darkred&gt;大样本下 `\(\hat \beta_1^{TSLS}\)` 的抽样分布&lt;/font&gt;：**一致且服从正态分布**
+`$$cov(Z_i,Y_i)=cov(Z_i,(\beta_0+\beta_1X_i+u_i))=\beta_1cov(Z_i,X_i)+cov(Z_i,u_i)$$`
+ - 工具变量外生性假设 `\(\longrightarrow\)` `\(cov(Z_i,u_i)=0\)`
+`$$\beta_1=\frac{cov(Z_i,Y_i)}{cov(Z_i,X_i)}=总体协方差之比$$`
+ - 样本协方差是总体协方差的一致估计量
+`$$\hat \beta_1^{TSLS}=\frac{s_{ZY}}{s_{ZX}}\stackrel{P}{\longrightarrow}\frac{cov(Z_i,Y_i)}{cov(Z_i,X_i)}=\beta_1（一致性）$$`
+---
+
+### TSLS估计量的抽样分布——&lt;font color=darkred&gt;大样本下正态分布&lt;/font&gt;
+- TSLS估计量是随机变量的平均值，当样本容量较大时随机变量服从正态分布（中心极限定理）
+`$$\hat \beta_1^{TSLS}\sim N(\beta_1,\sigma_{\hat \beta_1^{TSLS}}^2),\quad \sigma_{\hat \beta_1^{TSLS}}^2=\frac{1}{n}\frac{var[(Z_i-\mu_Z)u_i]}{[cov(Z_i,X_i)]}$$`
+ - `\(s_{ZY}=\frac{1}{n-1}\sum_{i=1}^{n}(Z_i-\bar Z)(Y_i-\bar Y), \quad\)` 是 `\((Z_i-\bar Z)(Y_i-\bar Y)\)` 的平均值
+ 
+ - `\(Y_i-\bar Y=\beta_1(X_i-\bar X)+(u_i-\bar u)\)`
+ 
+`$$\begin{aligned}
+ s_{ZY}&amp;=\frac{1}{n-1}\sum_{i=1}^{n}(Z_i-\bar Z)[\beta_1(X_i-\bar X)+(u_i-\bar u)]\\
+&amp;=\beta_1s_{ZX}+\frac{1}{n-1}\sum_{i=1}^{n}(Z_i-\bar Z)(u_i-\bar u)\\
+&amp;\stackrel{\sum_{i=1}^{n}(Z_i-\bar Z)=0}{\longrightarrow \longrightarrow =}\beta_1s_{ZX}+\frac{1}{n-1}\sum_{i=1}^{n}(Z_i-\bar Z)u_i
+\end{aligned}$$`
+---
+
+### TSLS估计量的抽样分布——&lt;font color=darkred&gt;大样本下正态分布&lt;/font&gt;
+- 所以
+$$
+`\begin{aligned}
+\hat \beta_1^{TSLS}
+&amp;=\frac{s_{ZY}}{s_{ZX}}\\
+&amp;=\beta_1+\frac{\frac{1}{n-1}\sum_{i=1}^{n}(Z_i-\bar Z)u_i}{\frac{1}{n-1}\sum_{i=1}^{n}(Z_i-\bar Z)(X_i-\bar X)}\\
+&amp;=\beta_1+\frac{\frac{1}{n}\sum_{i=1}^{n}(Z_i-\bar Z)u_i}{\frac{1}{n}\sum_{i=1}^{n}(Z_i-\bar Z)(X_i-\bar X)}\\
+\end{aligned}`
+$$
+---
+
+###在香烟需求中的应用
+- 为了减少由于吸烟导致的疾病和死亡及对社会其他成员产生的成本/外部性，我们可以对香烟征税
+
+- 但是具体应该增加多大幅度呢？这取决于香烟的需求弹性，例如目标是使香烟消费减少20%
+
+ - 弹性 `\(=-1\)` `\(\longrightarrow\)` 价格上涨20% `\(\longrightarrow\)` 消费减少20%
+ 
+  - 弹性 `\(=-0.5\)` `\(\longrightarrow\)` 价格上涨40% `\(\longrightarrow\)` 消费减少20%
+- 由于我们不知道香烟的需求弹性 `\(\longrightarrow\)` 必须利用价格、销量估计
+
+- 但是供给和需求之间存在交互作用 `\(\longrightarrow\)` 我们无法通过 `\(\ln(Q)\sim \ln(P)\)` 的OLS回归得到香烟需求弹性的一致估计量
+
+- 因此我们利用TSLS和1985-1995年美国48个大陆州的年度数据估计香烟的需求弹性
+---
+
+###仿真模拟
+.panelset[
+.panel[.panel-name[]
+.panel[.panel-name[Code]
+
+```r
+# 加载AER包，这个包提供了用于应用计量经济学的方法和数据集
+library(AER)
+# 加载CigarettesSW数据集。这个数据集包含了关于烟草销售的数据，通常用于研究价格和销售税对烟草销售的影响
+data("CigarettesSW")
+
+# 计算实际人均价格
+# 使用with函数来引用数据集中的price和cpi列，并将它们相除，得到实际人均价格
+CigarettesSW$rprice &lt;- with(CigarettesSW, price / cpi)
+
+# 计算销售税
+# 从taxs列中减去tax列，然后除以cpi来得到实际销售税
+CigarettesSW$salestax &lt;- with(CigarettesSW, (taxs - tax) / cpi)
+
+# 计算销售税和价格之间的相关性
+# 输出结果是接近0.614，表示它们之间存在中等强度的正相关关系
+cor(CigarettesSW$salestax, CigarettesSW$price)
+
+# 创建一个子集，只包含1995年的数据
+c1995 &lt;- subset(CigarettesSW, year == "1995")
+
+# 使用线性模型进行第一阶段回归，预测实际人均价格的log值（对数）作为销售税的函数
+cig_s1 &lt;- lm(log(rprice) ~ salestax, data = c1995)
+
+# 使用异方差稳健的标准误来测试模型系数的统计显著性。输出结果将给出系数的估计值、标准误、t统计量和p值等
+coeftest(cig_s1, vcov = vcovHC, type = "HC1")
+
+# 存储线性模型的预测值
+# 提取线性模型cig_s1的拟合值并将其存储在lcigp_pred变量中
+# $fitted.values是从R的线性模型对象中提取拟合值的常用方式
+lcigp_pred &lt;- cig_s1$fitted.values
+
+# 进行第二阶段回归
+# 创建一个线性模型，预测c1995数据集中packs列（香烟包数）的对数作为lcigp_pred列的函数
+cig_s2 &lt;- lm(log(c1995$packs) ~ lcigp_pred)
+# 使用coeftest函数来测试线性模型cig_s2的系数，通过vcovHC参数使用异方差稳健的标准误来进行统计推断
+coeftest(cig_s2, vcov = vcovHC)
+
+# 另一种方法
+# 使用工具变量（IV）回归（TSLS）来估计一个经济学模型，使用AER包中的ivreg()函数执行工具变量回归
+# 自变量是log(rprice)（实际人均价格的log值）和salestax（销售税）
+# “|”操作符表示使用salestax作为工具变量来估计对log(rprice)的边际效应
+cig_ivreg &lt;- ivreg(log(packs) ~ log(rprice) | salestax, data = c1995)
+
+# 使用coeftest函数来测试模型cig_ivreg的系数，使用异方差稳健的标准误（通过vcovHC参数）和HAC（异方差自相关）类型1来计算置信区间
+coeftest(cig_ivreg, vcov = vcovHC, type = "HC1")
+```
+
+
+
+]
+
+.panel[.panel-name[Output]
+
+```
+## [1] 0.6141228
+## 
+## t test of coefficients:
+## 
+##              Estimate Std. Error  t value  Pr(&gt;|t|)    
+## (Intercept) 4.6165463  0.0289177 159.6444 &lt; 2.2e-16 ***
+## salestax    0.0307289  0.0048354   6.3549 8.489e-08 ***
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## 
+## t test of coefficients:
+## 
+##             Estimate Std. Error t value  Pr(&gt;|t|)    
+## (Intercept)  9.71988    1.70304  5.7074 7.932e-07 ***
+## lcigp_pred  -1.08359    0.35563 -3.0469  0.003822 ** 
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## 
+## t test of coefficients:
+## 
+##             Estimate Std. Error t value  Pr(&gt;|t|)    
+## (Intercept)  9.71988    1.52832  6.3598 8.346e-08 ***
+## log(rprice) -1.08359    0.31892 -3.3977  0.001411 ** 
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+```
+
+
+
+]
+]
+.panel[.panel-name[注]
+- 工具变量 `\(SaleTax\)` 为一般销售税征收的香烟税收
+
+ - 相关性：高销售税增加总销售价格 `\(P_i^{cigarettes}\)`
+     
+ - 外生性：销售税通过价格间接影响香烟需求 `\(\longrightarrow\)`  与需求方程中的误差无关
+- 第一阶段回归： `\(\widehat{ln(P_i^{cigarettes})}=4.63+0.031SaleTax_i\)`
+
+- 第二阶段回归： `\(\widehat{ln(Q_i^{cigarettes})}=9.72+1.08ln(P_i^{cigarettes})\)`
+
+- `\(TSLS\)` 估计值表示香烟的需求富有弹性：价格上涨1% `\(\longrightarrow\)` 消费减少1.08%
+]]
+---
+
+###一般 `\(IV\)` 回归模型
+- 一般 `\(IV\)` 回归模型中有四类变量：
+
+ - 因变量 `\(Y\)` 
+ 
+ - 有问题的内生回归变量 `\(X\)` 
+ 
+ - 包含的外生回归变量（与误差项不相关的回归变量） `\(W\)`
+ 
+ - 工具变量 `\(Z\)` 
+ 
+- 工具变量的个数必须至少和内生回归变量的个数相同
+
+ - 工具变量的个数恰好等于内生变量的个数 `\(\longrightarrow\)` 回归系数是&lt;font color=darkred&gt;恰好识别&lt;/font&gt;的
+ 
+  - 工具变量的个数大于内生变量的个数 `\(\longrightarrow\)` 回归系数是&lt;font color=darkred&gt;过度识别&lt;/font&gt;的
+  
+  - 工具变量的个数小于内生变量的个数 `\(\longrightarrow\)` 回归系数是&lt;font color=darkred&gt;不可识别&lt;/font&gt;的
+- 系数必须是恰好识别或过度识别的
+---
+
+###一般 `\(IV\)` 回归模型
+- 与误差项不相关的回归变量 `\(W\)`
+
+ - 保证 `\(u\)` 的条件均值不依赖 `\(Z\)`
+
+     - `\(E(u_i|Z_i,W_i)=E(u_i|W_i)\)`
+ 
+ - 外生变量
+ 
+     - `\(E(u_i|W_i)=0\)`
+     
+ - 控制变量
+ 
+     - 若 `\(W\)` 有效 `\(\longrightarrow\)`  保证工具变量与误差项不相关 `\(\longrightarrow\)` `\(X\)` 系数是TSLS估计量是一致的
+     
+     - 不需要有因果关系：若 `\(W\)` 与误差项相关 `\(\longrightarrow\)` `\(W\)` 系数的TSLS估计量会遭受遗漏变量偏差 `\(\longrightarrow\)` 不具备因果效应
+     
+     - `\(E(u_i|Z_i,W_i)=E(u_i|W_i)\)`
+---
+
+###一般 `\(IV\)` 模型的 `\(TSLS\)` 
+- 单内生回归变量
+`$$Y_i=\beta_0+\beta_1X_i+\beta_2W_{1i}+···+\beta_{1+r}W_{ri}+u_i$$`
+ - 第一阶段回归： `\(X\)` 的简化方程
+ `$$X_i=\pi_0+\pi_1Z_{1i}+···+\pi_mZ_{mi}+\pi_{m+1}W_{1i}+···+\pi_{m+r}W_{ri}+v_i$$`
+ 
+ - 第二阶段：
+ `$$Y_i \sim \hat X_i,W_{1i},W_{2i},···,W_{ri}$$`
+- 多个内生回归变量
+
+ - 每个内生回归变量都要有第一阶段回归
+---
+
+###一般 `\(IV\)` 模型的工具变量相关性和外生性
+- 相关性
+ 
+ - 只有一个内生变量 `\(X\)` 
+ 
+     - 给定 `\(W\)` 时至少有一个 `\(Z\)` 对预测 `\(X\)` 是有用的
+     
+ - 包含多个内生变量 `\(X\)` 
+ 
+     - 第二阶段回归必须排除完全多重共线性
+     
+     - `\((\hat{X_{1i}},···，\hat{X_{ki}},W_{1i},···,W_{ri},1)\)` 不是完全多重共线性的，其中 `\(1\)` 表示所有观测值都取 `\(1\)` 的常数回归变量
+- 外生性
+ 
+ - 每个工具变量都与误差项不相关
+`$$corr(Z_{1i},u_i)=0,···,corr(Z_{mi},u_i)=0$$`
+---
+
+### `\(IV\)` 回归假设和 `\(TSLS\)` 估计量的抽样分布
+- `\(IV\)` 回归假设
+
+ - `\(E(u_i|W_{1i},W_{2i},···,W_{ri})=0\)` 
+ 
+ - `\((X_{1i},···,X_{ki},W_{1i},···,W_{ri},Z_{1i},···,Z_{mi},Y_i)\)` 独立同分布
+ 
+ - 大的异常值不太可能出现 `\(\longrightarrow\)` `\(X,W,Z,Y\)` 都有非零有限四阶矩
+ 
+ - 工具变量有效
+ 
+     - 相关性：回归变量间不存在多重共线性
+     
+     - 外生性：工具变量与误差项不相关
+- `\(TSLS\)` 估计量的抽样分布
+ 
+ -  `\(TSLS\)` 估计量在 `\(IV\)` 回归假设下一致且大样本下服从正态分布
+---
+
+###在香烟需求中的应用
+- 前面我们基于1995年美国48个州的年消费数据利用包含一个回归变量（每包香烟的实际价格对数）和一个工具变量（每包香烟的实际销售税）的 `\(TSLS\)` 估计了香烟的需求弹性
+
+- 但是如果州销售税与收入有关 `\(\longrightarrow\)` 销售税与误差项相关 `\(\longrightarrow\)` 违反工具变量外生假设 `\(\longrightarrow\)` `\(IV\)` 回归变量非一致 `\(\longrightarrow\)` 遗漏变量偏差
+
+- 因此我们考虑收入对数的需求方程设定形式
+
+ - 以消费的对数 `\(\ln(Q_i^{cigaretter})\)` 为因变量 `\(Y\)` 
+ 
+ - 税后实际价格的对数 `\(\ln(P_i^{cigaretter})\)` 为自变量 `\(X\)` 
+ 
+ - 州内人均实际收入的对数 `\(\ln(Inc_i)\)` 为包含的外生变量 `\(W\)` 
+ 
+ - 每包香烟的实际销售税 `\(SaleTax_i\)` 、香烟专项税 `\(CigTax\)` 为工具变量 `\(Z\)`
+---
+
+###仿真模拟
+.panelset[
+.panel[.panel-name[]
+.panel[.panel-name[Code]
+
+```r
+# 添加新的变量rincome到数据集中，它等于income（收入）除以population（人口）和cpi（消费者价格指数）
+CigarettesSW$rincome &lt;- with(CigarettesSW, income / population / cpi)
+
+#从CigarettesSW数据集中提取1995年的数据，并将其存储在新的数据框c1995中
+c1995 &lt;- subset(CigarettesSW, year == "1995")
+
+# 使用工具变量（IV）回归来估计一个模型
+# 因变量是log(packs)（香烟包数的对数），自变量包括log(rprice)（香烟零售价格的对数）和log(rincome)（收入的对数）。工具变量是log(rincome)和salestax（销售税）
+cig_ivreg2 &lt;- ivreg(log(packs) ~ log(rprice) + log(rincome) | log(rincome) + 
+                    salestax, data = c1995)
+
+# 使用异方差稳健(HC)估计的协方差矩阵进行系数测试，以检验模型系数的显著性
+coeftest(cig_ivreg2, vcov = vcovHC, type = "HC1")
+
+# 添加新的变量cigtax到数据集中
+CigarettesSW$cigtax &lt;- with(CigarettesSW, tax/cpi)
+
+# 提取1995年的数据储存到c1995中
+c1995 &lt;- subset(CigarettesSW, year == "1995")
+
+# 在相同的模型中添加了一个新的工具变量cigtax
+cig_ivreg3 &lt;- ivreg(log(packs) ~ log(rprice) + log(rincome) | 
+                    log(rincome) + salestax + cigtax, data = c1995)
+
+coeftest(cig_ivreg3, vcov = vcovHC, type = "HC1")
+```
+
+
+
+]
+
+.panel[.panel-name[Output]
+
+```
+## 
+## t test of coefficients:
+## 
+##              Estimate Std. Error t value  Pr(&gt;|t|)    
+## (Intercept)   9.43066    1.25939  7.4883 1.935e-09 ***
+## log(rprice)  -1.14338    0.37230 -3.0711  0.003611 ** 
+## log(rincome)  0.21452    0.31175  0.6881  0.494917    
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## 
+## t test of coefficients:
+## 
+##              Estimate Std. Error t value  Pr(&gt;|t|)    
+## (Intercept)   9.89496    0.95922 10.3157 1.947e-13 ***
+## log(rprice)  -1.27742    0.24961 -5.1177 6.211e-06 ***
+## log(rincome)  0.28040    0.25389  1.1044    0.2753    
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+```
+
+
+
+]
+]
+.panel[.panel-name[注]
+- `\(\widehat{ln(Q_i^{cigaretter})}=9.43-1.14ln(P_i^{cigaretter})+0.21ln(Inc_i)\)`
+
+- `\(\widehat{ln(Q_i^{cigaretter})}=9.89-1.28ln(P_i^{cigaretter})+0.28ln(Inc_i)\)`
+
+- 后者估计的标准误差较小
+
+ - 后者使用两个工具变量，包含信息更多，能解释更多的香烟价格变动
+ 
+ - 工具变量个数大于包含的内生变量个数 `\(\longrightarrow\)` 需求弹性过度识别
+ 
+ - 估计的可靠性基本上取决于工具变量集合是否满足工具变量有效条件
+]]
+---
+
+###工具变量有效性的检验——相关性
+- 工具变量相关性越强 `\(\longrightarrow\)` 能解释越多的 `\(X\)` 变动 `\(\longrightarrow\)` `\(IV\)` 回归中能用的信息越多
+
+- 工具变量相关性越强 `\(\longrightarrow\)` 正态分布近似 `\(TSLS\)` 估计量及其 `\(t\)` 统计量的抽样分布效果越好
+
+- &lt;font color=darkred&gt;弱工具变量&lt;/font&gt;
+
+ - 几乎不能解释 `\(X\)` 变动的工具变量
+ 
+ - 如州到香烟生产厂家的距离
+ 
+     - 远距离提高了运输成本 `\(\longrightarrow\)` 供给曲线内移 `\(\longrightarrow\)` 均衡价格上升
+     
+     - 但是香烟很轻 `\(\longrightarrow\)` 运输成本只占香烟价格的很小部分
+- 弱工具变量有什么问题？为什么是个问题？
+ 
+ - 工具变量较弱 `\(\longrightarrow\)` `\(TSLS\)` 不再可靠，严重偏向 `\(OLS\)` 估计量的方向
+ 
+ - 即使样本容量较大，用正态分布近似 `\(TSLS\)` 估计量的抽样分布效果仍然很差
+---
+
+###弱工具变量
+- 工具变量有效 `\(\longrightarrow\)` 样本协方差 `\(s_{ZY},s_{ZX}\)` 一致 `\(\longrightarrow\)` `\(\hat \beta_1^{TSLS}\)` 一致
+`$$\hat \beta_1^{TSLS}=s_{ZY}/s_{ZX}\stackrel{P}{\longrightarrow}\frac{cov(Z_i,Y_i)}{cov(Z_i,X_i)}=\beta_1$$`
+- 工具变量不相关
+
+ - 前面讲到
+$$
+`\begin{aligned}
+\hat \beta_1^{TSLS}
+&amp;=\beta_1+\frac{\frac{1}{n}\sum_{i=1}^{n}(Z_i-\bar Z)u_i}{\frac{1}{n}\sum_{i=1}^{n}(Z_i-\bar Z)(X_i-\bar X)}\\
+&amp;\stackrel{一致性}{\approx }\beta_1+\frac{\frac{1}{n}\sum_{i=1}^{n}(Z_i-\mu_Z)u_i}{\frac{1}{n}\sum_{i=1}^{n}(Z_i-\mu_Z)(X_i-\mu_X)}
+\end{aligned}`
+$$
+ - 令 `\(q_i=(Z_i-\mu_Z)u_i,r_i=(Z_i-\mu_Z)(X_i-\mu_X)\)` 
+ 
+ - 则 `\(\sigma_{\bar q}^2=\sigma_{q}^2/n\)` 
+---
+
+###弱工具变量
+- 因此在大样本下
+ `$$\hat \beta_1^{TSLS} \approx \beta_1+\frac{\bar q}{\bar r}=\beta_1+\frac{\sigma_{\bar q}}{\sigma_{\bar r}}(\frac{\bar q/\sigma_{\bar q}}{\bar r/\sigma_{\bar r}})=\beta_1+\frac{\sigma_q}{\sigma_r}(\frac{\bar q/\sigma_{\bar q}}{\bar r/\sigma_{\bar r}})$$`
+- 由中心极限定理
+`$$\frac{\bar r}{\sigma_{\bar r}}\sim N(0,1)$$`
+- 故**工具变量不相关时 `\(\hat \beta_1^{TSLS}-\beta_1\)` 在大样本下的分布为两个相关的标准正态随机变量之比**
+
+- 弱工具变量的 `\(TSLS\)` 估计量的分布是非正态的 `\(\longrightarrow\)` 工具变量不相关的结论也适用
+
+- 那么工具变量的相关性应该多大才能使正态分布的近似效果较好呢？
+---
+
+###一个内生回归变量时弱工具变量的检验
+- 实际应用中一个内生变量的情形最常见
+
+- 此时检验弱工具变量的方法：**经验法则**
+
+ - 利用 `\(F\)` 统计量检验 `\(TSLS\)` 第一阶段回归中工具变量系数都为0的假设
+ 
+ - 第一阶段 `\(F\)` 统计量度量了工具变量包含的信息
+ 
+ - 包含信息越多， `\(F\)` 统计量期望值越大
+ 
+ - &lt;font color=darkred&gt;如果第一阶段 `\(F\)` 统计量超过10，则无需担心弱工具变量问题&lt;/font&gt;
+ 
+- 那当 `\(F\)` 统计量小于10，存在弱工具变量应该怎么办？
+ 
+ - 忽略最弱的工具变量，选择相关性最强的工具变量子集
+ 
+ - 系数恰好识别时，不能略去工具变量
+     
+     - 寻找其他较强的工具变量
+     
+     - 采用其他方法利用弱工具变量继续进行实证分析
+---
+
+###弱工具变量——假设检验和置信集
+- Anderson-Rubin 检验： `\(\beta_1=\beta_{1,0}\)`
+ 
+ - 计算新变量 `\(Y_i^*=Y_i-\beta_{1,0}X_i\)`
+ 
+ - 建立 `\(Y_i^*\)` 对包含的外生回归变量（ `\(W\)` ）和工具变量（ `\(Z\)` ）的回归
+ 
+     - 统计量为检验所有 `\(Z\)` 系数都为0的假设的 `\(F\)` 统计量
+     
+ - 置信集在大样本下的覆盖概率都是95%
+ 
+- `\(CLR\)` 统计量： `\(\beta_1=\beta_{1,0}\)`
+ 
+ - 似然比统计量：比较原假设与备择假设下的似然值
+ 
+     - 若备择假设下似然值显著大于原假设下的似然值 `\(\longrightarrow\)` 拒绝原假设
+ 
+ - 置信集可以通过不能被拒绝的 `\(\beta_1\)` 的集合计算
+ 
+ - 临界值依赖于数据，只要临界值正确，检验就有效，但是难以推广到多个内生自变量的情形 
+---
+
+###工具变量有效性的检验——外生性
+- 工具变量非外生 `\(\longrightarrow\)` 不能正确指出 `\(X_i\)` 中的外生性变动 `\(\longrightarrow\)` `\(IV\)` 回归估计量不一致 
+
+- 那应该如何检验工具变量外生性假设？
+ 
+- 恰好识别时
+
+ - 无法检验：不能用经验证据证明工具变量是否满足外生性约束
+ 
+ - 只能基于对实际应用的认识作出专业判断
+ 
+- 过度识别时
+
+ - 两个工具变量得到的估计非常不同 `\(\longrightarrow\)` 一个/两个工具变量都有问题
+ 
+ - 过度识别约束检验： `\(J\)` 统计量
+---
+
+###  `\(J\)` 统计量
+`$$\begin{aligned}
+\hat u_i^{TSLS}
+&amp;=Y_i-(\hat \beta_0^{TSLS}+\hat \beta_1^{TSLS}X_{1i}+···+\hat \beta_{k+r}^{TSLS}X_{ri})\\
+&amp;=\delta_0+\delta_1Z_{1i}+···+\delta_mZ_{mi}+\delta_{m+1}W_{1i}+···+\delta_{m+r}W_{ri}+e_i
+\end{aligned}$$`
+     
+- 若 `\(\hat u_i^{TSLS}\)` 关于工具变量和包含的外生变量的回归中工具变量的系数都等于0 `\(\longrightarrow\)` 工具变量外生
+
+- 令 `\(F\)` 表示检验 `\(\delta_1=···=\delta_m=0\)` 的同方差适用 `\(F\)` 统计量 `\(\longrightarrow\)` `\(J=mF\)` 
+
+- 所有工具变量外生时： `\(J\sim \chi_{m-k}^2\)`
+
+- 检验的约束个数必须是 `\(m\)` 个，因为只能检验 `\(m-k\)` 个过度约束
+
+- 系数恰好识别时， `\(m=k\)` ，过度识别统计量 `\(J=0\)`
+---
+
+###有效工具变量的来源
+- 利用经济理论提出工具变量
+
+- 找出引起内生回归变量 `\(X\)` 变化的某个外生因素
+
+ - 如地震使学区平均班级规模增大（这与影响成绩的潜在遗漏变量不相关）
+ 
+- 实例：
+
+ - 监狱过度拥挤诉讼是有效的工具变量，可消除监禁率和犯罪率的双向因果关系导致的偏差
+  
+     - 监狱过度拥挤诉讼影响监禁率且与犯罪率的不可测因素不相关 `\(\longrightarrow\)` 相关性
+     
+     - 监狱过度拥挤诉讼由监狱条件而非犯罪率及其决定因素导致 `\(\longrightarrow\)` 外生性
+     
+ - 用**地理位置**（心导管术与其他类型医院到患者家的相对距离）寻找会影响心脏病治疗（相关性）但不会影响健康结果/寿命（外生性）的工具变量
+ 
+     - 相对距离影响患者接受心导管治疗的概率 `\(\longrightarrow\)` 相关性
+     
+     - 相对距离在患者间随机分配 `\(\longrightarrow\)` 外生性
+---
+
+###小结
+- 工具变量回归
+ 
+ - 一个/多个回归变量与误差项相关时估计回归系数的方法
+ 
+- 内生变量与误差项相关，外生变量与误差项不相关
+
+- 工具变量有效的两个条件
+ - 相关性 `\(\longrightarrow\)`  **弱工具变量**使 `\(TSLS\)` 估计量**有偏**
+ 
+ - 外生性 `\(\longrightarrow\)` 非外生时 `\(TSLS\)` 估计**非一致**
+- `\(IV\)` 回归至少应恰好识别
+
+- `\(TSLS\)` 估计量
+ - 内生变量对外生变量和工具变量回归
+ 
+ - 因变量对内生变量预测值回归
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script>var slideshow = remark.create({
+"highlightStyle": "github",
+"highlightLines": true,
+"countIncrementalSlides": false
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();
+// add `data-at-shortcutkeys` attribute to <body> to resolve conflicts with JAWS
+// screen reader (see PR #262)
+(function(d) {
+  let res = {};
+  d.querySelectorAll('.remark-help-content table tr').forEach(tr => {
+    const t = tr.querySelector('td:nth-child(2)').innerText;
+    tr.querySelectorAll('td:first-child .key').forEach(key => {
+      const k = key.innerText;
+      if (/^[a-z]$/.test(k)) res[k] = t;  // must be a single letter (key)
+    });
+  });
+  d.body.setAttribute('data-at-shortcutkeys', JSON.stringify(res));
+})(document);
+(function() {
+  "use strict"
+  // Replace <script> tags in slides area to make them executable
+  var scripts = document.querySelectorAll(
+    '.remark-slides-area .remark-slide-container script'
+  );
+  if (!scripts.length) return;
+  for (var i = 0; i < scripts.length; i++) {
+    var s = document.createElement('script');
+    var code = document.createTextNode(scripts[i].textContent);
+    s.appendChild(code);
+    var scriptAttrs = scripts[i].attributes;
+    for (var j = 0; j < scriptAttrs.length; j++) {
+      s.setAttribute(scriptAttrs[j].name, scriptAttrs[j].value);
+    }
+    scripts[i].parentElement.replaceChild(s, scripts[i]);
+  }
+})();
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();
+// adds .remark-code-has-line-highlighted class to <pre> parent elements
+// of code chunks containing highlighted lines with class .remark-code-line-highlighted
+(function(d) {
+  const hlines = d.querySelectorAll('.remark-code-line-highlighted');
+  const preParents = [];
+  const findPreParent = function(line, p = 0) {
+    if (p > 1) return null; // traverse up no further than grandparent
+    const el = line.parentElement;
+    return el.tagName === "PRE" ? el : findPreParent(el, ++p);
+  };
+
+  for (let line of hlines) {
+    let pre = findPreParent(line);
+    if (pre && !preParents.includes(pre)) preParents.push(pre);
+  }
+  preParents.forEach(p => p.classList.add("remark-code-has-line-highlighted"));
+})(document);</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>

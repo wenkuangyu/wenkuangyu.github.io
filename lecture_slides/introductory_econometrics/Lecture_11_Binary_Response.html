@@ -1,0 +1,943 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+  <head>
+    <title>第十一讲：二值因变量回归</title>
+    <meta charset="utf-8" />
+    <meta name="author" content="文旷宇" />
+    <script src="libs/header-attrs-2.26/header-attrs.js"></script>
+    <link href="libs/xaringanExtra-banner-0.0.1/banner.css" rel="stylesheet" />
+    <script src="libs/xaringanExtra-banner-0.0.1/banner.js"></script>
+    <script src="libs/fabric-4.3.1/fabric.min.js"></script>
+    <link href="libs/xaringanExtra-scribble-0.0.1/scribble.css" rel="stylesheet" />
+    <script src="libs/xaringanExtra-scribble-0.0.1/scribble.js"></script>
+    <script>document.addEventListener('DOMContentLoaded', function() { window.xeScribble = new Scribble({"pen_color":["#FF0000"],"pen_size":3,"eraser_size":30,"palette":[]}) })</script>
+    <link href="libs/panelset-0.2.6/panelset.css" rel="stylesheet" />
+    <script src="libs/panelset-0.2.6/panelset.js"></script>
+    <script src="libs/xaringanExtra_fit-screen-0.2.6/fit-screen.js"></script>
+    <link rel="stylesheet" href="xaringan-themer.css" type="text/css" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+.title[
+# 第十一讲：二值因变量回归
+]
+.author[
+### 文旷宇
+]
+.institute[
+### 华中科技大学
+]
+
+---
+
+&lt;style type="text/css"&gt;
+pre{
+  max-height:400px;
+  overflow-y:auto;
+}
+&lt;/style&gt;
+
+<div>
+<style type="text/css">.xaringan-extra-logo {
+width: 55px;
+height: 64px;
+z-index: 0;
+background-image: url(./images/hust-logo.png);
+background-size: contain;
+background-repeat: no-repeat;
+position: absolute;
+top:1em;right:1em;
+}
+</style>
+<script>(function () {
+  let tries = 0
+  function addLogo () {
+    if (typeof slideshow === 'undefined') {
+      tries += 1
+      if (tries < 10) {
+        setTimeout(addLogo, 100)
+      }
+    } else {
+      document.querySelectorAll('.remark-slide-content:not(.title-slide):not(.inverse):not(.hide_logo)')
+        .forEach(function (slide) {
+          const logo = document.createElement('div')
+          logo.classList = 'xaringan-extra-logo'
+          logo.href = null
+          slide.appendChild(logo)
+        })
+    }
+  }
+  document.addEventListener('DOMContentLoaded', addLogo)
+})()</script>
+</div><script>document.addEventListener('DOMContentLoaded',function(){new xeBanner(JSON.parse('{"left":"","right":"","exclude":["title-slide"],"position":"top"}'))})</script>
+<script>document.addEventListener('DOMContentLoaded',function(){new xeBanner(JSON.parse('{"left":"文旷宇/华中科技大学","exclude":["title-slide"],"position":"bottom"}'))})</script>
+
+
+
+
+
+
+
+
+### 主要内容
+- 数据集：波士顿HMDA数据
+
+- 二值因变量和线性概率模型
+
+- probit 和 logit 回归
+
+- 线性概率、probit、logit模型的比较
+
+- probit 和 logit 模型的估计推断
+ - 非线性最小二乘估计
+ 
+ - 最大似然估计
+ 
+ - 拟合优度
+---
+
+###数据集：波士顿HMDA数据
+- 本章研究的数据来自马萨诸塞州波士顿地区1990年的房屋抵押贷款申请
+
+- 其中黑人申请者中有28%被拒而白人申请者中只有9%被拒
+
+- 如何精确检验房屋抵押贷款市场中歧视的统计证据呢？
+ - 出发点：比较少数民族和白人申请者中被拒的比例
+ 
+ - 但黑人和白人申请者不一定只有种族不同，我们需要固定申请者其他特征比较被拒率
+ 
+- 这和前面学习的多元回归分析有什么不同呢？
+ - 申请者被拒的因变量是二值的
+ 
+ - 前面我们学习了利用二值变量作回归变量，但因变量为二值时，一条直线拟合一个只能取0和1两个值的变量，这要怎么做？
+---
+
+###二值因变量
+- 二值因变量的例子其实有很多：
+ - 学费补助对个人上大学的决定有什么影响？
+ 
+ - 青少年是否吸烟取决于什么因素？
+ 
+ - 一国是否接受外国资助取决于什么因素？
+ 
+ - 一个求职者是否成功取决于什么因素？
+- 本章研究种族是否为房屋抵押贷款申请被拒的因素，二值变量为抵押贷款申请是否被拒
+
+- 我们不妨先考虑两个变量的关系
+ - 二元因变量 deny、连续变量申请者预期月总还款额与月收入之比 `\(\frac{P}{I}\)`
+ 
+`$$deny=
+ \begin{cases}
+ 1,\quad \text{贷款申请被拒}\\
+ 0,\quad \text{贷款申请批准}
+ \end{cases}$$`
+---
+
+###仿真模拟
+.panelset[
+.panel[.panel-name[]
+.panel[.panel-name[Code]
+
+```r
+# 分析美国住房贷款申请被拒绝与付款/收入比率之间的关系
+# 加载AER包并附加HMDA数据
+library(AER)
+data(HMDA)
+
+# 将'deny'列转换为数值型,并将结果存储在HMDA数据框的'deny'列中
+# 使用as.numeric()函数将'deny'列转换为数值型
+# 减去1，以便将deny映射到0和1之间
+HMDA$deny &lt;- as.numeric(HMDA$deny) - 1
+
+# 估计一个简单的线性概率模型
+denymod1 &lt;- lm(deny ~ pirat, data = HMDA)
+
+# 绘制散点图，显示申请被拒和付款/收入比率之间的关系
+plot(x = HMDA$pirat, 
+     y = HMDA$deny,
+     main = "Scatterplot Mortgage Application Denial and 
+                                    the Payment-to-Income Ratio",
+     xlab = "P/I ratio",
+     ylab = "Deny",
+     pch = 20,
+# 定义点的形状,pch=20表示使用实心圆点作为数据点的标记
+     ylim = c(-0.4, 1.4),
+     cex.main = 0.8)
+# 主标题的字符大小是默认大小（通常是1）的80%
+
+# 添加水平虚线和文本来表示拒绝和批准的阈值
+# 在y=1的位置画一条线，线的类型（lty）是2（虚线），颜色（col）是"darkred"
+abline(h = 1, lty = 2, col = "darkred")
+abline(h = 0, lty = 2, col = "darkred")
+# 在x=2.5,y=0.9的位置添加文本Mortgage denied
+# cex参数控制文本的字符扩展因子，这里设置为0.8意味着文本的大小是默认大小的80%
+text(2.5, 0.9, cex = 0.8, "Mortgage denied")
+text(2.5, -0.1, cex= 0.8, "Mortgage approved")
+
+# 添加估计的回归线
+abline(denymod1, 
+       lwd = 1.8, 
+       col = "steelblue")
+```
+
+
+
+]
+
+.panel[.panel-name[Output]
+
+![](Lecture_11_Binary_Response_files/figure-html/unnamed-chunk-2-1.png)&lt;!-- --&gt;
+
+]
+]
+.panel[.panel-name[注]
+- 图中画出了数据集2380个观测值中127个 `\(deny\)` 对 `\(P/I\)` 的数据散点图
+
+- 还款/收入小于0.3的申请者很少被拒，还款/收入超过0.4的申请者大部分被拒
+
+- 图中 `\(P/I=0.3\)` 时， `\(deny\)` 的预测值 `\(\widehat{deny}=0.20\)` ，这是什么意思？ `\(0\)` 和 `\(1\)` 让你想到什么？
+]]
+---
+
+###二值因变量 `\(\longrightarrow\)` 线性概率模型
+- &lt;font color=darkred&gt;理解二值因变量的关键是将回归解释为因变量取 `\(1\)` 的概率模型&lt;/font&gt;
+
+- 预测值 `\(0.20\)` 可解释为 `\(P/I=0.3\)` 时被拒的概率估计为 `\(20\%\)`
+
+- 这种解释来源于两个事实
+ - 总体回归函数为给定回归变量时 `\(Y\)` 的期望值
+     
+     - `\(Y=E(Y|X_1,X_2,···,X_k)\)`
+     
+  - `\(Y\)` 为 `\(0-1\)` 二值变量 `\(\longrightarrow E(Y)=P(Y)\)`
+
+- `\(E(Y|X_1,X_2,···,X_k)=P(Y|X_1,X_2,···,X_k)\)`
+
+- &lt;font color=darkred&gt;线性概率模型&lt;/font&gt;
+ - 应用于二值因变量的多元线性回归模型
+ 
+ - 线性：一条直线
+ 
+ - 概率模型：模拟了因变量取 `\(1\)` 的概率，如申请者被拒的概率
+---
+
+###线性概率模型
+`$$Y_i=\beta_0+\beta_1X_{1i}+\beta_2X_{2i}+···+\beta_k{ki}+u_i$$`
+- 因变量为二元而非连续时的多元回归模型
+`$$Pr(Y=1|X_1,X_2,···,X_k)=\beta_0+\beta_1X_{1i}+\beta_2X_{2i}+···+\beta_kX_{ki}$$`
+ - 总体系数 `\(\beta_1\)` 表示 `\(X\)` 变化1个单位引起的概率 `\(P(Y=1)\)` 的变化
+
+ - 回归函数估计计算得到的OLS预测值 `\(\hat Y_i\)` 为 `\(P(Y=1)\)` 的预测值
+
+ - OLS估计量 `\(\hat \beta_1\)` 估计了 `\(X\)` 变化1个单位引起的概率 `\(P(Y=1)\)` 的变化
+
+- 前面学习的所有工具几乎都能应用到线性概率模型中
+ - OLS估计、置信区间、假设检验、交互作用、异方差稳健标准误
+ 
+ - `\(R^2\)` 不可照搬应用
+     - `\(R^2=1 \longrightarrow\)` 所有数据恰好落在回归线上 `\(\longrightarrow\)` 因变量为二值变量时除非自变量也是二值变量否则不可能满足
+---
+
+###仿真模拟——在HMDA数据中的应用
+.panelset[
+.panel[.panel-name[]
+.panel[.panel-name[Code]
+
+```r
+# 计算和输出模型系数的稳健标准误的摘要
+# coeftest()函数是lmtest包中的一个函数，用于测试线性模型的系数
+# denymod1为线性模型的拟合对象，vcovHC是HAC的异方差和自相关一致协方差矩阵的估计。通常我们使用NeweyWest()函数从sandwich包中来计算这个矩阵，type = "HC1"指定了HAC协方差矩阵的类型。使用HC1意味着我们使用所有滞后的因变量来估计异方差和自相关
+coeftest(denymod1, vcov. = vcovHC, type = "HC1")
+```
+
+
+
+]
+
+.panel[.panel-name[Output]
+
+```
+## 
+## t test of coefficients:
+## 
+##              Estimate Std. Error t value  Pr(&gt;|t|)    
+## (Intercept) -0.079910   0.031967 -2.4998   0.01249 *  
+## pirat        0.603535   0.098483  6.1283 1.036e-09 ***
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+```
+
+
+
+]
+]
+.panel[.panel-name[注]
+`$$\widehat{deny}=-0.080+0.604P/I$$`
+- `\(P/I\)` 的系数估计值为正（0.604），且在1% 水平下总体系数统计上显著异于0（ `\(t=6.13\)` ）
+
+- 说明还款额占收入比例越高的申请者的申请越可能被拒
+
+- 系数可用于计算给定回归变量时被拒概率的预测值变化
+]]
+---
+
+###在HMDA数据中的应用
+- 前面我们讲到黑人与白人不一定只有种族不同，需要固定申请者其他特征比较被拒率
+
+- 简单起见，我们只集中讨论黑人和白人申请者的差异
+
+- 固定 `\(P/I\)` 情况下，种族对被拒概率的效应是多少？
+
+- 不妨加入一个二值变量 `\(black\)` 
+`$$black=
+\begin{cases}
+1,&amp;黑人\\
+0,&amp;白人
+\end{cases}$$`
+---
+
+###仿真模拟——在HMDA数据中的应用
+.panelset[
+.panel[.panel-name[]
+.panel[.panel-name[Code]
+
+```r
+# 为了一致性重命名变量
+# 重命名数据框HMDA中的变量名
+# colnames(HMDA)返回数据框HMDA的所有列名
+# colnames(HMDA) == "afam"会返回一个逻辑向量，其中与"afam"匹配的列名位置为TRUE，其他位置为FALSE，使用这个逻辑向量来选择与"afam"匹配的列名
+# &lt;- "black"将选定的列名（即"afam"）重命名为"black"
+colnames(HMDA)[colnames(HMDA) == "afam"] &lt;- "black"
+
+# 估计线性模型
+# 使用lm()函数来拟合一个线性模型，响应变量是deny，预测变量是pirat和black（付款收入比率和新命名的"afam"变量），data = HMDA指定数据来源为HMDA数据框
+denymod2 &lt;- lm(deny ~ pirat + black, data = HMDA)
+# 评估模型的拟合质量和变量的显著性，尤其是在存在异方差和自相关的情况下
+# vcov.=vcovHC指定使用HAC（异方差和自相关一致）协方差矩阵来计算系数的稳健标准误
+coeftest(denymod2, vcov. = vcovHC)
+```
+
+
+
+]
+
+.panel[.panel-name[Output]
+
+```
+## 
+## t test of coefficients:
+## 
+##              Estimate Std. Error t value  Pr(&gt;|t|)    
+## (Intercept) -0.090514   0.033430 -2.7076  0.006826 ** 
+## pirat        0.559195   0.103671  5.3939 7.575e-08 ***
+## blackyes     0.177428   0.025055  7.0815 1.871e-12 ***
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+```
+
+
+
+]
+]
+.panel[.panel-name[注]
+- `\(\widehat{deny}=-0.091+0.559P/I+0.177black\)`
+
+- `\(black\)` 的系数为 `\(0.177\)` `\(\longrightarrow\)` 在固定还款/收入比情况下，黑人申请者抵押贷款申请被拒的概率比白人高 `\(17.7\%\)` ，且在 `\(1\%\)` 水平下显著（ `\(t=7.08\)` ）
+
+- 尽管这个估计表明可能存在种族歧视，我们不能轻易下结论
+ - 其他许多因素在信贷员的决定中起了作用
+ 
+ - 若其又与回归变量相关，会引起遗漏变量偏差
+]]
+---
+
+###probit和logit回归
+- 前面分析散点图时，我们不难发现 `\(P/I\)` 取值非常低时代表概率预测值的直线小于0而当 `\(P/I\)` 取值较高时又超过1
+
+- 但是概率不能小于0或者大于1，这使得线性概率模型的估计没有意义
+
+- 那什么函数能使预测值落入 `\(0-1\)` 之间呢？
+ - 累计概率分布函数（ cdf ）产生的概率位于 `\(0-1\)` 之间
+ 
+- 因此我们引入两种非线性形式回归
+ - probit ：标准正态累积概率分布函数
+ 
+ - logit：  logistic 累积概率分布函数
+---
+
+### probit 回归
+- 包含一个回归变量 `\(X\)` 的 probit 回归模型为：
+`$$P(Y=1|X)=\Phi(\beta_0+\beta_1X),\quad \Phi \text{为累积标准正态分布函数}$$`
+- 令 `\(z=\beta_0+\beta_1X\)`
+`$$\Phi(z)= P(Z\leq z),\quad Z \sim N(0,1)$$`
+- `\(\beta_1\)` 是 `\(X\)` 变化1个单位引起的 `\(z\)` 值该变量
+ - `\(\beta_1&gt;0\)` ： `\(X\)` 增加 `\(\longrightarrow\)` `\(z\)` 增加 `\(\longrightarrow\)` `\(P(Y=1)\)` 增加
+ 
+ - `\(\beta_1&lt;0\)` ： `\(X\)` 增加 `\(\longrightarrow\)` `\(z\)` 减小 `\(\longrightarrow\)` `\(P(Y=1)\)` 减小
+- `\(X\)` 对 `\(z\)` 的影响是线性的，但是对概率的影响是非线性的
+
+- 因此 probit 模型系数的最简单的解释方法是对一个/多个回归自变量的值计算概率预测值/其变化 `\(\longrightarrow\)`只有一个回归变量时，可将概率预测值作为 `\(X\)` 的函数作图
+---
+
+###仿真模拟
+.panelset[
+.panel[.panel-name[]
+.panel[.panel-name[Code]
+
+```r
+# 估计应该简单的 probit 模型
+# 使用glm函数（广义线性模型）来拟合一个probit模型，拟合的模型结果被存储在denyprobit变量中
+denyprobit &lt;- glm(deny ~ pirat, 
+# 指定模型族的类型为二项分布，链接函数为probit
+                  family = binomial(link = "probit"), 
+                  data = HMDA)
+# 绘制散点图
+plot(x = HMDA$pirat, 
+     y = HMDA$deny,
+# 设置图的标题
+     main = "给定P/I时，Probit 模型的拒绝概率",
+# 设置x轴和y轴的标签
+     xlab = "P/I ratio",
+     ylab = "Deny",
+     pch = 20,
+# 设置y轴的范围
+     ylim = c(-0.4, 1.4),
+# 设置标题的字体大小
+     cex.main = 0.85)
+
+# 添加水平虚线和文本
+# 在y=1的位置添加一条水平线，线型为虚线，颜色为深红色
+abline(h = 1, lty = 2, col = "darkred")
+abline(h = 0, lty = 2, col = "darkred")
+# 在(2.5,0.9)的位置添加文本，字体大小为 0.8
+text(2.5, 0.9, cex = 0.8, "拒绝抵押贷款")
+# 在(2.5,-0.1)的位置添加文本， 字体大小 为0.8
+text(2.5, -0.1, cex= 0.8, "同意抵押贷款")
+
+# 添加回归线
+# 创建一个从0到3的序列，间隔为0.01
+x &lt;- seq(0, 3, 0.01)
+# 使用predict函数基于denyprobit模型预测当pirat等于在x序列的值时的响应值，并存储在变量y中
+y &lt;- predict(denyprobit, list(pirat = x), type = "response")
+
+# 使用lines函数添加一条估计的回归线，线宽为1.5，颜色为钢蓝色
+lines(x, y, lwd = 1.5, col = "steelblue")
+```
+
+
+
+]
+
+.panel[.panel-name[Output]
+
+![](Lecture_11_Binary_Response_files/figure-html/unnamed-chunk-5-1.png)&lt;!-- --&gt;
+
+]
+]
+.panel[.panel-name[注]
+- 图中画出来利用散点图中127个观测值计算得到的 `\(deny\)` 关于 `\(P/I\)` 的 `\(probit\)` 回归函数估计
+
+- 图像呈“ `\(S\)` ”形
+ - `\(P/I\)` 取值较小时接近0且较为平坦
+ 
+ - `\(P/I\)` 取值中等时呈弯曲上升
+ 
+ - `\(P/I\)` 取值较大时较为平坦且接近1
+- 即还款/收入比较低时被拒概率较小
+]]
+---
+
+### probit 回归
+- 到目前为止研究的所有回归问题中，漏掉与回归变量有关的 `\(Y\)` 的决定因素会导致遗漏变量偏差， probit 模型也不例外
+
+- 解决方法之一
+ - 将遗漏变量作为回归变量加入回归 `\(\longrightarrow\)` 多元 probit模型
+ 
+ - `\(P(Y=1|X_1,X_2)=\Phi(\beta_0+\beta_1X_1+\beta_2X_2)\)`
+ 
+ - `\(P(Y=1|X_1,X_2,···,X_k)=\Phi(\beta_0+\beta_1X_1+\beta_2X_2+···+\beta_kX_k)\)`
+- `\(X\)` 变化的效应
+ - 一般：由 `\(X\)` 变化引起的 `\(Y\)` 的期望变化
+ 
+ - `\(Y\)` 为二值时： `\(X\)` 变化引起的 `\(Y=1\)` 的概率变化
+- 回归变量变化的效应计算
+`$$P(Y=1|X+\Delta X)-P(Y=1|X)=\Phi(Z+\Delta Z)-\Phi(Z)$$`
+---
+
+###仿真模拟——在抵押贷款数据中的应用
+.panelset[
+.panel[.panel-name[]
+.panel[.panel-name[Code]
+
+```r
+# 估计应该简单的 probit 模型
+# 使用glm函数（广义线性模型）来拟合一个probit模型，拟合的模型结果被存储在denyprobit变量中
+denyprobit &lt;- glm(deny ~ pirat, 
+# 指定模型族的类型为二项分布，链接函数为probit
+                  family = binomial(link = "probit"), 
+                  data = HMDA)
+# 估计模型系数的置信区间
+# vcovHC是用于计算异方差稳健协方差矩阵的函数，type="HC1"表示使用异方差稳健(HC)标准误，并特别选择了HC1版本来计算标准误差
+coeftest(denyprobit, vcov. = vcovHC, type = "HC1")
+```
+
+
+
+]
+
+.panel[.panel-name[Output]
+
+```
+## 
+## z test of coefficients:
+## 
+##             Estimate Std. Error  z value  Pr(&gt;|z|)    
+## (Intercept) -2.19415    0.18901 -11.6087 &lt; 2.2e-16 ***
+## pirat        2.96787    0.53698   5.5269 3.259e-08 ***
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+```
+
+
+
+]
+]
+.panel[.panel-name[注]
+- `\(\widehat{Pr(deny=1|P/I)}=\Phi(-2.19+2.97P/I)\)`
+
+- `\(P/I\)` 与被拒概率正相关（ `\(2.97&gt;0\)` ）且正相关关系统计显著（ `\(t=2.97/0.54=5.5\)` ）
+
+- 还款/收入比从0.3上升到0.4后申请被拒的概率预测值变化：
+`$$\Phi(-2.19+2.97\times0.4)-\Phi(-2.19+2.97\times0.3)=6.2\%$$`
+- 还款/收入比从0.4上升到0.5后申请被拒的概率预测值变化：
+`$$\Phi(-2.19+2.97\times0.5)-\Phi(-2.19+2.97\times0.4)=8\%$$`
+- `\(X\)` 的变化效应依赖于 `\(X\)` 的初始值 `\(\longleftarrow\)` `\(probit\)` 回归函数是非线性的
+]]
+---
+
+### probit 系数估计
+- 最大似然法
+ - 得到的估计量都是有效的（方差最小）
+ 
+ - 最大似然估计量是一致的且大样本下服从正态分布
+     - 可用常用方法构造系数 `\(t\)` 统计量和置信区间
+
+- 估计 probit模型的回归软件通常采用最大似然估计
+ - 标准误差的使用和回归系数的标准误差一样
+ 
+ - probit 系数真值的95%置信区间为：系数估计值 `\(\pm1.96\)` 标准误差
+ 
+ - 利用最大似然估计得到的 `\(F\)` 统计量可用于检验联合假设
+---
+
+### logit回归 
+`$$\begin{aligned}
+P(Y=1|X_1,X_2,···,X_k)&amp;=F(\beta_0+\beta_1X_1+···+\beta_kX_k)\\
+&amp;=\frac{1}{1+e^{-(\beta_0+\beta_1X_1+···+\beta_kX_k)}}
+\end{aligned}$$`
+- 三者都只是未知总体回归函数 `\(E(Y|X)=P(Y=1|X)\)` 的近似
+
+- 线性概率模型
+ - 最容易使用和解释，但无法“抓住”真实总体回归函数的非线性性质
+ 
+ - 对非线性总体回归函数的近似最不合理，但对某些回归变量鲜有极端值的数据集给出的近似是成分的
+
+- logit 、 probit 回归模型
+ - 能模拟概率中的这种非线性，但回归系数难以解释
+ 
+ - 除累积分布函数不同外， `\(logit\)` 回归和 `\(probit\)` 回归类似
+---
+
+### `\(logit\)` 回归在波士顿HMDA数据中的应用
+.panelset[
+.panel[.panel-name[]
+.panel[.panel-name[Code]
+
+```r
+# 使用glm函数拟合一个logit模型，拟合的模型结果被存储在denylogit变量中
+denylogit &lt;- glm(deny ~ pirat,
+# 模型族的类型为二项分布，链接函数为logit
+                 family = binomial(link = "logit"), 
+                 data = HMDA)
+
+# 绘制散点图
+plot(x = HMDA$pirat, 
+     y = HMDA$deny,
+     main = "给定P/I时，Probit 和 Logit 模型的拒绝概率",
+     xlab = "P/I ratio",
+     ylab = "Deny",
+     pch = 20,
+     ylim = c(-0.4, 1.4),
+     cex.main = 0.9)
+
+# 添加水平线和文本
+# 在y=1的位置添加一条水平线，线型为虚线，颜色为深红色
+abline(h = 1, lty = 2, col = "darkred")
+abline(h = 0, lty = 2, col = "darkred")
+# 在(2.5,0.9)的位置添加文本，字体大小为0.8
+text(2.5, 0.9, cex = 0.8, "拒绝抵押贷款")
+text(2.5, -0.1, cex= 0.8, "允许抵押贷款")
+
+# 添加 Probit和Logit模型的回归线
+# 创建一个从0到3的序列，间隔为0.01
+x &lt;- seq(0, 3, 0.01)
+# 使用predict函数基于denyprobit模型预测当pirat等于在x序列的值时的响应值，并存储在变量y_probit中
+y_probit &lt;- predict(denyprobit, list(pirat = x), type = "response")
+y_logit &lt;- predict(denylogit, list(pirat = x), type = "response")
+
+# 使用lines函数添加一条估计的回归线，线宽为1.5，颜色为钢蓝色
+lines(x, y_probit, lwd = 1.5, col = "steelblue")
+lines(x, y_logit, lwd = 1.5, col = "black", lty = 2)
+
+# 添加图例
+#指定图例的位置为左上角
+legend("topleft",
+#使图例横向排列
+       horiz = TRUE,
+#设置图例的标签为"Probit"和"Logit"
+       legend = c("Probit", "Logit"),
+#设置图例中两条线的颜色分别为钢蓝色和黑色
+       col = c("steelblue", "black"), 
+#设置图例中两条线的线型分别为实线和虚线
+       lty = c(1, 2))
+```
+
+
+
+]
+
+.panel[.panel-name[Output]
+
+![](Lecture_11_Binary_Response_files/figure-html/unnamed-chunk-7-1.png)&lt;!-- --&gt;
+
+]
+]]
+---
+
+### logit 、probit 回归模型的估计和推断
+- 第8章中研究的非线性模型是自变量的非线性函数，但却是未知系数的线性函数
+
+ - 可用OLS估计这些非线性回归函数中的未知系数
+ 
+- 但是 logit 、 probit 回归函数是 系数的非线性函数
+ - 因此不能使用OLS估计这些系数
+ 
+ - 可用最大似然法
+- 最大似然估计的理论比最小二乘理论复杂，不妨先讨论非线性最小二乘估计
+---
+
+###非线性最小二乘估计
+- 非线性最小二乘估计要用该参数的非线性函数表示的的&lt;font color=darkred&gt;条件期望拟合因变量&lt;/font&gt;，以probit模型为例，给定 `\(X\)` 时 `\(Y\)` 的条件期望为
+`$$\begin{aligned}
+E(Y|X_1,X_2,···,X_k)&amp;=1\times P(Y|X_1,X_2,···,X_k)+0\times P(Y|X_1,···,X_k)\\
+&amp;=\Phi(\beta_0+\beta_1X_1+\beta_2X_2+···+\beta_kX_k)
+\end{aligned}$$`
+- 同OLS一样，非线性最小二乘也要找到&lt;font color=darkred&gt;  使模型预测误差平方和最小的参数值&lt;/font&gt;，即 `\(b_0,···,b_k\)` `$$\sum_{i=1}^{n}[Y_i-\Phi(b_0+b_1X_1+···+b_kX_k)]^2$$`
+- 非线性最小二乘估计量的性质
+ - **一致性**：样本容量 `\(n\)` 增大时估计量接近真值的概率为1
+ 
+ - **大样本下服从正态分布**
+- 存在其他方差更小的估计量 `\(\longrightarrow\)` 非线性最小二乘估计量**不是有效的**
+---
+
+###最大似然估计
+- &lt;font color=darkred&gt;似然函数&lt;/font&gt; 
+
+ - 数据的联合发布，未知系数的函数
+ 
+- &lt;font color=darkred&gt;最大似然估计量（MLE）&lt;/font&gt;
+ - 使似然函数最大化的系数值
+ 
+ - 选择使实际观测到的数据被抽到的概率最大的参数值 `\(\longrightarrow MLE\)` 是最可能产生这些数据的参数值
+ 
+ - `\(MLE\)` 一致且大样本下服从正态分布
+- 考虑两个独立同分布的、不含回归变量的二元因变量观测 `\(Y_1,Y_2\)`
+ - `\(Y\)` 为伯努利随机变量 `\(\longrightarrow\)`  `\(Pr(Y=y)=p^y(1-p)^{1-y}\)`
+ 
+ - 唯一待估参数为 `\(P\quad (E(Y)=Pr(Y=1))\)` 
+ 
+ - `\(Pr(Y_1=y_1,Y_2=y_2)=Pr(Y_1=y_1)Pr(Y_2=y_2)=p^{y_1+y_2}(1-P)^{2-(y_1+y_2)}\)`
+---
+
+###最大似然估计
+`$$f(p;Y_1,Y_2)=p^{Y_1+Y_2}(1-p)^{2-(Y_1+Y_2)}$$`
+- `\(p\)` 的最大似然估计量是使似然函数 `\(f(p;Y_1,Y_2)\)` 最大的 `\(p\)` 值
+ - 修正法：尝试不同 `\(p\)` 值计算似然函数 `\(f(p;Y_1,Y_2)\)` 直至函数值最大
+ 
+ - 微积分： `\(\hat p=\frac{1}{2}(Y_1+Y_2)\)` `\(\longrightarrow\)` `\(p\)` 的 `\(MLE\)` 恰好为样本均值
+- 对一般的 `\(n\)` ，伯努利概率 `\(p\)` 的 `\(MLE\quad \hat p=\bar Y\)` 
+
+- probit 模型的似然函数： `$$Pr(Y=1|X_1,X_2,···,X_k)=\Phi(\beta_0+\beta_1X_1+\beta_2X_2+···+\beta_kX_k)$$`
+
+- Logit 模型的似然函数：
+`$$\begin{aligned}
+Pr(Y=1|X_1,X_2,···,X_k)&amp;=F(\beta_0+\beta_1X_1+···+\beta_kX_k)\\
+&amp;=\frac{1}{1+e^{-(\beta_0+\beta_1X_1+···+\beta_kX_k)}}
+\end{aligned}$$`
+---
+
+###拟合优度
+- 基于 `\(MLE\)` 的 probit、logit 系数统计推断和基于OLS估计量的线性回归系数推断一样
+
+- 但是要注意联合假设
+
+ - 某些软件是基于** `\(F\)` 统计量**的联合假设，在原假设及大样本下 
+ `$$F\sim \chi_q^2/q$$`
+
+ - 其他软件使用的**卡方统计量** `\(q\times F,\quad q\)` 为待检验的约束个数
+`$$q\times F\sim \chi_q^2$$`
+
+- 除了统计推断，我们还要考虑拟合程度的好坏
+ - 前面提到过 `\(R^2\)` 不是度量线性概率模型拟合程度好坏的指标，对 probit、logit 模型也如此
+ 
+ - 二值因变量模型拟合状况要怎么度量？
+---
+
+###拟合优度
+- &lt;font color=darkred&gt;正确预测的比例 &lt;/font&gt; 
+ 
+ - `\(n\)` 个观测 `\(Y_1,Y_2,···,Y_n\)` 中预测正确的比例
+ 
+     - `\(Y_i=1\)` 且概率预测值超过50% `\(\longrightarrow\)` 预测正确
+ 
+     - `\(Y_i=0\)` 且概率预测值小于50% `\(\longrightarrow\)` 预测正确
+ 
+ - 易于理解但是没有反映出预测的质量
+     - 如概率预测值为51%或90%时都认为预测正确
+- &lt;font color=darkred&gt;伪 `\(R^2\)` &lt;/font&gt; `\(=1-\frac{\ln(f_{probit}^{max})}{\ln(f_{Bernoulli}^{max})}\)`
+ - 度量了基于似然函数的模型拟合状况
+ 
+ - 加入其他回归变量将使似然函数的最大值增加
+ 
+ - 通过**比较包含所有回归变量的似然函数的最大值和不包含任何回归变量的似然函数的最大值**度量模型的拟合质量
+---
+
+###仿真模拟——伪 `\(R^2\)` 计算的两种方法
+.panelset[
+.panel[.panel-name[]
+.panel[.panel-name[Code]
+
+```r
+library(AER)
+data(HMDA)
+colnames(HMDA)[colnames(HMDA) == "afam"] &lt;- "black"
+# 之前我们把数据集HMDA中的变量名“afam”改为了“black”
+
+# 重命名变量并拟合一个probit模型
+# 使用glm函数（广义线性模型）来拟合一个probit模型
+# 模型族被指定为二项分布，链接函数为probit。拟合的模型结果被存储在denyprobit2变量中
+denyprobit2 &lt;- glm(deny ~ pirat + black, 
+                   family = binomial(link = "probit"), 
+                   data = HMDA)
+
+# 拟合null模型，该模型没有自变量，只有截距项
+denyprobit_null &lt;- glm(formula = deny ~ 1, 
+                       family = binomial(link = "probit"), 
+                       data = HMDA)
+
+# 伪R方是用于线性回归模型的一种统计量，它表示模型解释的变异与总变异的比例
+# 计算抵押贷款的probit模型的伪R方值，将结果存储在pseudoR2变量中
+# deviance是从模型中得到的残差平方和，null deviance是在null 模型（即没有自变量的模型）中得到的残差平方和
+# 伪R方公式
+pseudoR2 &lt;- 1 - (denyprobit2$deviance) / (denyprobit2$null.deviance)
+# 读取结果
+pseudoR2
+```
+
+
+
+]
+
+.panel[.panel-name[Output]
+
+```
+## [1] 0.08594259
+```
+
+
+
+]
+]
+.panel[.panel-name[]
+.panel[.panel-name[Code]
+
+```r
+# 使用logLik函数计算伪R方值
+1 - logLik(denyprobit2)[1]/logLik(denyprobit_null)[1]
+# 注意实际计算的是两个模型的log-likelihood值的比值，真正的伪R方值，应该使用上述的公式
+```
+
+
+
+]
+
+.panel[.panel-name[Output]
+
+```
+## [1] 0.08594259
+```
+
+
+
+]
+]]
+---
+
+###小结
+- 线性概率模型
+ 
+ - `\(Y\)` 为二值变量时的多元回归模型
+ 
+ - 总体回归线显示了给定回归变量时 `\(Y-1\)` 的概率
+
+- probit、logit 回归
+ - 确保对所有 `\(X\)` 值 `\(Y=1\)` 的概率预测值落在 `\(0-1\)` 之间
+ 
+ - 都采用累积分布函数和最大似然估计
+ 
+ - 回归系数难以解释
+ 
+ - `\(X\)` 变化引起的效应
+
+- 拟合优度
+ - 正确预测的比例
+ 
+ - 伪 `\(R^2\)`
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script>var slideshow = remark.create({
+"highlightStyle": "github",
+"highlightLines": true,
+"countIncrementalSlides": false
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();
+// add `data-at-shortcutkeys` attribute to <body> to resolve conflicts with JAWS
+// screen reader (see PR #262)
+(function(d) {
+  let res = {};
+  d.querySelectorAll('.remark-help-content table tr').forEach(tr => {
+    const t = tr.querySelector('td:nth-child(2)').innerText;
+    tr.querySelectorAll('td:first-child .key').forEach(key => {
+      const k = key.innerText;
+      if (/^[a-z]$/.test(k)) res[k] = t;  // must be a single letter (key)
+    });
+  });
+  d.body.setAttribute('data-at-shortcutkeys', JSON.stringify(res));
+})(document);
+(function() {
+  "use strict"
+  // Replace <script> tags in slides area to make them executable
+  var scripts = document.querySelectorAll(
+    '.remark-slides-area .remark-slide-container script'
+  );
+  if (!scripts.length) return;
+  for (var i = 0; i < scripts.length; i++) {
+    var s = document.createElement('script');
+    var code = document.createTextNode(scripts[i].textContent);
+    s.appendChild(code);
+    var scriptAttrs = scripts[i].attributes;
+    for (var j = 0; j < scriptAttrs.length; j++) {
+      s.setAttribute(scriptAttrs[j].name, scriptAttrs[j].value);
+    }
+    scripts[i].parentElement.replaceChild(s, scripts[i]);
+  }
+})();
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();
+// adds .remark-code-has-line-highlighted class to <pre> parent elements
+// of code chunks containing highlighted lines with class .remark-code-line-highlighted
+(function(d) {
+  const hlines = d.querySelectorAll('.remark-code-line-highlighted');
+  const preParents = [];
+  const findPreParent = function(line, p = 0) {
+    if (p > 1) return null; // traverse up no further than grandparent
+    const el = line.parentElement;
+    return el.tagName === "PRE" ? el : findPreParent(el, ++p);
+  };
+
+  for (let line of hlines) {
+    let pre = findPreParent(line);
+    if (pre && !preParents.includes(pre)) preParents.push(pre);
+  }
+  preParents.forEach(p => p.classList.add("remark-code-has-line-highlighted"));
+})(document);</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>
