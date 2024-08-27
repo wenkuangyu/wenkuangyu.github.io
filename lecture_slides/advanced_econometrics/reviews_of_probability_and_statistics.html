@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+  <head>
+    <title>概率论与统计学复习（Review of Probability and Statistics）</title>
+    <meta charset="utf-8" />
+    <meta name="author" content="文旷宇" />
+    <script src="libs/header-attrs/header-attrs.js"></script>
+    <link href="libs/xaringanExtra-banner/banner.css" rel="stylesheet" />
+    <script src="libs/xaringanExtra-banner/banner.js"></script>
+    <script src="libs/fabric/fabric.min.js"></script>
+    <link href="libs/xaringanExtra-scribble/scribble.css" rel="stylesheet" />
+    <script src="libs/xaringanExtra-scribble/scribble.js"></script>
+    <script>document.addEventListener('DOMContentLoaded', function() { window.xeScribble = new Scribble({"pen_color":["#FF0000"],"pen_size":3,"eraser_size":30,"palette":[]}) })</script>
+    <link href="libs/panelset/panelset.css" rel="stylesheet" />
+    <script src="libs/panelset/panelset.js"></script>
+    <link rel="stylesheet" href="xaringan-themer.css" type="text/css" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+.title[
+# 概率论与统计学复习（Review of Probability and Statistics）
+]
+.author[
+### 文旷宇
+]
+.institute[
+### 华中科技大学
+]
+
+---
+
+class: left, middle
+layout: true
+
+
+
+<div>
+<style type="text/css">.xaringan-extra-logo {
+width: 55px;
+height: 64px;
+z-index: 0;
+background-image: url(../images/hust-logo.png);
+background-size: contain;
+background-repeat: no-repeat;
+position: absolute;
+top:1em;right:1em;
+}
+</style>
+<script>(function () {
+  let tries = 0
+  function addLogo () {
+    if (typeof slideshow === 'undefined') {
+      tries += 1
+      if (tries < 10) {
+        setTimeout(addLogo, 100)
+      }
+    } else {
+      document.querySelectorAll('.remark-slide-content:not(.title-slide):not(.inverse):not(.hide_logo)')
+        .forEach(function (slide) {
+          const logo = document.createElement('div')
+          logo.classList = 'xaringan-extra-logo'
+          logo.href = null
+          slide.appendChild(logo)
+        })
+    }
+  }
+  document.addEventListener('DOMContentLoaded', addLogo)
+})()</script>
+</div><script>document.addEventListener('DOMContentLoaded',function(){new xeBanner(JSON.parse('{"left":"","right":"","exclude":["title-slide"],"position":"top"}'))})</script>
+<script>document.addEventListener('DOMContentLoaded',function(){new xeBanner(JSON.parse('{"left":"文旷宇/华中科技大学","exclude":["title-slide"],"position":"bottom"}'))})</script>
+
+
+
+---
+
+### 主要内容
+
+
+- 随机变量和随机向量
+
+- 联合分布、边缘分布和条件分布
+
+- 独立性
+
+- 随机变量的矩
+
+- 常用分布
+
+
+
+
+---
+
+### 累积分布函数（cumulative distribution function , CDF）
+
+- 对随机变量 `\(X\)` ，累积分布函数为 `\(F(x)=P(X \leq x)\)`
+
+- 累积分布函数有如下性质：
+ - `\(\displaystyle\lim_{n\rightarrow-\infty} F(x)=0\)` ; `\(\displaystyle\lim_{n\rightarrow+\infty} F(x)=1\)`
+ 
+ - `\(F(x)\)`是单调递增函数
+ 
+ - `\(F(x)\)`左有极限右连续
+
+- 随机变量 `\(X\)` 的累积分布函数记为 `\(F_X\)`，随机变量 `\(Y\)` 的累积分布函数记为 `\(F_Y\)`
+
+- 记号 `\(X = Y\)` 意味着，对任意 `\(u\)`，有 `\(F_X(u)=F_Y(u)\)`
+
+---
+
+### 概率密度函数（probability density function , PDF)
+
+- 对随机变量 `\(X\)`，概率密度函数的定义为： `\(f_X(x)=\displaystyle\frac{dF_X(x)}{dx}\)`
+
+- 所以，累积分布函数和概率密度函数的关系为： `\(F_X(x)=\displaystyle\int_{-\infty}^{x}{f_X(u)}du\)`
+
+- 概率密度函数有如下性质：
+ - `\(f_X(x) \geq 0\)`
+ 
+ - `\(\displaystyle\int_{-\infty}^{+\infty}{f_X(x)}dx=1\)`
+
+---
+
+### 随机向量
+
+- 一个n维随机向量： `\(X = \left[X_1,X_2,\cdots,X_n\right]'\)`
+
+- `\(X\)` 的联合分布函数为： `\(F(x_1,x_2,\cdots,x_n) = P(X_1 \leq x_1,X_2 \leq x_2,\cdots,X_n \leq x_n)\)`
+
+- `\(X\)` 的联合分布密度函数为： `\(f(x_1,x_2,\cdots,x_n) = \displaystyle\frac{\partial^n F(x_1,x_2,\cdots,x_n)}{\partial x_1\partial x_2\cdots\partial x_n}\)`
+
+- 所以，联合分布函数和联合密度函数的关系为： `\(F(x_1,x_2,\cdots,x_n) = \displaystyle\int_{-\infty}^{x_1}\displaystyle\int_{-\infty}^{x_2} \cdots \displaystyle\int_{-\infty}^{x_n}{f(u_1,u_2,\cdots,u_n)}du_1du_2\cdots du_n\)`
+
+---
+
+### 边缘分布和条件分布
+
+- 对于二维随机向量 `\(\left[X,Y\right]'\)`，其联合分布函数记为 `\(F_{XY}(x,y)\)`，联合分布密度记为 `\(f_{XY}(x,y)\)`，条件分布函数记为 `\(F_{Y|X}\)`，条件密度函数记为 `\(f_{Y|X}\)`
+
+- 对 `\(X\)` 的边缘分布函数为： `\(F_X = P(X \leq x,Y \leq +\infty) = F_{XY}(x,+\infty)\)`
+
+- 对 `\(X\)` 的边缘分布密度为： `\(f_X(x) = \displaystyle\int_{-\infty}^{+\infty}f_{XY}(x,y)dy\)`
+
+- 对 `\(Y\)` 的条件分布函数为： `\(F_{Y|X}(y|x) = \displaystyle\int_{-\infty}^{y}f_{Y|X}(u|x)du\)`
+
+- 对 `\(Y\)` 的条件密度函数为： `\(f_{Y|X}(y|x) = \frac{f_{XY}(x,y)}{f_X(x)}\)`
+
+---
+
+### 独立性
+
+- 当且仅当 `\(X\)` 和 `\(Y\)` 相互独立时，有以下关系：
+
+ - `\(f_{XY} = f_X \cdot f_Y\)`
+ 
+ - `\(f_{Y|X} = \displaystyle\frac{f_{XY}}{f_X} = \frac{f_X \cdot f_Y}{f_X} = f_Y\)`
+ 
+ - 对任意函数 `\(g(\cdot)\)` 和 `\(h(\cdot)\)` ，有 `\(g(X)\)` 和 `\(h(Y)\)` 相互独立
+
+---
+
+### 随机变量的均值和矩
+
+- `\(X\)` 的一阶矩（均值）为： `\(E[X] = \displaystyle\int_{-\infty}^{+\infty}xf_X(x)dx = \displaystyle\int_{-\infty}^{+\infty}xdF_X(x)\)`
+
+- `\(X\)` 函数的一阶矩（均值）为： `\(E[g(x)] = \displaystyle\int_{-\infty}^{+\infty} g(x)f_X(x)dx\)`
+
+- `\(X\)` 的二阶中心矩（方差）为： `\(Var(x) = E(X-EX)^2\)`
+
+- 三阶矩可以用来衡量分布的偏度；四阶矩衡量分布的峰度/厚尾程度
+
+- `\(X\)` 的 `\(k\)` 阶矩为： `\(E[X^k] = \displaystyle\int_{-\infty}^{+\infty} x^k f_X(x)dx = \displaystyle\int_{-\infty}^{+\infty} x^k dF_X(x)\)`
+
+- `\(E[X^n]&lt;\infty\)`         `\(\Rightarrow\)`           `\(m \leq n\)`  ,   `\(E[X^m] \leq \infty\)` 
+
+- 若 `\(E[X^n]&lt;\infty\)`，则 `\(n\)` 阶矩存在。由上式可知，高阶矩存在可推低阶矩存在。
+
+---
+
+### 二维随机向量  `\(\left[X,Y\right]'\)`
+
+- 均值： `\(E[h(x,y)] = \displaystyle\int_{-\infty}^{+\infty}\int_{-\infty}^{+\infty} h(x,y) f_{XY}(x,y)dxdy\)`
+- 协方差： `\(cov(X,Y) = E[(X-EX)(Y-EY)] = E(XY)-EX \cdot EY\)`
+- 相关系数： `\(\rho_{XY} = \displaystyle\frac{cov(X,Y)}{\sqrt {var(X)}\sqrt {var(Y)}}\)`
+- 相关系数表示两个随机变量线性相关的程度， `\(\rho_{XY} \in [-1,1]\)` ; 当 `\(\rho_{XY} = 1\)` 时， `\(Y = aX + b\)`
+- 若 `\(X,Y\)` 相互独立，可推 `\(\rho_{XY}=0\)` ；但 `\(\rho_{XY}=0\)` 不能推出 `\(X,Y\)` 相互独立。
+- 对多个随机变量，均值、方差、协方差有如下性质（a , b , c 为常数）：
+ - `\(E(aX+bY) = aEX+bEY\)`
+ - `\(var(aX+bY) = a^2 var(X) + b^2 var(Y) + 2ab \cdot cov(X,Y)\)`
+ - `\(cov(aX+bY,cZ) = ac \cdot cov(X,Z) +bc \cdot cov(Y,Z)\)`
+ - `\(cov(X,Y) = cov(Y,X)\)`
+ - `\(cov(X,X) = var(X)\)`
+ - `\(cov(X,a) = 0\)`
+
+---
+
+### 随机向量
+
+- `\(X = \left[X_1,X_2,\cdots,X_n\right]'\)`     ，则 `\(EX = \left[EX_1,EX_2,\cdots,EX_n\right]'\)` ， `\(var(X) = E[(X-EX)(X-EX)'] = E[XX']-EX(EX)'\)`
+
+ `\(X\)` 的方差矩阵是一个对称矩阵，是一个 `\(n \times n\)` 的方阵，对角线上的元素为方差，非对角线上的元素为协方差 `\(cov(X_i,X_j)\)`，同时该矩阵也是一个半正定矩阵（ `\(a'var(X)a \geq 0\)` ）
+
+- 若 `\(X,Y\)` 都为随机向量，则：
+
+ `\(cov(X,Y) = cov(Y,X)'\)`
+ `\(var(X,Y) = var(X)+var(Y)+cov(X,Y)+cov(Y,X)\)`
+
+ 若 `\(Y = a+\gamma' X\)`，其中 `\(a,\gamma\)` 都是非随机的，则： `\(var(Y) = \gamma' var(X) \gamma\)`
+ 
+---
+
+### 条件期望
+
+- `\(E[Y|X]=\displaystyle\int_{y} y f_{Y|X}(y|x)dy\)`
+
+- 迭代期望法则： `\(E[E(Y|X)]=E(Y)\)`
+
+ 证明：
+ `\(\begin{aligned}E[E(Y|X)]&amp;=\displaystyle\int_{x}\int_{y} yf_{Y|X}(y|x)dy f_X(x)dx\\&amp;=\int_{x}\int_{y} y \frac{f_{XY}(x,y)}{f_X(x)}f_X(x)dydx\\&amp;=\int_{y}y\int_{x}f_{XY}(x,y)dxdy\\&amp;=E(Y)\end{aligned}\)`
+
+ 
+ - 对任意函数 `\(g(\cdot),h(\cdot)\)` 有， `\(E[g(X)h(Y)|Y]=h(Y)\cdot E[g(X)|Y]\)`
+ 
+ - 若 `\(X,Y\)` 相互独立，则： `\(E(Y|X)=E(Y)\)`
+
+---
+
+### 正态分布
+
+- 随机变量 `\(X\thicksim N(\mu,\sigma^2)\)`
+ - 分布密度： `\(f(x)=\displaystyle\frac{1}{\sqrt{2\pi}\sigma}\exp\left(-\frac{(x-\mu)^2} {2\sigma^2}\right)\)`
+- 矩阵形式：
+ `\(X \thicksim N(\mu,\Sigma)\)`
+ - `\(E(X)=\mu ，var(X)=\Sigma\)`
+ 
+ - 分布密度： `\(f(x)=(2\pi)^{-\frac{n}{2}} |\Sigma|^{-\frac{1}{2}} \exp(-\frac{1}{2} (x-\mu)'\Sigma^{-1}(x-\mu))\)`
+ 
+- 正态分布线性变换仍为正态分布
+ - 若 `\(Y=a+\gamma' X\)` ，则有 `\(Y \thicksim N(a+\gamma\mu,\gamma'\Sigma\gamma)\)`
+
+
+---
+
+### 正态分布
+- 联合分布为正态分布     `\(\Rightarrow\)`    边缘分布为正态分布
+
+- 边缘分布为正态分布     `\(\nRightarrow\)`    联合分布为正态分布
+
+- 联合分布为正态分布     `\(\Rightarrow\)`    子集的分布为正态分布
+- `\(X,Y\)` 联合分布为正态分布： `\(\left[\matrix{X\\Y}\right]\thicksim N(\left[\matrix{\mu_X\\\mu_Y}\right],\left[\matrix{\Sigma_{XX}&amp;\Sigma_{XY}\\\Sigma_{YX}&amp;\Sigma_{YY}}\right])\)`
+
+  则有：
+`\(Y|X \thicksim N(\mu_{Y|X}(x),\Sigma_{Y|X})\)`
+
+  其中， `\(\mu_{Y|X}(x)=\mu_Y+\Sigma_{YX}\Sigma_{XX}^{-1}(x-\mu_x)\)` ， `\(\Sigma_{Y|X}=\underbrace{\Sigma_{YY}-\Sigma_{YX}\Sigma_{XX}^{-1}\Sigma_{XY}}_{是固定的}\)`
+  
+ `\(E(Y|X)=\alpha+\beta_1 X_1+\cdots+\beta_k X_k\)`      `\(\Longrightarrow\)`     残差为正态分布
+ 
+---
+
+### 其他常用分布
+
+- 卡方分布
+
+若 `\(Z_1,Z_2,\cdots,Z_n\thicksim N(0,1)\)` 且相互独立，
+则 `\(X=Z_1^2 + Z_2^2 + \cdots +Z_n^2 \thicksim \chi^2(n)\)`
+
+- `\(t\)`分布
+
+若 `\(X\thicksim \chi^2(n),Z\thicksim N(0,1)\)` 且 `\(X,Z\)` 相互独立，
+则 `\(Y=\displaystyle\frac{Z}{\sqrt{\displaystyle\frac{X}{n}}}\thicksim t(n)\)`
+
+- `\(F\)`分布
+
+若 `\(X_1\thicksim \chi^2(n_1),X_2\thicksim \chi^2(n_2)\)` 且 `\(X_1,X_2\)` 相互独立，
+则 `\(Y=\displaystyle\frac{\displaystyle\frac{X_1}{n_1}}{\displaystyle\frac{X_2}{n_2}}\thicksim F(n_1,n_2)\)`
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script>var slideshow = remark.create({
+"highlightStyle": "github",
+"highlightLines": true,
+"countIncrementalSlides": false
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();
+// add `data-at-shortcutkeys` attribute to <body> to resolve conflicts with JAWS
+// screen reader (see PR #262)
+(function(d) {
+  let res = {};
+  d.querySelectorAll('.remark-help-content table tr').forEach(tr => {
+    const t = tr.querySelector('td:nth-child(2)').innerText;
+    tr.querySelectorAll('td:first-child .key').forEach(key => {
+      const k = key.innerText;
+      if (/^[a-z]$/.test(k)) res[k] = t;  // must be a single letter (key)
+    });
+  });
+  d.body.setAttribute('data-at-shortcutkeys', JSON.stringify(res));
+})(document);
+(function() {
+  "use strict"
+  // Replace <script> tags in slides area to make them executable
+  var scripts = document.querySelectorAll(
+    '.remark-slides-area .remark-slide-container script'
+  );
+  if (!scripts.length) return;
+  for (var i = 0; i < scripts.length; i++) {
+    var s = document.createElement('script');
+    var code = document.createTextNode(scripts[i].textContent);
+    s.appendChild(code);
+    var scriptAttrs = scripts[i].attributes;
+    for (var j = 0; j < scriptAttrs.length; j++) {
+      s.setAttribute(scriptAttrs[j].name, scriptAttrs[j].value);
+    }
+    scripts[i].parentElement.replaceChild(s, scripts[i]);
+  }
+})();
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();
+// adds .remark-code-has-line-highlighted class to <pre> parent elements
+// of code chunks containing highlighted lines with class .remark-code-line-highlighted
+(function(d) {
+  const hlines = d.querySelectorAll('.remark-code-line-highlighted');
+  const preParents = [];
+  const findPreParent = function(line, p = 0) {
+    if (p > 1) return null; // traverse up no further than grandparent
+    const el = line.parentElement;
+    return el.tagName === "PRE" ? el : findPreParent(el, ++p);
+  };
+
+  for (let line of hlines) {
+    let pre = findPreParent(line);
+    if (pre && !preParents.includes(pre)) preParents.push(pre);
+  }
+  preParents.forEach(p => p.classList.add("remark-code-has-line-highlighted"));
+})(document);</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>

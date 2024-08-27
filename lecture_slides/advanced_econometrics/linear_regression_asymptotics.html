@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+  <head>
+    <title>OLS的大样本性质及假设检验（Asymptotics of OLS and hypothesis testing）</title>
+    <meta charset="utf-8" />
+    <meta name="author" content="文旷宇" />
+    <script src="libs/header-attrs/header-attrs.js"></script>
+    <link href="libs/xaringanExtra-banner/banner.css" rel="stylesheet" />
+    <script src="libs/xaringanExtra-banner/banner.js"></script>
+    <script src="libs/fabric/fabric.min.js"></script>
+    <link href="libs/xaringanExtra-scribble/scribble.css" rel="stylesheet" />
+    <script src="libs/xaringanExtra-scribble/scribble.js"></script>
+    <script>document.addEventListener('DOMContentLoaded', function() { window.xeScribble = new Scribble({"pen_color":["#FF0000"],"pen_size":3,"eraser_size":30,"palette":[]}) })</script>
+    <link href="libs/panelset/panelset.css" rel="stylesheet" />
+    <script src="libs/panelset/panelset.js"></script>
+    <link rel="stylesheet" href="xaringan-themer.css" type="text/css" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+.title[
+# OLS的大样本性质及假设检验（Asymptotics of OLS and hypothesis testing）
+]
+.author[
+### 文旷宇
+]
+.institute[
+### 华中科技大学
+]
+
+---
+
+class: left, middle
+layout: true
+
+
+
+<div>
+<style type="text/css">.xaringan-extra-logo {
+width: 55px;
+height: 64px;
+z-index: 0;
+background-image: url(../images/hust-logo.png);
+background-size: contain;
+background-repeat: no-repeat;
+position: absolute;
+top:1em;right:1em;
+}
+</style>
+<script>(function () {
+  let tries = 0
+  function addLogo () {
+    if (typeof slideshow === 'undefined') {
+      tries += 1
+      if (tries < 10) {
+        setTimeout(addLogo, 100)
+      }
+    } else {
+      document.querySelectorAll('.remark-slide-content:not(.title-slide):not(.inverse):not(.hide_logo)')
+        .forEach(function (slide) {
+          const logo = document.createElement('div')
+          logo.classList = 'xaringan-extra-logo'
+          logo.href = null
+          slide.appendChild(logo)
+        })
+    }
+  }
+  document.addEventListener('DOMContentLoaded', addLogo)
+})()</script>
+</div><script>document.addEventListener('DOMContentLoaded',function(){new xeBanner(JSON.parse('{"left":"","right":"","exclude":["title-slide"],"position":"top"}'))})</script>
+<script>document.addEventListener('DOMContentLoaded',function(){new xeBanner(JSON.parse('{"left":"文旷宇/华中科技大学","exclude":["title-slide"],"position":"bottom"}'))})</script>
+
+
+
+---
+
+### 主要内容
+
+
+- OLS的大样本性质
+
+ - 一致性
+ 
+ - 渐进正态性
+
+- 假设检验
+
+- 异方差
+
+ - 存在异方差时一致性
+ 
+ - 存在异方差时渐进正态性
+
+- 可行的GLS
+
+
+
+---
+
+### OLS估计量的大样本性质
+
+- 对于模型 `\(Y_i=X_i'\beta+u_i\)`，其中 `\(X_i,\beta\)`是k维列向量， `\(u_i\)`是残差
+
+- 有如下假定：
+
+ - `\(E[X_iu_i]=0\)`,即 `\(cov(X_i,u_i)=0\)`
+
+ - 一组观测点 `\(\{(Y_i,X_i)\}\quad i=1,2,\cdots,n\)`独立同分布
+
+ - `\(E[X_iX_i']\)`是一个有限的严格正定矩阵
+
+  （在这里没有对同方差或者异方差做假定；也没有要求残差正态分布，只需要四阶矩存在即可）
+  
+---
+
+###一致性
+
+- 证明：  `\(\hat{\beta}_{OLS}\rightarrow^P\beta\)`
+`$$\begin{aligned}\hat{\beta}_{OLS}&amp;=(X'X)^{-1}X'Y\\&amp;=\big(\frac{1}{n}\sum\limits_{i=1}^nX_iX_i'\big)^{-1}\big(\frac{1}{n}\sum\limits_{i=1}^nX_iY_i\big)\\&amp;=\big(\frac{1}{n}\sum\limits_{i=1}^nX_iX_i'\big)^{-1}\big[\frac{1}{n}\sum\limits_{i=1}^nX_i(X_i'\beta+u_i)\big]\\&amp;=\beta+\big(\frac{1}{n}\sum\limits_{i=1}^nX_iX_i'\big)^{-1}\big(\frac{1}{n}\sum\limits_{i=1}^nX_iu_i\big)\end{aligned}$$`
+其中， `\(\frac{1}{n}\sum\limits_{i=1}^nX_iX_i'\rightarrow^PE[X_iX_i']\)` , `\(\frac{1}{n}\sum\limits_{i=1}^nX_iu_i\rightarrow^PE[X_iu_i]\)` , 
+
+`\(\Rightarrow\qquad\big(\frac{1}{n}\sum\limits_{i=1}^nX_iX_i'\big)^{-1}\big(\frac{1}{n}\sum\limits_{i=1}^nX_iu_i\big)\rightarrow^P\big[E[X_iX_i']\big]^{-1}E[X_iu_i]=0\)` 
+
+`\(\Rightarrow\qquad\hat{\beta}_{OLS}\rightarrow^P\beta\)`，即 `\(\hat{\beta}_{OLS}\)`是 `\(\beta\)`的一致估计量。
+
+---
+
+###渐进正态性
+
+- 证明： `\(\sqrt{n}(\hat{\beta}_{OLS}-\beta)\rightarrow^dN(0,V)\)`
+
+其中， `\(V=Q^{-1}\Omega Q^{-1}\quad Q=E[X_iX_i']\quad \Omega=E[u_i^2X_iX_i']\)`
+
+`$$\begin{aligned}\hat{\beta}_{OLS}&amp;=\big(\frac{1}{n}\sum\limits_{i=1}^nX_iX_i'\big)^{-1}\big(\frac{1}{n}\sum\limits_{i=1}^nX_iY_i\big)\\&amp;=\beta+\big(\frac{1}{n}\sum\limits_{i=1}^nX_iX_i'\big)^{-1}\big(\frac{1}{n}\sum\limits_{i=1}^nX_iu_i\big)\end{aligned}$$`
+`$$\sqrt{n}(\hat{\beta}_{OLS}-\beta)=\big(\frac{1}{n}\sum\limits_{i=1}^nX_iX_i'\big)^{-1}\big(\frac{1}{\sqrt{n}}\sum\limits_{i=1}^nX_iu_i\big)$$`
+其中， `\(\frac{1}{n}\sum\limits_{i=1}^nX_iX_i'\rightarrow^PE[X_iX_i']\)` , `\(\frac{1}{\sqrt{n}}\sum\limits_{i=1}^nX_iu_i\rightarrow^dN(0,\Omega)\)` 
+
+---
+
+###渐进正态性（续）
+
+-                                                                                         `$$\sqrt{n}(\hat{\beta}_{OLS}-\beta)=\big(\frac{1}{n}\sum\limits_{i=1}^nX_iX_i'\big)^{-1}\big(\frac{1}{\sqrt{n}}\sum\limits_{i=1}^nX_iu_i\big)$$`
+
+  `\(\Rightarrow\qquad\big(\frac{1}{n}\sum\limits_{i=1}^nX_iX_i'\big)^{-1}\big(\frac{1}{\sqrt{n}}\sum\limits_{i=1}^nX_iu_i\big)\rightarrow^dQ^{-1}N(0,\Omega)\)`
+
+  `\(\Rightarrow\qquad\sqrt{n}(\hat{\beta}_{OLS}-\beta)\rightarrow^dQ^{-1}N(0,\Omega)=N(0,Q^{-1}\Omega Q^{-1})\)`
+
+- 注：当添加同方差假定时，即 `\(E[u_i|X_i]=0\qquad E[u_i^2|X_i]=\sigma^2\)`
+
+   `\(\Omega=E[u_i^2X_iX_i']=E\big[E[u_i^2X_iX_i'|X_i]\big]=E\big[X_iX_i'E[u_i^2|X_i]\big]=\sigma^2E[X_iX_i']=\sigma^2Q\)` 
+
+   `\(V=Q^{-1}\Omega Q^{-1}=\sigma^2Q^{-1}\)`
+
+---
+
+###估计协方差矩阵
+ 
+- 有限样本下做 `\(\hat{\beta}_{OLS}\)`的方差的近似，即 `\(AVar(\hat{\beta}_{OLS})=\frac{\hat{V}}{n}\)` 。 
+ - 过程如下：
+ `\(\begin{aligned}Var[\hat\beta|X]&amp;=\sigma^2(X'X)^{-1}\\&amp;=\sigma^2(\sum_{i=1}^nX_iX_i')^{-1}\\&amp;=\frac{1}{n}\sigma^2(\frac{1}{n}\sum_{i=1}^nX_iX_i')^{-1}\rightarrow\sigma^2\frac{1}{n}Q^{-1}\end{aligned}\)`
+ 
+ - `\(\hat{\beta} \sim N(\beta,\frac{1}{n}\sigma^2Q^{-1})\)`
+ 
+ - 渐近方差 `\(AVar(\hat\beta)\approx\frac{1}{n}\hat{Q}^{-1}\hat{\Omega}\hat{Q}^{-1}\rightarrow\)`异方差稳健标准误
+
+- 在同方差的假定下， `\(AVar(\hat{\beta})\approx\frac{\hat{\sigma}^2}{n}\hat{Q}^{-1}\)`,其中 `\(\hat{\sigma}^2=\frac{1}{n}\sum_{i=1}^n(Y_i-X_i'\hat{\beta})^2\)`
+ - 一般在限定同方差的假定下估计会更准确，信息更多，方差更小；若真存在异方差，则可能会高估显著性。
+ 
+---
+
+###假设检验
+
+- 对总体进行检验，标准化后的距离趋向于一个分布，若以极小的概率出现在分布的尾部，则可以认为距离较远。
+
+`$$H_0:\beta_k=\beta_{k,0} \quad H_1:\beta_k\not=\beta_{k,0}$$`
+
+- 在大样本有渐近分布： `$$\sqrt{n}(\hat{\beta_k}-\beta_k)\rightarrow^dN(0,V_{kk})\Rightarrow\qquad \frac{\sqrt{n}(\hat{\beta}_k-\beta_k)}{\sqrt{V_{kk}}}\rightarrow^dN(0,1)$$`
+
+ - 因为 `\(V_{kk}\)`在真实世界未知，在这里我们用 `\(\hat{V_{kk}}\)`进行替换，那么 `\(\frac{\sqrt{n}(\hat{\beta}_k-\beta_k)}{\sqrt{\hat{V}_{kk}}}\rightarrow^dN(0,1)\)` 还会成立吗？
+ 
+ - `\(\frac{\sqrt{n}(\hat{\beta}_k-\beta_k)}{\sqrt{\hat{V}_{kk}}}=\frac{\sqrt{n}(\hat{\beta}_k-\beta_k)}{\sqrt{V_{kk}}}\cdot \frac{\sqrt{V_{kk}}}{\sqrt{\hat{V}_{kk}}}\)`
+，只要 `\(\hat{V}_{kk}\)`是一致估计量，那么 `\(\sqrt{\hat{V}_{kk}}\rightarrow^P\sqrt{V_{kk}}\)` ,所以 `\(\frac{\sqrt{V_{kk}}}{\sqrt{\hat{V}_{kk}}}\rightarrow^P1\)` ,此时 `\(\frac{\sqrt{n}(\hat{\beta}_k-\beta_k)}{\sqrt{\hat{V}_{kk}}}\rightarrow^dN(0,1)\)` 成立。
+
+---
+
+###Delta Method
+
+大样本下，假设检验的限制条件可以是线性的，也可以是非线性的。
+
+`$$H_0:h(\beta)=0\qquad H_1:h(\beta)\neq0$$`
+
+- 已知 `\(\hat{\beta}\)` 是一个k维随机向量，并假定 `\(\sqrt{n}(\hat{\beta}-\beta)\rightarrow^dY\quad (n\rightarrow\infty)\)` ,其中 `\(\beta\)`是一个
+
+k维常向量,Y是一个随机向量，如果函数  `\(h(\cdot):R^k\rightarrow R^m\)` （代表 `\(k\)`个 `\(\beta\)`, `\(m\)`个限制条
+
+件）在 `\(\beta\)` 的某个开区间内连续可导，那么 `$$\sqrt{n}(h(\hat{\beta})-h(\beta))\rightarrow^d\frac{\partial h(\beta)}{\partial \beta'}Y$$`
+
+ - eg1. `\(h(\beta)=\left[\begin{matrix}\beta_1\\{\vdots}\\\beta_k\end{matrix}\right]\)`，eg2.  `\(h(\beta)=\left[\begin{matrix}\beta_1^2+\beta_2^2\\\beta_3+\beta_4\end{matrix}\right]\)`，其 `\(k\)`=4, `\(m\)`=2。
+ 
+
+ 
+---
+
+###Delta Method（续）
+
+- eg. `\(h(\beta)=\left[\begin{matrix}\beta_1^2+\beta_2^2-1\\\beta_3-\beta_4\end{matrix}\right]\)`
+
+ - 对于上例 `\(\frac{\partial h(\beta)}{\partial \beta'}=\left[\begin{matrix}\frac{\partial h_1}{\partial\beta_1}&amp;\frac{\partial h_1}{\partial \beta_2}&amp;{\cdots}&amp;\frac{\partial h_1}{\partial\beta_4}\\\frac{\partial h_2}{\partial\beta_1}&amp;\frac{\partial h_2}{\partial \beta_2}&amp;{\cdots}&amp;\frac{\partial h_2}{\partial\beta_4}\end{matrix}\right]\)`，有
+ 
+ `\(\sqrt{n}(h(\hat{\beta})-h(\beta))\rightarrow^d\left[\begin{matrix}2\beta_1 &amp; 2\beta_2&amp;0&amp;0\\ 0&amp;0 &amp; 1&amp;-1\end{matrix}\right]N(0,V)\)` 
+ 
+ - `\(\frac{\partial h(\beta)}{\partial \beta'}\)`是一个 `\(m\times k\)` 维的矩阵，第 `\(i-j\)`个元素是 `\(\frac{\partial h_i(\beta)}{\partial \beta_j'}\)`。
+ 
+---
+
+###Delta Mehtod（续）
+
+- `$$\sqrt{n}(h(\hat{\beta})-h(\beta))\rightarrow^d\frac{\partial h(\beta)}{\partial \beta'}Y\Rightarrow \sqrt{n}(h(\hat{\beta})-h(\beta))\rightarrow^dN(0,\frac{\partial h(\beta)}{\partial \beta'}V\frac{\partial h(\beta)}{\partial \beta})$$`
+
+- `$$h(\hat{\beta})-h(\beta)\sim N(0,\frac{1}{n}\frac{\partial h(\beta)}{\partial \beta'}V\frac{\partial h(\beta)}{\partial \beta})$$`
+
+- 原假设 `\(h(\beta)=0\)`，因此上式变形为：
+
+ `\(\Big[\frac{1}{n}\frac{\partial h(\beta)}{\partial \beta'}V\frac{\partial h(\beta)}{\partial \beta}\Big]^{-\frac{1}{2}}h(\hat{\beta})\sim N(0,I_m)\)`
+ 
+ `\(h(\hat{\beta})'\Big[\frac{1}{n}\frac{\partial h(\beta)}{\partial \beta'}V\frac{\partial h(\beta)}{\partial \beta}\Big]^{-1}h(\hat{\beta}) \rightarrow^d\chi_m^2\)`
+
+ - `\(V,h(\beta)\)`都未知，替换为一致估计量依然收敛于卡方分布：
+ 
+ `\(n h(\hat{\beta})'\Big[\frac{\partial h(\hat{\beta})}{\partial \beta'}\hat{V}\frac{\partial h(\hat{\beta})}{\partial \beta}\Big]^{-1}h(\hat{\beta}) \rightarrow^d\chi_m^2\)`
+ 
+---
+
+###Wald test statistic
+
+`$$W_n=nh(\hat{\beta})'\big[\frac{\partial h(\beta)}{\partial \beta'}V\frac{\partial h(\beta)}{\partial \beta}\big]^{-1}h(\hat{\beta})\rightarrow^d \chi^2_q$$`
+- 由于 `\(V\)` 未知，用 `\(\hat{V}\)`来估计 `\(V\)`。
+
+- 如果 `\(W_n&gt;\chi^2_{1-\alpha,q}\)` ,则拒绝原假设。
+
+ - eg. `\(h(\beta)=\beta_1\)`时，Wald统计量 `\(W_n=nh(\hat{\beta})'V_{11}^{-1}h(\hat{\beta}) \Rightarrow h(\hat{\beta})'(\frac{V_{11}}{n})^{-1}h(\hat{\beta})\)`
+ 
+`\(=\frac{h(\hat{\beta})'}{\sqrt{\frac{V_{11}}{n}}}\frac{h(\hat{\beta})}{\sqrt{\frac{V_{11}}{n}}}\)`
+
+ - 其中 `\(\frac{h(\hat{\beta})'}{\sqrt{\frac{V_{11}}{n}}}\sim N(0,1)\)`。
+ 
+---
+
+###异方差
+
+当异方差存在时，OLS仍然是无偏一致的但是非最有效。
+
+若存在异方差，即 `\(E[u_i|X_i]=0 \quad E[u_i^2|X_i]=Var(u_i|X_i)=\sigma^2(X_i)\)` 
+
+记 `\(\sigma(X_i)=\sigma_i\)` 
+
+回顾一元线性回归： `\(Y_i=X_i'\beta + u_i\)` ,其中  `\(u_i\)` 异方差
+
+两边同除以 `\(\sigma_i\)` , 得 `\(\frac{Y_i}{\sigma_i}=\frac{X_i'}{\sigma_i}\beta + \frac{u_i}{\sigma_i}\)` 
+
+令 `\(Y_i^*=\frac{Y_i}{\sigma_i} \qquad X_i^*=\frac{X_i}{\sigma_i} \qquad u_i^*=\frac{u_i}{\sigma_i}\)` 
+
+则 `\(Y_i^*={X_i^*}'\beta+ u_i^*\)` 
+
+`\(E[u_i^{*2}|X_i]=E[\frac{u_i^2}{\sigma_i^2}|X_i]=\frac{1}{\sigma_i^2}E[u_i^2|X_i]=1\)` 
+
+记 `\(Y^*=D^{-\frac{1}{2}}Y \quad X^*=D^{-\frac{1}{2}}X\)`
+
+
+---
+
+###异方差（续）
+
+估计量为
+$$
+`\begin{aligned}
+\hat{\beta}_{GLS}&amp;=[{X^*}'X^*]^{-1}{X^*}'Y^*
+\\&amp;=[X'D^{-\frac{1}{2}}D^{-\frac{1}{2}}X]^{-1}[X'D^{-\frac{1}{2}}D^{-\frac{1}{2}}Y]
+\\&amp;=[X'D^{-1}X]^{-1}X'D^{-1}Y
+\end{aligned}`
+$$
+其中， `\(D_{n\times n}=\left[\begin{matrix} \sigma_1^2 &amp;0 &amp; \cdots &amp;0\\0 &amp;\sigma_2^2 &amp;\cdots &amp;0\\\vdots &amp;\vdots &amp;\ddots &amp;\vdots\\0 &amp;0 &amp;\cdots &amp;\sigma_n^2\end{matrix}\right]\)` 
+
+---
+
+###异方差（续）
+
+`\(\because Y=X\beta+U\)`
+
+`\(\begin{aligned}\therefore \hat{\beta}_{GLS}&amp;=[X'D^{-1}X]^{-1}X'D^{-1}(X\beta+U) \\&amp; =\beta+(X'D^{-1}X)^{-1}X'D^{-1}U\end{aligned}\)` 
+
+`\(\because E[U|X]=0\)`
+
+`\(\therefore E\{(X'D^{-1}X)^{-1}X'D^{-1}U|X\}=(X'D^{-1}X)^{-1}X'D^{-1}E(U|X)=0\)` 
+$$
+`\begin{aligned}
+ &amp;E(\hat{\beta}_{GLS})=\beta
+\\&amp;Var(\hat{\beta}_{GLS}|X)=(X'D^{-1}X)^{-1}X'D^{-1}Var(U|X)D^{-1}X(X'D^{-1}X)^{-1}=(X'D^{-1}X)^{-1}
+\end{aligned}`
+$$
+当同方差的条件满足时， `\(D_{n\times n}\)` 退化成了 `\(\sigma^2I\)` ,此时，
+
+`\(Var(\hat{\beta}_{GLS}|X)=\sigma^2(X'X)^{-1}=Var(\hat{\beta}_{OLS}|X)\)` 。
+
+---
+
+###大样本性质（存在异方差时）
+
+对于 `\(\frac{Y_i}{\sigma_i}=\frac{X_i}{\sigma_i}\beta + \frac{u_i}{\sigma_i}\)`  
+
+将GLS估计量写成求和形式为
+$$
+`\begin{aligned}
+\hat{\beta}_{GLS}&amp;=\bigg(\sum\limits_{i=1}^n(\frac{X_i}{\sigma_i})(\frac{X_i}{\sigma_i})'\bigg)^{-1}\bigg(\sum\limits_{i=1}^n(\frac{X_i}{\sigma_i})(\frac{Y_i}{\sigma_i})\bigg) 
+\\&amp;=\bigg(\sum\limits_{i=1}^n\sigma_i^{-2}X_iX_i'\bigg)^{-1}\bigg(\sum\limits_{i=1}^n\sigma_i^{-2}X_iY_i\bigg) 
+\end{aligned}`
+$$
+然后判断其一致性和渐进正态性。
+
+---
+
+###一致性
+$$
+`\begin{aligned}
+\hat{\beta}_{GLS}&amp;=\bigg(\sum\limits_{i=1}^n\sigma_i^{-2}X_iX_i'\bigg)^{-1}\bigg(\sum\limits_{i=1}^n\sigma_i^{-2}X_iY_i\bigg) 
+\\&amp;=\bigg(\frac{1}{n}\sum\limits_{i=1}^n\sigma_i^{-2}X_iX_i'\bigg)^{-1}\bigg(\frac{1}{n}\sum\limits_{i=1}^n\sigma_i^{-2}X_iY_i\bigg)
+\\&amp;=\beta+\bigg(\frac{1}{n}\sum\limits_{i=1}^n\sigma_i^{-2}X_iX_i'\bigg)^{-1}\bigg(\frac{1}{n}\sum\limits_{i=1}^n\sigma_i^{-2}X_iu_i\bigg)
+\end{aligned}`
+$$
+
+其中， `\(\frac{1}{n}\sum\limits_{i=1}^n\sigma_i^{-2}X_iX_i' \rightarrow^P E[\sigma_i^{-2}X_iX_i']\)`  ， `\(\frac{1}{n}\sum\limits_{i=1}^n\sigma_i^{-2}X_iu_i \rightarrow^P E[\sigma_i^{-2}X_iu_i]\)` 
+
+而 `\(E[\sigma_i^{-2}X_iu_i]=E\big[E[\sigma_i^{-2}X_iu_i|X_i]\big]=E[\sigma_i^{-2}X_iE(u_i|X_i)]\)` 
+
+当 `\(E(u_i|X_i)=0\)` 成立时，有 `\(\hat{\beta}_{GLS}\rightarrow^P\beta\quad(n\rightarrow\infty)\)` ,即一致性成立。
+
+**需要注意的是**，在OLS的大样本性质中，即使是弱化的外生性条件 `\(E[u_iX_i]=0\)` 成立情形下也可以推出 `\(\frac{1}{n}\sum\limits_{i=1}^n\sigma_i^{-2}X_iu_i \rightarrow^P E[\sigma_i^{-2}X_iu_i]=0\)` ,但在GLS估计中，弱化的外生性条件并不能推出  `\(E[\sigma_i^{-2}X_iu_i]=0\)`  。
+
+---
+
+###渐进正态性
+
+`$$\sqrt{n}(\hat{\beta}_{GLS}-\beta)=\bigg(\frac{1}{n}\sum\limits_{i=1}^n\sigma_i^{-2}X_iX_i'\bigg)^{-1}\bigg(\frac{1}{\sqrt{n}}\sum\limits_{i=1}^n\sigma_i^{-2}X_iu_i\bigg)$$`
+
+其中， `\(\frac{1}{n}\sum\limits_{i=1}^n\sigma_i^{-2}X_iX_i' \rightarrow^P E[\sigma_i^{-2}X_iX_i']\)` ， `\(\frac{1}{\sqrt{n}}\sum\limits_{i=1}^n\sigma_i^{-2}X_iu_i \rightarrow^d N\big(0,Var(\sigma_i^{-2}X_iu_i)\big)\)` 
+
+`\(\begin{aligned} \because Var(\sigma_i^{-2}X_iu_i)&amp;=E[\sigma_i^{-2}X_iu_iu_iX_i'\sigma_i^{-2}]\\&amp;=E\big[E[\sigma_i^{-2}X_iu_iu_iX_i'\sigma_i^{-2}|X_i]\big] \\&amp;=E[\sigma_i^{-2}X_iE(u_i^2|X_i)X_i'\sigma_i^{-2}] \\&amp;=E[\sigma_i^{-2}X_iX_i'] \end{aligned}\)` 
+
+`\(\therefore \frac{1}{\sqrt{n}}\sum\limits_{i=1}^n\sigma_i^{-2}X_iu_i \rightarrow^d N\big(0,E[\sigma_i^{-2}X_iX_i']\big)\)` 
+
+`\(\sqrt{n}(\hat{\beta}_{GLS}-\beta) \rightarrow^d E[\sigma_i^{-2}X_iX_i']^{-1}N\big(0,E[\sigma_i^{-2}X_iX_i']\big)=N(0,E[\sigma_i^{-2}X_iX_i']^{-1})\)` 
+
+---
+
+###可行的GLS
+
+步骤：
+
+- 运行OLS估计,得到残差 `\(\hat{u}_i \quad i=1,2,\cdots,n\)` 
+
+- 对公式 `\(\hat{u}_i^2=Z_i'\alpha+\epsilon_i\)` 进行回归,得 `\(\hat{\alpha}\)`
+
+其中， `\(Z_i=[X_{1i},X_{2i},\cdots,X_{ki},X_{1i}X_{2i},X_{2i}X_{3i},\cdots,X_{1i}^2,X_{2i}^2,\cdots]\)` 
+
+- `\(\hat{\sigma}_i^2=Z_i'\hat{\alpha}\)` 
+
+GLS理论上可减少方差，但不可行，因为不知道 `\(\sigma^2_i\)` ，若想估计，须估计 `\(\hat{\sigma}^2_i\)` ,但如果估计不准确，会影响最终估计。因此现实中往往直接使用OLS，或稳健标准误，效果可能更好。
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script>var slideshow = remark.create({
+"highlightStyle": "github",
+"highlightLines": true,
+"countIncrementalSlides": false
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();
+// add `data-at-shortcutkeys` attribute to <body> to resolve conflicts with JAWS
+// screen reader (see PR #262)
+(function(d) {
+  let res = {};
+  d.querySelectorAll('.remark-help-content table tr').forEach(tr => {
+    const t = tr.querySelector('td:nth-child(2)').innerText;
+    tr.querySelectorAll('td:first-child .key').forEach(key => {
+      const k = key.innerText;
+      if (/^[a-z]$/.test(k)) res[k] = t;  // must be a single letter (key)
+    });
+  });
+  d.body.setAttribute('data-at-shortcutkeys', JSON.stringify(res));
+})(document);
+(function() {
+  "use strict"
+  // Replace <script> tags in slides area to make them executable
+  var scripts = document.querySelectorAll(
+    '.remark-slides-area .remark-slide-container script'
+  );
+  if (!scripts.length) return;
+  for (var i = 0; i < scripts.length; i++) {
+    var s = document.createElement('script');
+    var code = document.createTextNode(scripts[i].textContent);
+    s.appendChild(code);
+    var scriptAttrs = scripts[i].attributes;
+    for (var j = 0; j < scriptAttrs.length; j++) {
+      s.setAttribute(scriptAttrs[j].name, scriptAttrs[j].value);
+    }
+    scripts[i].parentElement.replaceChild(s, scripts[i]);
+  }
+})();
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();
+// adds .remark-code-has-line-highlighted class to <pre> parent elements
+// of code chunks containing highlighted lines with class .remark-code-line-highlighted
+(function(d) {
+  const hlines = d.querySelectorAll('.remark-code-line-highlighted');
+  const preParents = [];
+  const findPreParent = function(line, p = 0) {
+    if (p > 1) return null; // traverse up no further than grandparent
+    const el = line.parentElement;
+    return el.tagName === "PRE" ? el : findPreParent(el, ++p);
+  };
+
+  for (let line of hlines) {
+    let pre = findPreParent(line);
+    if (pre && !preParents.includes(pre)) preParents.push(pre);
+  }
+  preParents.forEach(p => p.classList.add("remark-code-has-line-highlighted"));
+})(document);</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>

@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+  <head>
+    <title>广义矩估计GMM（Generalized Method of Moments）</title>
+    <meta charset="utf-8" />
+    <meta name="author" content="文旷宇" />
+    <script src="libs/header-attrs/header-attrs.js"></script>
+    <link href="libs/xaringanExtra-banner/banner.css" rel="stylesheet" />
+    <script src="libs/xaringanExtra-banner/banner.js"></script>
+    <script src="libs/fabric/fabric.min.js"></script>
+    <link href="libs/xaringanExtra-scribble/scribble.css" rel="stylesheet" />
+    <script src="libs/xaringanExtra-scribble/scribble.js"></script>
+    <script>document.addEventListener('DOMContentLoaded', function() { window.xeScribble = new Scribble({"pen_color":["#FF0000"],"pen_size":3,"eraser_size":30,"palette":[]}) })</script>
+    <link href="libs/panelset/panelset.css" rel="stylesheet" />
+    <script src="libs/panelset/panelset.js"></script>
+    <link rel="stylesheet" href="xaringan-themer.css" type="text/css" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+.title[
+# 广义矩估计GMM（Generalized Method of Moments）
+]
+.author[
+### 文旷宇
+]
+.institute[
+### 华中科技大学
+]
+
+---
+
+class: left, middle
+layout: true
+
+
+
+<div>
+<style type="text/css">.xaringan-extra-logo {
+width: 55px;
+height: 64px;
+z-index: 0;
+background-image: url(../images/hust-logo.png);
+background-size: contain;
+background-repeat: no-repeat;
+position: absolute;
+top:1em;right:1em;
+}
+</style>
+<script>(function () {
+  let tries = 0
+  function addLogo () {
+    if (typeof slideshow === 'undefined') {
+      tries += 1
+      if (tries < 10) {
+        setTimeout(addLogo, 100)
+      }
+    } else {
+      document.querySelectorAll('.remark-slide-content:not(.title-slide):not(.inverse):not(.hide_logo)')
+        .forEach(function (slide) {
+          const logo = document.createElement('div')
+          logo.classList = 'xaringan-extra-logo'
+          logo.href = null
+          slide.appendChild(logo)
+        })
+    }
+  }
+  document.addEventListener('DOMContentLoaded', addLogo)
+})()</script>
+</div><script>document.addEventListener('DOMContentLoaded',function(){new xeBanner(JSON.parse('{"left":"","right":"","exclude":["title-slide"],"position":"top"}'))})</script>
+<script>document.addEventListener('DOMContentLoaded',function(){new xeBanner(JSON.parse('{"left":"文旷宇/华中科技大学","exclude":["title-slide"],"position":"bottom"}'))})</script>
+
+
+
+---
+
+### 主要内容
+
+- 矩条件
+
+- 2SLS
+
+- 有效GMM
+
+- GMM框架下的假设检验
+
+
+
+---
+
+###矩条件
+
+- 工具变量法要寻找一个工具变量 `\(Z_i\)`与 `\(X_i\)`高度相关而与 `\(e_i\)`无关，则有 `\(E[Z_ie_i]=0 \Rightarrow E[Z_i(Y_i-X_i'\beta)]=0\)`
+
+- 对于GMM，有 `\(E[g(w_i,\beta)]=0\)`，这里 `\(g:R^p\times R^k\rightarrow R^l\)`（ `\(p\)` 个数据， `\(k\)` 个参数， `\(l\)` 个矩条件）
+
+- `\(E[g(w_i,\beta)]=0,\forall \beta'\not=\beta,E[g(w_i,\beta')]\not=0\)`，我们就说模型是可识别的；但如果多个参数都能使这个成立，那么矩条件就不能被识别。
+
+ - `\(l=k\)`时为恰好识别， `\(\frac{1}{n}\sum\limits_{i=1}^ng(w_i,\hat{\beta}_{MM})=0\)`
+ 
+ - `\(l&gt;k\)`时为过度识别， `\(\hat{\beta}_{GMM}=\arg\min\limits_{\beta}\Big[\frac{1}{n}\sum\limits_{i=1}^ng(w_i,\beta)\Big]'W_n\Big[\frac{1}{n}\sum\limits_{i=1}^ng(w_i,\beta)\Big]\)`
+
+---
+
+###广义矩估计
+
+- 证明估计量的一致性
+
+ - 由大数定律可知，
+ 
+ `\(\Big[\frac{1}{n}\sum\limits_{i=1}^ng(w_i,\beta)\Big]'W_n\Big[\frac{1}{n}\sum\limits_{i=1}^ng(w_i,\beta)\Big]\rightarrow^p_{n\rightarrow \infty} \Big[E[g(w_i,\beta)]\Big]'W\Big[E[g(w_i,\beta)]\Big]\)`
+ 
+ - 根据定义， `\(\hat{\beta}_{GMM}\)`最小化了 `\(\Big[\frac{1}{n}\sum\limits_{i=1}^ng(w_i,\beta)\Big]'W_n\Big[\frac{1}{n}\sum\limits_{i=1}^ng(w_i,\beta)\Big]\)`，因此如果我们想要证明 `\(\hat{\beta}_{GMM}\to\beta\)`，只需要证明 `\(\beta\)`最小化了 `\(\Big[E[g(w_i,\beta)]\Big]'W\Big[E[g(w_i,\beta)]\Big]\)`。
+ 
+---
+
+###广义矩估计（续）
+
+- 一阶条件为 `\(\Big[\frac{1}{n}\sum\limits_{i=1}^n \frac{\partial g(w_i,\beta)}{\partial \beta}\Big]'W_n\Big[\frac{1}{n}\sum\limits_{i=1}^ng(w_i,\beta)\Big]=0\)`，
+
+ - 即 `\(\Big[\frac{1}{n}\sum\limits_{i=1}^n \frac{\partial g(w_i,\hat{\beta}_{GMM})}{\partial \beta}\Big]'W_n\Big[\frac{1}{n}\sum\limits_{i=1}^ng(w_i,\hat{\beta}_{GMM})\Big]=0\)`
+
+- 泰勒展开，在 `\(\beta\)` 附近对 `\(\frac{1}{n}\sum\limits_{i=1}^ng(w_i,\hat{\beta}_{GMM})\)`进行泰勒展开，
+
+`$$\frac{1}{n}\sum\limits_{i=1}^ng(w_i,\hat{\beta}_{GMM})=\frac{1}{n}\sum\limits_{i=1}^ng(w_i,\beta)+(\frac{1}{n}\sum^n_{i=1}\frac{\partial g(\omega_i,\beta^{\ast})}{\partial\beta})(\hat{\beta}_{GMM}-\beta)$$`
+
+- 此时一阶条件变为
+
+`$$\Big[\frac{1}{n}\sum\limits_{i=1}^n \frac{\partial g(w_i,\hat{\beta}_{GMM})}{\partial \beta}\Big]'W_n\Big[\frac{1}{n}\sum\limits_{i=1}^ng(w_i,\beta)+(\frac{1}{n}\sum^n_{i=1}\frac{\partial g(\omega_i,\beta^{\ast})}{\partial\beta})(\hat{\beta}_{GMM}-\beta)\Big]=0$$`
+
+---
+
+###广义矩估计（续）
+
+`$$\Big[\frac{1}{n}\sum\limits_{i=1}^n \frac{\partial g(w_i,\hat{\beta}_{GMM})}{\partial \beta}\Big]'W_n(\frac{1}{n}\sum^n_{i=1}\frac{\partial g(\omega_i,\beta^{\ast})}{\partial\beta})(\hat{\beta}_{GMM}-\beta)\\=-\Big[\frac{1}{n}\sum\limits_{i=1}^n \frac{\partial g(w_i,\hat{\beta}_{GMM})}{\partial \beta}\Big]'W_n\frac{1}{n}\sum\limits_{i=1}^ng(w_i,\beta)$$`
+因此， `\(\sqrt{n}(\hat{\beta}_{GMM}-\beta)\)`可由下式表示：
+
+`$$\small-\Bigg[\Big[\frac{1}{n}\sum\limits_{i=1}^n \frac{\partial g(w_i,\hat{\beta}_{GMM})}{\partial \beta}\Big]'W_n(\frac{1}{n}\sum^n_{i=1}\frac{\partial g(\omega_i,\beta^{\ast})}{\partial\beta})\Bigg]^{-1}\Big[\frac{1}{n}\sum\limits_{i=1}^n \frac{\partial g(w_i,\hat{\beta}_{GMM})}{\partial \beta}\Big]'W_n\frac{1}{\sqrt{n}}\sum\limits_{i=1}^n g(w_i,\beta)$$`
+
+令 `\(Q=E[\frac{\partial g(\omega_i,\beta)}{\partial \beta}]\)`， `\(\Sigma=E[g(\omega_i,\beta)g(\omega_i,\beta)']\)`
+
+---
+
+###广义矩估计（续）
+
+`\(\frac{1}{n}\sum\limits_{i=1}^n \frac{\partial g(w_i,\hat{\beta}_{GMM})}{\partial \beta}\to_pQ\)`, `\(W_n\to_pW\)`
+
+`\(\frac{1}{n}\sum\limits_{i=1}^n \frac{\partial g(w_i,\beta^{\ast})}{\partial \beta}\to_pQ\)`, `\(\frac{1}{\sqrt{n}}\sum^n_{i=1}g(\omega_i,\beta)\to_dN(0,\Sigma)\)`
+
+因此， `\(\sqrt{n}(\hat{\beta}_{GMM}-\beta)\to_d -\big[Q'WQ\big]^{-1}Q'WN(0,\Sigma)\)`
+
+`$$\sqrt{n}(\hat{\beta}_{GMM}-\beta)\to_d N(0,\big[Q'WQ\big]^{-1}Q'W\Sigma WQ\big[Q'WQ\big]^{-1}$$`
+
+---
+
+###2SLS
+
+- 矩条件为 `\(g(\omega_i,\beta)=Z_i(Y_i-X_i'\beta)\)`，则 `\(\frac{\partial g(\omega_i,\beta)}{\partial \beta}=-Z_iX_i'\)`
+
+- `\(\hat{\beta}_{GMM}=arg min\Big[\frac{1}{n} \sum\limits^n_{i=1}Z_i(Y_i-X_i'\beta)\Big]'W_n\Big[\frac{1}{n} \sum\limits^n_{i=1}Z_i(Y_i-X_i'\beta)\Big]\)`
+
+一阶条件为 `\(\big[-\frac{1}{n}\sum\limits^n_{i=1}Z_iX_i'\big]'W_n\Big[\frac{1}{n} \sum\limits^n_{i=1}Z_i(Y_i-X_i'\beta)\Big]=0\)`
+
+可由此推出 `\(\hat{\beta}_{GMMIV}\)`的表达式：
+
+`$$\small \begin{aligned}\hat{\beta}_{GMMIV}&amp;=\Bigg[(\frac{1}{n}\sum\limits^n_{i=1}X_iZ_i')W_n(\frac{1}{n}\sum\limits^n_{i=1}Z_iX_i')\Bigg]^{-1}(\frac{1}{n}\sum\limits^n_{i=1}X_iZ_i')W_n(\frac{1}{n}\sum\limits^n_{i=1}Z_iY_i)\\&amp;=\Big[X'ZW_nZ'X\Big]^{-1}(X'Z)W_n(Z'Y)\end{aligned}$$`
+
+当 `\(W_n=(Z'Z)^{-1}\)`时，  `\(\hat{\beta}_{GMMIV}=\hat{\beta}_{2SLS}\)`
+
+---
+
+###有效GMM
+
+有效GMM的两步法：
+
+- `\(\hat{\Sigma}=\frac{1}{n}\sum\limits_{i=1}^n g(w_i,\hat{\beta})g(w_i,\hat{\beta})'\)`，其中 `\(\hat{\beta}\)`是 `\(\beta\)`的一致估计量。特别地， `\(\hat{\beta}=\arg \min \Big[\frac{1}{n}\sum\limits_{i=1}^n g(w_i,\beta)\Big]'\Big[\frac{1}{n}\sum\limits_{i=1}^n g(w_i,\beta)\Big]\)`，
+
+- 令 `\(W_n=\hat{\Sigma}^{-1}\)`， `\(\hat{\beta}_{EGMM}=\arg \min \Big[\frac{1}{n}\sum\limits_{i=1}^n g(w_i,\beta)\Big]'\hat{\Sigma}^{-1}\Big[\frac{1}{n}\sum\limits_{i=1}^n g(w_i,\beta)\Big]\)`
+
+- `\(\sqrt{n}(\hat{\beta}_{EGMM}-\beta)\to_d N(0,[Q'\Sigma^{-1}Q]^{-1})\)`
+
+- 由 `\(g(\omega_i,\beta)=Z_i(Y_i-X_i'\beta)=Z_ie_i\)` 可推出
+
+`\(\Sigma=E\big[g(\omega_i,\beta)g(\omega_i,\beta)'\big]=E\big[Z_ie_i^2Z_i'\big]=E\big[e_i^2Z_iZ_i'\big]\)`
+
+---
+
+###有效GMM（续）
+
+- 假定 `\(E\big[e_i^2|Z_i\big]=\sigma^2\)`
+
+ - `\(\big[E[e_i^2Z_iZ_i']\big]^{-1}=E\Big[E[e_i^2Z_iZ_i'|Z_i]\Big]^{-1}=E[\sigma^2Z_iZ_i']^{-1}=\sigma^2E[Z_iZ_i']^{-1}\)`
+ 
+- 两阶段最小二乘法是GMM的一个特例， `\(W_n=\Big[\frac{1}{n}\sum\limits^n_{i=1}Z_iZ_i'\Big]^{-1}\)`，且 `\(W_n\to_P W=\big[E[Z_iZ_i']\big]^{-1}\)`。
+
+- 有效GMM的权重矩阵为 `\(W_n\)`，且有 `\(W_n\to_P W=\big[E[e_i^2Z_iZ_i']\big]^{-1}\)`，特别地，同方差假定下（ `\(E[e_i^2|Z_i]=\sigma^2\)`）的2SLS就是最有效的GMM。
+
+---
+
+###假设检验
+
+- `\(H_0 :h(\beta)=0\)`； `\(H_1 :h(\beta)\not=0\)`，其中 `\(h(\cdot):R^k\to R^q\)` 在 `\(\beta\)`的某个开区间内连续可导。
+
+- `\(\sqrt{n}(h(\hat{\beta}_{GMM})-h(\beta))\to_dN(0,\frac{\partial h(\beta)}{\partial \beta}V(\frac{\partial h(\beta)}{\partial \beta})')\)`
+
+- `\(h(\hat{\beta}_{GMM})\approx N(0,\frac{1}{n}\frac{\partial h(\beta)}{\partial \beta}V\frac{\partial h(\beta)}{\partial \beta'})\)`
+
+- `\(h(\hat{\beta}_{GMM})\Big[\frac{1}{n}\frac{\partial h(\beta)}{\partial \beta}V\frac{\partial h(\beta)}{\partial \beta'}\Big]^{-1}h(\hat{\beta}_{GMM})\to _d\chi^2_q\)`
+
+- 用 `\(\hat{V}\)`来估计 `\(V\)`，则有 `\(h(\hat{\beta}_{GMM})\Big[\frac{1}{n}\frac{\partial h(\beta)}{\partial \beta}\hat{V}\frac{\partial h(\beta)}{\partial \beta'}\Big]^{-1}h(\hat{\beta}_{GMM})\to _d\chi^2_q\)`
+
+- 因此，Wald统计量 `\(nh(\hat{\beta}_{GMM})\Big[\frac{\partial h(\beta)}{\partial \beta}\hat{V}\frac{\partial h(\beta)}{\partial \beta'}\Big]^{-1}h(\hat{\beta}_{GMM})\to _d\chi^2_q\)`
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script>var slideshow = remark.create({
+"highlightStyle": "github",
+"highlightLines": true,
+"countIncrementalSlides": false
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();
+// add `data-at-shortcutkeys` attribute to <body> to resolve conflicts with JAWS
+// screen reader (see PR #262)
+(function(d) {
+  let res = {};
+  d.querySelectorAll('.remark-help-content table tr').forEach(tr => {
+    const t = tr.querySelector('td:nth-child(2)').innerText;
+    tr.querySelectorAll('td:first-child .key').forEach(key => {
+      const k = key.innerText;
+      if (/^[a-z]$/.test(k)) res[k] = t;  // must be a single letter (key)
+    });
+  });
+  d.body.setAttribute('data-at-shortcutkeys', JSON.stringify(res));
+})(document);
+(function() {
+  "use strict"
+  // Replace <script> tags in slides area to make them executable
+  var scripts = document.querySelectorAll(
+    '.remark-slides-area .remark-slide-container script'
+  );
+  if (!scripts.length) return;
+  for (var i = 0; i < scripts.length; i++) {
+    var s = document.createElement('script');
+    var code = document.createTextNode(scripts[i].textContent);
+    s.appendChild(code);
+    var scriptAttrs = scripts[i].attributes;
+    for (var j = 0; j < scriptAttrs.length; j++) {
+      s.setAttribute(scriptAttrs[j].name, scriptAttrs[j].value);
+    }
+    scripts[i].parentElement.replaceChild(s, scripts[i]);
+  }
+})();
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();
+// adds .remark-code-has-line-highlighted class to <pre> parent elements
+// of code chunks containing highlighted lines with class .remark-code-line-highlighted
+(function(d) {
+  const hlines = d.querySelectorAll('.remark-code-line-highlighted');
+  const preParents = [];
+  const findPreParent = function(line, p = 0) {
+    if (p > 1) return null; // traverse up no further than grandparent
+    const el = line.parentElement;
+    return el.tagName === "PRE" ? el : findPreParent(el, ++p);
+  };
+
+  for (let line of hlines) {
+    let pre = findPreParent(line);
+    if (pre && !preParents.includes(pre)) preParents.push(pre);
+  }
+  preParents.forEach(p => p.classList.add("remark-code-has-line-highlighted"));
+})(document);</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>

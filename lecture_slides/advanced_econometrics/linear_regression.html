@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+  <head>
+    <title>线性回归（Linear Regression）</title>
+    <meta charset="utf-8" />
+    <meta name="author" content="文旷宇" />
+    <script src="libs/header-attrs/header-attrs.js"></script>
+    <link href="libs/xaringanExtra-banner/banner.css" rel="stylesheet" />
+    <script src="libs/xaringanExtra-banner/banner.js"></script>
+    <script src="libs/fabric/fabric.min.js"></script>
+    <link href="libs/xaringanExtra-scribble/scribble.css" rel="stylesheet" />
+    <script src="libs/xaringanExtra-scribble/scribble.js"></script>
+    <script>document.addEventListener('DOMContentLoaded', function() { window.xeScribble = new Scribble({"pen_color":["#FF0000"],"pen_size":3,"eraser_size":30,"palette":[]}) })</script>
+    <link href="libs/panelset/panelset.css" rel="stylesheet" />
+    <script src="libs/panelset/panelset.js"></script>
+    <link rel="stylesheet" href="xaringan-themer.css" type="text/css" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+.title[
+# 线性回归（Linear Regression）
+]
+.author[
+### 文旷宇
+]
+.institute[
+### 华中科技大学
+]
+
+---
+
+class: left, middle
+layout: true
+
+
+
+<div>
+<style type="text/css">.xaringan-extra-logo {
+width: 55px;
+height: 64px;
+z-index: 0;
+background-image: url(../images/hust-logo.png);
+background-size: contain;
+background-repeat: no-repeat;
+position: absolute;
+top:1em;right:1em;
+}
+</style>
+<script>(function () {
+  let tries = 0
+  function addLogo () {
+    if (typeof slideshow === 'undefined') {
+      tries += 1
+      if (tries < 10) {
+        setTimeout(addLogo, 100)
+      }
+    } else {
+      document.querySelectorAll('.remark-slide-content:not(.title-slide):not(.inverse):not(.hide_logo)')
+        .forEach(function (slide) {
+          const logo = document.createElement('div')
+          logo.classList = 'xaringan-extra-logo'
+          logo.href = null
+          slide.appendChild(logo)
+        })
+    }
+  }
+  document.addEventListener('DOMContentLoaded', addLogo)
+})()</script>
+</div><script>document.addEventListener('DOMContentLoaded',function(){new xeBanner(JSON.parse('{"left":"","right":"","exclude":["title-slide"],"position":"top"}'))})</script>
+<script>document.addEventListener('DOMContentLoaded',function(){new xeBanner(JSON.parse('{"left":"文旷宇/华中科技大学","exclude":["title-slide"],"position":"bottom"}'))})</script>
+
+
+
+---
+
+### 主要内容
+
+
+- 线性回归框架、假设与估计量
+
+- 估计量的性质
+
+- 模型误设：遗漏相关变量与包含不相关变量
+
+
+
+---
+
+### 回归框架
+
+- 假设 `\(n\)` 个独立同分布样本点： `\((Y_1,X_1),(Y_2,X_2),\cdots, (Y_n,X_n)\)`
+
+- 线性回归方程 `\(Y_i=\beta_0 +\beta_1 X_{1i} + \beta_2 X_{2i} +\cdots + \beta_k X_{ki}+u_i\)`，其中 `\(u_i\)` 为残差， `\(X_{1i},\cdots,X_{ki}\)` 为 `\(k\)` 个解释变量， `\(Y_i\)` 为被解释变量
+ 
+- 记 `\(\beta=(\beta_0,\beta_1,\cdots,\beta_k)'\)` 以及 `\(X_i = (1,X_{1i},\cdots,X_{ki})'\)`，线性回归方程可以写成向量形式 `\(Y_i = X_i'\beta +u_i\)`
+
+
+---
+
+###回归框架（续）
+- 矩阵形式 `\(Y=X\beta +U\)`
+  
+  其中， `\(Y=\left[\matrix{Y_1\\Y_2\\\vdots\\Y_n}\right]\)` ， `\(X=\left[\matrix{1&amp;X_{11}&amp;X_{21}&amp;\cdots&amp;X_{k1}\\1&amp;X_{12}&amp;X_{22}&amp;\cdots&amp;X_{k2}\\\vdots&amp;\vdots&amp;\vdots&amp;\ddots&amp;\vdots\\1&amp;X_{1n}&amp;X_{2n}&amp;\cdots&amp;X_{kn}}\right]\)` （列为变量、行为样
+  
+  本点）， `\(\beta=\left[\matrix{\beta_0\\\beta_1\\\vdots\\\beta_k}\right]\)` ， `\(U=\left[\matrix{u_1\\u_2\\\vdots\\u_n}\right]\)` 
+
+---
+
+### 线性回归假设条件 
+
+对于线性回归 `\(Y=X\beta +U\)`：
+ 
+ -  外生： `\(E(U|X)=0\)` ，核心假设条件
+ 
+ -  满秩： `\(rank(X)=k+1\)` ，该假设排除了共线性可能
+ 
+ -  同方差： `\(var(U|X)=\sigma^2 \cdot I\)` ，属于“锦上添花”型假设条件
+
+在独立同分布样本假设条件下，外生假设条件也可表述为 `\(E(u_i|X_i)=0\)` ，同方差假设条件可表述为 `\(var(u_i|X_i) = \sigma^2\)`
+ 
+---
+
+###矩估计
+
+对于 `\(Y_i=X_i'\beta + u_i\)`， 根据外生假设条件和迭代期望法则，有 `\(E(u_i X_i)=E[E(u_i X_i|X_i)]=E[X_i(E(u_i|X_i))]=0\)` 
+
+`\(\Rightarrow E((Y_i-X_i'\beta)X_i)=0\)` 
+
+`\(\Rightarrow E(X_i Y_i-X_i X_i'\beta)=0\)` 
+
+`\(\Rightarrow E(X_i Y_i)-E(X_i X_i')\beta=0\)` ，根据满秩假设条件，矩阵 `\(E(X_i X_i')\)` 可逆，
+
+`\(\Rightarrow\beta=E(X_i X_i')^{-1}E(X_i Y_i)\)` 
+
+
+---
+
+###矩估计（续）
+`\(\Rightarrow\beta=E(X_i X_i')^{-1}E(X_i Y_i)\)` 
+
+设 `\(X=\left[\matrix{X_1'\\X_2'\\\vdots\\X_n'}\right]\)` ， `\(X'=\left[\matrix{X_1&amp;X_2&amp;\cdots&amp;X_n}\right]\)` ， `\(Y=\left[\matrix{Y_1\\Y_2\\\vdots\\Y_n}\right]\)` 
+
+有 `\(X'X=\left[\matrix{X_1&amp;X_2&amp;\cdots&amp;X_n}\right]\left[\matrix{X_1'\\X_2'\\\vdots\\X_n'}\right]=\displaystyle\sum^n_{i=1}{X_iX_i'}\)` 
+
+得到， `\(\hat{\beta}_{MM}=(\displaystyle\frac{1}{n}\sum_{i=1}^{n} {X_i X_i'})^{-1} (\displaystyle\frac{1}{n}\sum_{i=1}^{n} {X_i Y_i})=(X'X)^{-1}X'Y\)` 
+
+---
+
+###OLS估计
+OLS通过最小二乘法原则选择一组解释变量的线性函数的参数：最小化数据集中残差的平方和。
+`\(\min \displaystyle\sum_{i=1}^{n}{(Y_i-X_i'\beta)^{2}} \Leftrightarrow \min\sum_{i=1}^{n} {u_i^2}\)` 
+
+`\(\begin{aligned} s(\beta)&amp;=(Y-X\beta)'(Y-X\beta)\\&amp;=(Y'-\beta' X')(Y-X\beta)\\&amp;=Y'Y-Y'X\beta-\beta'X'Y+\beta'X'X\beta\\&amp;=Y'Y-2\beta'X'Y+\beta'X'X\beta\end{aligned}\)` 
+
+`\(\displaystyle\frac{\partial s(\beta)}{\partial \beta}=-2X'Y+2X'X\beta=0\)` 
+
+`\(\Rightarrow (X'X)\beta=X'Y\)` 
+
+`\(\Rightarrow \hat{\beta}_{OLS}=(X'X)^{-1}X'Y = X^{+}Y\)` ，其中 `\(X^{+}\)` 为广义逆矩阵，当 `\(X\)` 是满秩矩阵的时候， `\(X^{+} = (X'X)^{-1}X'\)` 
+
+---
+
+###OLS估计量的性质
+- OLS估计量是最优线性无偏估计量，即BLUE（Best Linear Unbiased Estimate），该性质依赖同方差假设条件。
+
+- `\(\hat{\beta}_{OLS}\)` 是关于 `\(Y\)` 的线性估计量，因为 `\(\hat Y\)` 可以表示为 `\(S(X)Y\)` 的形式，其中 `\(S(X) = X(X'X)^{-1}X\)` 只与解释变量 `\(X\)` 有关。
+
+- `\(\hat{\beta}_{OLS}\)` 是无偏估计量。
+
+`\(\begin{aligned}E(\hat{\beta}_{OLS})&amp;=E(E(\hat{\beta}_{OLS}|X))\\&amp;=E(E((X'X)^{-1}X'Y|X))\\&amp;=E((X'X)^{-1}X'E(Y|X))\\&amp;=E((X'X)^{-1}X'X\beta)\\&amp;=\beta\end{aligned}\)` 
+
+---
+
+###OLS估计量的性质（续）
+- 如果同方差假定成立，则有  `\(var(\hat{\beta}_{OLS}|X)=\sigma^{2} (X'X)^{-1}\)`。
+
+`$$\begin{aligned}\hat{\beta}_{OLS}= (X'X)^{-1}X'Y= (X'X)^{-1}X'(X\beta+U)= \beta +(X'X)^{-1}X'U\end{aligned}$$` 
+
+`$$\begin{aligned}var(\hat{\beta}_{OLS})&amp;= var((X'X)^{-1}X'U|X)\\&amp;= (X'X)^{-1}X' var(U|X) X(X'X)^{-1}\\&amp;= \sigma^2 (X'X)^{-1} X'X (X'X)^{-1}\\&amp;=\sigma^2 (X'X)^{-1}\end{aligned}$$` 
+
+- 若残差方差 `\(\sigma^2\)` 增大，则 `\(var(\hat{\beta}_{OLS})\)` 也会变大；
+
+- 若 `\(X\)` 中存在变量间相关系数的绝对值接近1，则 `\((X'X)^{-1}\)` 会很大，同时 `\(var(\hat{\beta}_{OLS})\)` 也会很大。
+
+- 设 `\(U\thicksim N(0,\sigma^2 I)\)` ，则 `\(\hat{\beta}_{OLS} \thicksim N(\beta , \sigma^2 (X'X)^{-1})\)` 。
+
+- 有效性： `\(var(\hat{\beta}_{OLS}|X)\)` 是最小的。
+
+---
+
+### `\(\sigma^2\)` 估计量
+- 由 `\(Y=X\beta +U\)` 可得OLS估计量： `\(\hat{\beta}_{OLS}= (X'X)^{-1}X'Y\)` 
+
+`$$\hat{Y}= X\hat{\beta}_{OLS}=X(X'X)^{-1}X'Y$$`
+`$$\hat{U}= Y-\hat{Y}= (I-X(X'X)^{-1}X')Y$$`
+
+- 设投影矩阵 `\(P_x= X(X'X)^{-1}X'\)` , `\(M_x= I-X(X'X)^{-1}X'\)` 
+
+- 投影矩阵 `\(P_x,M_x\)`的性质如下：
+
+(1) `\(P_x,M_x\)` 为对称、幂等矩阵。
+ 
+`$$P_x P_x= X(X'X)^{-1}X' X(X'X)^{-1}X'=X(X'X)^{-1}X'= P_x$$`
+(2) `\(P_x \cdot M_x = P_x(I-P_x)=P_xI-P_xP_x=P_x-P_x=0\)` 
+ 
+ `\(\Longrightarrow\)`      `\(\hat{Y}\perp \hat{U}\)` 
+
+---
+### `\(\sigma^2\)` 估计量（续）
+得到投影矩阵之后，继续上文的推导：
+
+`\(\hat{U}= M_x Y= M_x (X\beta +U)= \underbrace{M_x \cdot X\beta}_{x投影到x空间的剩余为0}+ M_x U= M_x U\)` 
+
+`\(\hat{U'}\hat{U}= U'M_x'M_xU= U'M_xU= tr(U'M_xU)= tr(M_xUU')\)` 
+
+`\(\begin{aligned}E(\hat{U'}\hat{U})&amp;= E(tr(M_xUU'))= tr(E(M_xUU'))= tr(M_xE(UU'|X))\\&amp;= tr(M_x\cdot\sigma^2\cdot I)= \sigma^2 tr(M_x)=\sigma^2 (n-tr(P_x))\\&amp;=\sigma^2 (n-tr(X(X'X)^{-1}X')) \\&amp;=\sigma^2 (n-tr((X'X)^{-1}X'X)) \\&amp;=\sigma^2 (n-tr(I))= (n-k-1)\sigma^2\end{aligned}\)`  
+
+残差方差的无偏估计量 `\(\hat{\sigma}^2= \displaystyle\frac{1}{n-k-1}\hat{U'}\hat{U}\)`
+
+---
+
+### 分块回归
+
+- 若回归中解释变量分为核心解释变量和控制变量，式子如下： 
+`$$Y= X_1\beta_1 + X_2\beta_2 +U$$`
+
+- 则有：
+
+`$$\begin{aligned}\hat{\beta}_{1,OLS}&amp;=(X_1'M_2X_1)^{-1} X_1' M_2 Y\\&amp;=(X_1'M_2'M_2 X_1)^{-1} X_1' M_2'M_2Y\\&amp;=[(M_2X_1)'(M_2X_1)]^{-1}(M_2X_1)'M_2Y\\&amp;= (\tilde{X_1'}\tilde{X_1})^{-1} \tilde{X_1} \tilde{Y} \end{aligned}$$` 
+
+其中， `\(M_2= I-X_2(X_2'X_2)^{-1}X_2'\)` ， `\(\tilde{X_1}= M_2X_1\)` ， `\(\tilde{Y}=M_2Y\)` 
+
+- 思考：估计量 `\(\hat \beta_{1,OLS}\)` 的“逐步回归”解释
+
+---
+
+###遗漏相关变量（Omitting relevant variable)
+
+设原模型为： `\(Y=X_1\beta_1+X_2\beta_2+U\)` 
+
+若遗漏相关变量 `\(X_2\)` ，则： `\(Y=X_1\beta_1+U\)`
+
+ `$$\beta_1=(X_1'X_1)^{-1} X_1'Y=(X_1'X_1)^{-1} X_1'(X_1\beta_1+X_2\beta_2+U)\\=\beta_1+(X_1'X_1)^{-1} X_1'X_2\beta_2+(X_1'X_1)^{-1} X_1'U$$` 
+ 
+由 `\(E(U|X)=0\)` ，有： `\(E(\widetilde\beta_1|X)= \beta_1+(X_1'X_1)^{-1} X_1'X_2\beta_2\)` 
+
+所以，遗漏相关解释变量会使估计量有偏，除非 `\(X_1,X_2\)`独立。
+
+---
+
+###遗漏相关变量（Omitting relevant variable)（续）
+
+ - 在同方差 `\(var[U|X_1,X_2]=\sigma^2I\)` 的假定下，进一步考察估计量的方差。
+ 
+ 遗漏变量之后 `\(var(\widetilde\beta_1|X)=\sigma^2 (X_1'X_1)^{-1}\)` 
+ 
+ 遗漏变量之前 `\(var(\hat\beta_1|X)=\sigma^2 (X_1M_2X_1)^{-1}\)` 
+ 
+ 而 `\(X_1'X_1-X_1'M_2X_1=X_1'(I-M_2)X_1=X_1'P_2'P_2X_1=(P_2X_1)'P_2X_1\geq 0\)` 
+ 
+ 因此，有 `\((X_1'X_1)^{-1} \leq (X_1'M_2X_1)^{-1}\)`
+ 
+ 故而 `\(var(\widetilde\beta_1|X)\leq var(\hat\beta_1|X)\)` 
+ 
+ - 所以，遗漏相关解释变量会使得估计量的条件方差变小。
+ 
+---
+
+###包含不相关变量（Including irrelevant variable）
+
+设原模型为： `\(Y=X_1\beta_1+U\)`
+
+若包含不相关变量 `\(X_2\)` ，则：  `\(Y=X_1\beta_1+X_2\beta_2+U\)` 
+
+`$$\beta_1=(X_1'M_2X_1)^{-1} X_1'M_2Y=(X_1'M_2X_1)^{-1} X_1'M_2(X_1\beta_1+U)\\=\beta_1+(X_1'M_2X_1)^{-1} X_1'M_2U$$`
+
+由 `\(E(U|X)=0\)` ，有： `\(E(\widetilde\beta_1)= \beta_1\)` 
+
+包含不相关变量之后 `\(var(\widetilde\beta_1|X)=\sigma^2 (X_1M_2X_1)^{-1}\)` 
+
+包含不相关变量之前 `\(var(\hat\beta_1|X)=\sigma^2 (X_1'X_1)^{-1}\)` 
+
+因此， `\(var(\hat\beta_1|X)\leq var(\widetilde\beta_1|X)\)` 
+
+所以，包含不相关变量时，得到的估计量仍是无偏估计量，但方差会变大。
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script>var slideshow = remark.create({
+"highlightStyle": "github",
+"highlightLines": true,
+"countIncrementalSlides": false
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();
+// add `data-at-shortcutkeys` attribute to <body> to resolve conflicts with JAWS
+// screen reader (see PR #262)
+(function(d) {
+  let res = {};
+  d.querySelectorAll('.remark-help-content table tr').forEach(tr => {
+    const t = tr.querySelector('td:nth-child(2)').innerText;
+    tr.querySelectorAll('td:first-child .key').forEach(key => {
+      const k = key.innerText;
+      if (/^[a-z]$/.test(k)) res[k] = t;  // must be a single letter (key)
+    });
+  });
+  d.body.setAttribute('data-at-shortcutkeys', JSON.stringify(res));
+})(document);
+(function() {
+  "use strict"
+  // Replace <script> tags in slides area to make them executable
+  var scripts = document.querySelectorAll(
+    '.remark-slides-area .remark-slide-container script'
+  );
+  if (!scripts.length) return;
+  for (var i = 0; i < scripts.length; i++) {
+    var s = document.createElement('script');
+    var code = document.createTextNode(scripts[i].textContent);
+    s.appendChild(code);
+    var scriptAttrs = scripts[i].attributes;
+    for (var j = 0; j < scriptAttrs.length; j++) {
+      s.setAttribute(scriptAttrs[j].name, scriptAttrs[j].value);
+    }
+    scripts[i].parentElement.replaceChild(s, scripts[i]);
+  }
+})();
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();
+// adds .remark-code-has-line-highlighted class to <pre> parent elements
+// of code chunks containing highlighted lines with class .remark-code-line-highlighted
+(function(d) {
+  const hlines = d.querySelectorAll('.remark-code-line-highlighted');
+  const preParents = [];
+  const findPreParent = function(line, p = 0) {
+    if (p > 1) return null; // traverse up no further than grandparent
+    const el = line.parentElement;
+    return el.tagName === "PRE" ? el : findPreParent(el, ++p);
+  };
+
+  for (let line of hlines) {
+    let pre = findPreParent(line);
+    if (pre && !preParents.includes(pre)) preParents.push(pre);
+  }
+  preParents.forEach(p => p.classList.add("remark-code-has-line-highlighted"));
+})(document);</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>

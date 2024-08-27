@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+  <head>
+    <title>内生性与工具变量（Endogenous and Instrumental Variables.）</title>
+    <meta charset="utf-8" />
+    <meta name="author" content="文旷宇" />
+    <meta name="date" content="2024-01-01" />
+    <script src="libs/header-attrs/header-attrs.js"></script>
+    <link href="libs/xaringanExtra-banner/banner.css" rel="stylesheet" />
+    <script src="libs/xaringanExtra-banner/banner.js"></script>
+    <script src="libs/fabric/fabric.min.js"></script>
+    <link href="libs/xaringanExtra-scribble/scribble.css" rel="stylesheet" />
+    <script src="libs/xaringanExtra-scribble/scribble.js"></script>
+    <script>document.addEventListener('DOMContentLoaded', function() { window.xeScribble = new Scribble({"pen_color":["#FF0000"],"pen_size":3,"eraser_size":30,"palette":[]}) })</script>
+    <link href="libs/panelset/panelset.css" rel="stylesheet" />
+    <script src="libs/panelset/panelset.js"></script>
+    <link rel="stylesheet" href="xaringan-themer.css" type="text/css" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+.title[
+# 内生性与工具变量（Endogenous and Instrumental Variables.）
+]
+.author[
+### 文旷宇
+]
+.institute[
+### 华中科技大学
+]
+.date[
+### 2024
+]
+
+---
+
+class: left, middle
+layout: true
+
+
+
+<div>
+<style type="text/css">.xaringan-extra-logo {
+width: 55px;
+height: 64px;
+z-index: 0;
+background-image: url(../images/hust-logo.png);
+background-size: contain;
+background-repeat: no-repeat;
+position: absolute;
+top:1em;right:1em;
+}
+</style>
+<script>(function () {
+  let tries = 0
+  function addLogo () {
+    if (typeof slideshow === 'undefined') {
+      tries += 1
+      if (tries < 10) {
+        setTimeout(addLogo, 100)
+      }
+    } else {
+      document.querySelectorAll('.remark-slide-content:not(.title-slide):not(.inverse):not(.hide_logo)')
+        .forEach(function (slide) {
+          const logo = document.createElement('div')
+          logo.classList = 'xaringan-extra-logo'
+          logo.href = null
+          slide.appendChild(logo)
+        })
+    }
+  }
+  document.addEventListener('DOMContentLoaded', addLogo)
+})()</script>
+</div><script>document.addEventListener('DOMContentLoaded',function(){new xeBanner(JSON.parse('{"left":"","right":"","exclude":["title-slide"],"position":"top"}'))})</script>
+<script>document.addEventListener('DOMContentLoaded',function(){new xeBanner(JSON.parse('{"left":"文旷宇/华中科技大学","exclude":["title-slide"],"position":"bottom"}'))})</script>
+
+
+
+---
+
+### 主要内容
+
+- 内生性的来源
+
+- 寻找工具变量
+
+- 恰好识别的矩估计
+
+- 2SLS
+
+- 弱工具变量
+
+
+---
+
+###内生性
+
+- 内生性问题是指模型中的一个或多个解释变量与误差项存在相关关系
+`$$Y_i=X_{1i}'\beta_1+X_{2i}'\beta_2+u_i$$`
+其中， `\(X_{1i}\)` 是 `\(k_1\)`维列向量， `\(X_{2i}\)`是 `\(k_2\)`维列向量。
+
+如果 `\(E[X_{1i}u_i]\neq0,E[X_{2i}u_i]=0\)` ，我们称 `\(X_{1i}\)`是内生变量， `\(X_{2i}\)`是外生变量。
+
+- 内生性常见的三大来源：遗漏变量，测量误差，双向因果。
+---
+
+###遗漏变量
+
+- 模型中漏掉了一个或几个重要的解释变量，且这些被遗漏的解释变量与模型的解释变量相关。
+
+- 在一个回归中，有一个重要的解释变量，但你没有把这个解释变量放进模型，这意味着这个变量会自动被包含进扰动项中。如果这个被遗漏的解释变量与模型已有的解释变量不相关，那估计依然是无偏的。但是如果被遗漏的变量与没有被遗漏的变量相关，这就会造成解释变量与扰动项相关
+
+- eg. `\(\log wage_i=\beta_0+\beta_1education_i+\beta_2gender_i+\beta_3\underline {ability_i}+u_i\)` 
+
+ - 在该实证模型中，自变量 `\(ability_i\)` 就可能因为不可测而被遗漏掉。
+
+**准则一**：关键变量（既影响X，又影响Y）是否被遗漏，如果遗漏掉会产生内生性。
+
+---
+
+###测量误差
+
+- eg. `\(Y_i=X_{1i}' \beta_1 +X_{2i}' \beta_2 +u_i\)`
+
+其中， `\(X_{1i}\)` 无法被准确观测到，只能观测到 `\(\tilde{X}_{1i}\)` , `\(\varepsilon_i\)` 是测量误差。
+
+所以，实际可以实现的回归是
+$$
+`\begin{align}
+Y_i&amp;=\left(\tilde X_{1i}' -\varepsilon_1' \right) \beta_1 +X_{2i}' \beta_2 +u_i
+\\&amp;=\tilde X_{1i}' \beta_1 +X_{2i}' \beta_2 +u_i -\varepsilon_1' \beta_1
+\\&amp;=\tilde X_{1i}' \beta_1 +X_{2i}' \beta_2 +v_i
+\end{align}`
+$$
+其中， `\(v_i=u_i -\varepsilon_1' \beta_1\)` ， `\(\tilde{X}_{1i}=X_{1i}+\varepsilon_i\)` 。
+
+ $ cov(v_i,\tilde{X}_{1i}) \neq 0$
+
+但在经济研究中，因为其本身存在误差，所以一般忽略测量误差或者使用代理变量（proxy variable）。
+
+---
+
+###双向因果
+
+- 研究 `\(X\)` 对 `\(Y\)` 的影响时，$Y$ 对 `\(X\)` 也会产生影响。
+
+- eg1.研究价格对需求的影响时，价格本身就有内生性（价格由需求函数求得）。
+
+- eg2.研究家庭孩子个数对工作时间的影响，建模如下：
+$$
+`\begin{cases}
+Hour_i=\beta_1 Children_i +X_{2i}'\beta_2 +u_i
+\\Children_i=\gamma_1 Hour_i+Z_{2i}'\gamma_2+v_i
+\end{cases}`
+$$
+模型中， `\(Hour_i,Children_i\)` 是内生的，所以可以联立上述方程组求得如下模型：
+
+`\(Children_i=X_{2i}'\left(\frac{\beta_2 \gamma_1}{1-\beta_1 \gamma_1}\right)+Z_{2i}'\left(\frac{\gamma_2}{1-\beta_1 \gamma_1}\right)+\left(\frac{\gamma_1}{1-\beta_1 \gamma_1}\right)u_i+\left(\frac{1}{1-\beta_1 \gamma_1}\right)v_i\)` 
+
+在该模型中， `\(cov(Children_i,u_i)\neq 0\)` 。
+
+---
+
+###估计量是否一致
+
+已知模型 `\(Y_i=X_{1i}'\beta_1+X_{2i}'\beta_2+u_i\)`，其中 `\(X_{1i}\)` 是内生的， `\(X_{2i}\)` 是外生的，问： `\(\hat{\beta}_{1,OLS},\hat{\beta}_{2,OLS}\)` 是否是一致估计量？
+
+答：二者都不是一致估计量，除非 `\(X_{1i}\)`和 `\(X_{2i}\)` 正交，否则OLS估计量都不是一致估计量。在回归中，只要有一个内生变量，则所有的估计量都不一致。证明如下：
+$$
+`\begin{align}
+\hat{\beta}_{1,OLS}&amp;=(X_1'M_2X_1)^{-1}X_1'M_2Y
+\\&amp;=\beta_1+(X_1'M_2X_1)^{-1}X_1'M_2U
+\\&amp;=\beta_1+(\frac{1}{n}X_1'M_2X_1)^{-1}(\frac{1}{n}X_1'M_2U)
+\end{align}`
+$$
+其中， `\(M_2=I-P_2=I-X_2(X_2'X_2)^{-1}X_2'\)` ,
+$$
+`\begin{align}
+&amp;\frac{1}{n}X_1'M_2X_1=\frac{1}{n}\sum\limits_{i=1}^nX_{1i}X_{1i}'-\frac{1}{n}\sum\limits_{i=1}^nX_{1i}X_{2i}'(\frac{1}{n}\sum\limits_{i=1}^nX_{2i}X_{2i}')^{-1}\frac{1}{n}\sum\limits_{i=1}^nX_{2i}X_{1i}'
+\\
+&amp;\frac{1}{n}X_1'M_2U=\frac{1}{n}\sum\limits_{i=1}^nX_{1i}u_i-\frac{1}{n}\sum\limits_{i=1}^nX_{1i}X_{2i}'(\frac{1}{n}\sum\limits_{i=1}^nX_{2i}X_{2i}')^{-1}\frac{1}{n}\sum\limits_{i=1}^nX_{2i}u_i
+\end{align}`
+$$
+
+---
+
+###估计量是否一致（续）
+$$
+`\begin{align}
+&amp;\frac{1}{n}X_1'M_2X_1=\frac{1}{n}\sum\limits_{i=1}^nX_{1i}X_{1i}'-\frac{1}{n}\sum\limits_{i=1}^nX_{1i}X_{2i}'(\frac{1}{n}\sum\limits_{i=1}^nX_{2i}X_{2i}')^{-1}\frac{1}{n}\sum\limits_{i=1}^nX_{2i}X_{1i}'
+\\
+&amp;\frac{1}{n}X_1'M_2U=\frac{1}{n}\sum\limits_{i=1}^nX_{1i}u_i-\frac{1}{n}\sum\limits_{i=1}^nX_{1i}X_{2i}'(\frac{1}{n}\sum\limits_{i=1}^nX_{2i}X_{2i}')^{-1}\frac{1}{n}\sum\limits_{i=1}^nX_{2i}u_i
+\end{align}`
+$$
+
+`\(\because \frac{1}{n}\sum\limits_{i=1}^nX_{2i}u_i \rightarrow 0\)`
+
+`\(\therefore \frac{1}{n}\sum\limits_{i=1}^nX_{1i}X_{2i}'(\frac{1}{n}\sum\limits_{i=1}^nX_{2i}X_{2i}')^{-1}\frac{1}{n}\sum\limits_{i=1}^nX_{2i}u_i \rightarrow 0\)` 
+
+但是 `\(\frac{1}{n}\sum\limits_{i=1}^nX_{1i}u_i\neq 0\)`, `\(\therefore (X_1'M_2X_1)^{-1}X_1'M_2U \neq 0\)`, `\(\therefore \hat{\beta}_{1,OLS}\)` 不一致
+
+同理， `\(\begin{align}\hat{\beta}_{2,OLS}&amp;=(X_2'M_1X_2)^{-1}X_2'M_1Y\\&amp;=\beta_1+(X_2'M_1X_2)^{-1}X_2'M_1U\end{align}\)`
+
+有 `\((X_2'M_1X_2)^{-1}X_2'M_1U\neq 0\)` , `\(\hat{\beta}_{2,OLS}\)` 也不一致。
+
+---
+
+###工具变量
+- 已知模型 `\(Y_i=X_{1i}'\beta_1+X_{2i}'\beta_2+u_i\)`，其中 `\(X_{1i}\)` 是 `\(k_1\)`维列向量 ， `\(X_{2i}\)` 是 `\(k_2\)`维列向量，有 `\(k_1\)`个内生变量。
+- 令 `\(X_i=\left[ \begin{matrix}X_{1i} \\X_{2i}\end{matrix}\right] \qquad Z_i=\left[ \begin{matrix}Z_{1i} \\ X_{2i}\end{matrix}\right]\)`
+- 寻找 `\(k_1\)`维工具向量 `\(Z_{1i}\)` ,使其满足要求 `\(\begin{cases} 1.E[Z_{1i}u_i]=0 \\2.rank \{E[Z_iX_i']\}=k=k_1+k_2\end{cases}\)` 
+ - 要求1说明工具变量是外生的，要求2说明寻找的工具变量必须含有内生变量的信息。
+- 在寻找IV过程中需要注意的两点：
+ - IV个数 `\(\geq\)` 内生变量个数
+ 
+  当二者个数相同时，称为“恰好识别”，此时可使用矩估计方法；
+  
+  当IV个数大于内生变量个数时，称为“过度识别”，矩估计不再适用，需要使用GMM估计方法。
+ - 不能将已有的外生变量作为IV，否则的话条件2不被满足
+
+---
+
+###恰好识别的矩估计
+- 恰好识别的矩估计即工具变量的个数等于内生变量的个数，用k个矩条件估计k个未知参数，过程如下：已知模型 `\(Y_i=X_{1i}'\beta_1+X_{2i}'\beta_2+u_i\)` ,其中 `\(X_{1i}\)` 是 `\(k_1\)`维列向量， `\(X_{2i}\)` 是 `\(k_2\)`维列向量，有 `\(k_1\)`个内生变量, `\(Z_{1i}\)` 是 `\(X_{1i}\)` 的工具变量。
+ 
+ - 令 `\(X_i=\left[ \begin{matrix}X_{1i} \\X_{2i}\end{matrix}\right] \qquad Z_i=\left[ \begin{matrix}Z_{1i} \\ X_{2i}\end{matrix}\right]\)` 
+ 
+`$$E[Z_iu_i]=0\Rightarrow \frac{1}{n}\sum\limits_{i=1}^n[Z_i(Y_i-X_i'\beta)]=0$$`
+`$$\Rightarrow \sum\limits_{i=1}^n[Z_i(Y_i-X_i'\beta)]=0\Rightarrow \sum\limits_{i=1}^n[Z_iY_i-Z_iX_i'\beta)]=0\\\Rightarrow \sum\limits_{i=1}^nZ_iY_i=\sum\limits_{i=1}^nZ_iX_i'\beta$$`
+`$$\Rightarrow \hat{\beta}_{IV}=\left(\sum\limits_{i=1}^nZ_iX_i'\right)^{-1}\left(\sum\limits_{i=1}^nZ_iY_i\right)=(Z'X)^{-1}Z'Y$$`
+
+---
+
+###估计量 `\(\hat{\beta}_{IV}\)`的一致性
+
+- `$$\begin{align}\hat{\beta}_{IV}&amp;=\left(\sum\limits_{i=1}^nZ_iX_i'\right)^{-1}\left(\sum\limits_{i=1}^nZ_iY_i\right)\\&amp;=\left(\sum\limits_{i=1}^nZ_iX_i'\right)^{-1} \left[\sum\limits_{i=1}^nZ_i(X_i'\beta+u_i)\right]\\&amp;=\beta+\left(\frac{1}{n}\sum\limits_{i=1}^nZ_iX_i'\right)^{-1} \left(\frac{1}{n}\sum\limits_{i=1}^nZ_iu_i\right)\end{align}$$`
+- 其中， `\(\frac{1}{n}\sum\limits_{i=1}^nZ_iX_i' \rightarrow^P E[Z_iX_i'],\quad \frac{1}{n}\sum\limits_{i=1}^nZ_iu_i\rightarrow^P E[Z_iu_i]=0\)` 
+
+  `\(\hat{\beta}_{IV}\rightarrow^P \beta\)` 。					
+ 
+---
+
+###估计量 `\(\hat{\beta}_{IV}\)`的渐近正态性
+
+- `$$\sqrt{n}(\hat{\beta}_{IV}-\beta)=\left(\frac{1}{n}\sum\limits_{i=1}^nZ_iX_i'\right)^{-1} \left(\frac{1}{\sqrt{n}}\sum\limits_{i=1}^nZ_iu_i\right)$$`
+ - 其中， `\(\frac{1}{n}\sum\limits_{i=1}^nZ_iX_i' \rightarrow^P E[Z_iX_i'],\quad \frac{1}{\sqrt{n}}\sum\limits_{i=1}^nZ_iu_i\rightarrow^d N(0,Var(Z_iu_i))\)` 
+
+ - `\(Var(Z_iu_i)=E[Z_iu_i^2Z_i']=E[u_i^2Z_iZ_i']\)`
+
+- `$$\sqrt{n}(\hat{\beta}_{IV}-\beta) \rightarrow^d E[Z_iX_i']^{-1}N(0,E[u_i^2Z_iZ_i'])\\=N(0,E[Z_iX_i']^{-1}E[u_i^2Z_iZ_i']E[X_iZ_i']^{-1})$$` 
+
+- 估计方差矩阵：
+`\(E[Z_iX_i'] \qquad\frac{1}{n}\sum\limits_{i=1}^nZ_iX_i'\)`
+`\(E[u_i^2Z_iZ_i'] \qquad \frac{1}{n}\sum\limits_{i=1}^n \hat{u}_i^2Z_iZ_i' \qquad \hat{u}_i=Y_i-X_i'\hat{\beta}_{IV}\)` 
+
+- 当工具变量个数大于内生变量个数时需要使用GMM估计，下面所述的2SLS估计是GMM的一种特殊形式。
+
+---
+
+###2SLS
+- 第一步将所有的内生变量（ `\(X_{1i}\)`）对所有的外生变量（ `\(Z_i\)`）做线性回归，得到内生变量的估计值（ `\(\hat{X}_{1i}\)`）
+
+- 第二步对模型 `\(Y_i=\hat{X}_{1i}'\beta_1+X_{2i}'\beta_2+u_i\)` 进行OLS估计，得到 `\(\hat{\beta}_1,\hat{\beta}_2\)` 
+
+ - 上述模型中 `\(X_i=\left[ \begin{matrix}X_{1i} \\X_{2i}\end{matrix}\right]_{k\times 1} \qquad Z_i=\left[ \begin{matrix}Z_{1i} \\ X_{2i}\end{matrix}\right]_{l\times 1}\)` ,且 `\(l&gt;k\)` 。
+ 
+- 第一步实质上是做投影，把内生变量投影到所有外生变量组成的向量空间，投影矩阵为 `\(P_Z=Z_{n\times l}(Z'Z)^{-1}Z',\quad \hat{X}_{n\times k}=P_Z\cdot X\)` 
+
+- 第二步做OLS回归得到
+`$$\begin{align}\hat{\beta}_{2SLS}&amp;=(\hat{X}'\hat{X})^{-1}\hat{X}'Y=(X'P_Z'P_ZX)^{-1}X'P_Z'Y=(X'P_ZX)^{-1}X'P_Z'Y\\&amp;=\left(X'Z(Z'Z)^{-1}Z'X\right)^{-1}X'Z(Z'Z)^{-1}Z'Y\end{align}$$`
+---
+
+###2SLS（续）
+
+`\(\hat{\beta}_{2SLS}=\left(X'Z(Z'Z)^{-1}Z'X\right)^{-1}X'Z(Z'Z)^{-1}Z'Y\)`
+
+将上式拆成求和形式，如下： 
+`$$\small\hat{\beta}_{2SLS}=\left(\frac{1}{n}\sum\limits_{i=1}^nX_iZ_i'(\frac{1}{n}\sum\limits_{i=1}^nZ_iZ_i')^{-1} \frac{1}{n}\sum\limits_{i=1}^nZ_iX_i' \right)^{-1}(\frac{1}{n}\sum\limits_{i=1}^nX_iZ_i')(\frac{1}{n}\sum\limits_{i=1}^nZ_iZ_i')^{-1}(\frac{1}{n}\sum\limits_{i=1}^nZ_iY_i)$$`
+
+将 `\(Y_i=X_i'\beta+u_i\)` 代入得
+`\(\small\hat{\beta}_{2SLS}-\beta=\left(\frac{1}{n}\sum\limits_{i=1}^nX_iZ_i'(\frac{1}{n}\sum\limits_{i=1}^nZ_iZ_i')^{-1} \frac{1}{n}\sum\limits_{i=1}^nZ_iX_i' \right)^{-1}(\frac{1}{n}\sum\limits_{i=1}^nX_iZ_i')(\frac{1}{n}\sum\limits_{i=1}^nZ_iZ_i')^{-1}(\frac{1}{n}\sum\limits_{i=1}^nZ_iu_i)\)`
+					
+运用大数定理，每一项都依概率收敛于期望，最后一项期望为0。
+`$$\small\begin{align}&amp;\sqrt{n}(\hat{\beta}_{2SLS}-\beta)\\&amp;=\left(\frac{1}{n}\sum\limits_{i=1}^nX_iZ_i'(\frac{1}{n}\sum\limits_{i=1}^nZ_iZ_i')^{-1} \frac{1}{n}\sum\limits_{i=1}^nZ_iX_i' \right)^{-1}(\frac{1}{n}\sum\limits_{i=1}^nX_iZ_i')(\frac{1}{n}\sum\limits_{i=1}^nZ_iZ_i')^{-1}(\frac{1}{\sqrt{n}}\sum\limits_{i=1}^nZ_iu_i)\end{align}$$`
+
+---
+
+###2SLS（续）
+`$$\begin{align}&amp;\frac{1}{n}\sum\limits_{i=1}^nX_iZ_i' \rightarrow^P E[X_iZ_i'] \\&amp;\frac{1}{n}\sum\limits_{i=1}^nZ_iZ_i' \rightarrow^P E[Z_iZ_i'] \\&amp;\frac{1}{n}\sum\limits_{i=1}^nZ_iX_i' \rightarrow^P E[Z_iX_i'] \\&amp;\frac{1}{n}\sum\limits_{i=1}^nX_iZ_i' \rightarrow^P E[X_iZ_i'] \\&amp;\frac{1}{n}\sum\limits_{i=1}^nZ_iZ_i' \rightarrow^P E[Z_iZ_i'] \qquad\frac{1}{\sqrt{n}}\sum\limits_{i=1}^nZ_iu_i \rightarrow^d N(0,Var[Z_iu_i])\end{align}$$`
+
+令 `\(Q=E[X_iZ_i']\qquad \Omega=E[Z_iZ_i']\)`
+
+`\(\therefore \sqrt{n}(\hat{\beta}_{2SLS}-\beta)\rightarrow^d (Q\Omega^{-1}Q')^{-1}Q\Omega^{-1}N(0,E[u_i^2Z_iZ_i'])\)` 		
+
+
+---
+
+###2SLS（续）
+
+- 当 `\(E(u_i^2|Z_i)=\sigma^2\)` 时， `\(E[u_i^2Z_iZ_i']=E\left[E(u_i^2Z_iZ_i'|Z_i)\right]=E\left[E(u_i^2|Z_i)Z_iZ_i')\right]=\sigma^2\Omega\)` ,方差矩阵为 `\((Q\Omega^{-1}Q')^{-1}Q\Omega^{-1}E[u_i^2Z_iZ_i']\Omega^{-1}Q'(Q\Omega^{-1}Q')^{-1}=\sigma^2(Q\Omega^{-1}Q')^{-1}\)` 
+
+ - 所以当满足同方差假设时， `\(\hat{\beta}_{2SLS}\)`是有效的。
+ - 判断系数是否显著时，不能单独的使用第二步中回归的标准误，而应该使用2SLS估计的方差矩阵的平方根作为标准误。
+
+- 当恰好识别时，2SLS估计量退化成矩估计量。
+`$$\begin{align}
+  \hat{\beta}_{2SLS}&amp;=\left(X'Z(Z'Z)^{-1}Z'X\right)^{-1}X'Z(Z'Z)^{-1}Z'Y\\
+  &amp;=(Z'X)^{-1}(Z'Z)(X'Z)^{-1}(X'Z)(Z'Z)^{-1}Z'Y\\
+  &amp;=(Z'X)^{-1}Z'Y
+  \end{align}$$`
+
+- 当同方差假定不再满足时， `\(\hat{\beta}_{2SLS}\)`不再是有效的。
+
+---
+
+###弱工具变量
+
+- 弱工具变量指的是工具变量与内生变量之间存在相关性但相关性很弱，已知模型 `\(Y_i=\beta X_i+u_i\)` , `\(X_i=\pi_n Z_i+v_i\)`
+
+ - 其中 `\(X_i\)`是一个一维内生变量， `\(Z_i\)`是一个一维工具变量， `\(\pi_n\)`很小。
+
+ - 在大样本下，令 `\(\pi_n=\frac{c}{\sqrt{n}}\)`,以 `\(\sqrt{n}\)`的速率趋向于0。
+
+`$$\begin{align}\hat{\beta}_{IV}&amp;=\frac{\sum\limits_{i=1}^nZ_iY_i}{\sum\limits_{i=1}^nZ_iX_i}=\frac{\sum\limits_{i=1}^nZ_i(\beta X_i+u_i)}{\sum\limits_{i=1}^nZ_iX_i}=\beta+\frac{\sum\limits_{i=1}^nZ_iu_i}{\sum\limits_{i=1}^nZ_iX_i}=\beta+\frac{\sum\limits_{i=1}^nZ_iu_i}{\sum\limits_{i=1}^nZ_i(\pi_nZ_i+v_i)}\\&amp;=\beta+\frac{\frac{1}{\sqrt{n}}\sum\limits_{i=1}^nZ_iu_i}{\frac{1}{\sqrt{n}}\sum\limits_{i=1}^nZ_i(\frac{c}{\sqrt{n}}Z_i+v_i)}=\beta+\frac{\frac{1}{\sqrt{n}}\sum\limits_{i=1}^nZ_iu_i}{n^{-1}\sum\limits_{i=1}^n cZ_i^2+ \frac{1}{\sqrt{n}}\sum\limits_{i=1}^nZ_iv_i}\end{align}$$`
+
+---
+
+###弱工具变量（续）
+
+`$$\hat{\beta}_{IV}=\beta+\frac{\frac{1}{\sqrt{n}}\sum\limits_{i=1}^nZ_iu_i}{n^{-1}\sum\limits_{i=1}^n cZ_i^2+ \frac{1}{\sqrt{n}}\sum\limits_{i=1}^nZ_iv_i}$$`
+
+其中， `\(n^{-1}\sum\limits_{i=1}^n cZ_i^2\rightarrow^P cE(Z_i^2)\qquad (n\rightarrow\infty)\)` 
+
+- 注意，两个依分布收敛的项是没有加减乘除运算的，所以需要看他们的联合分布，即
+ `$$\frac{1}{\sqrt{n}}\sum\limits_{i=1}^nZ_i\left(\begin{matrix}u_i\\v_i\end{matrix}\right) \rightarrow^d N(0,\left[\begin{matrix}\sigma_u^2 &amp; \sigma_{uv}\\\sigma_{uv} &amp; \sigma_v^2\end{matrix}\right])$$`
+- 根据连续映射定理有 `\(\left[\begin{matrix}\psi_u\\\psi_v \end{matrix}\right]\sim N(0,\left[\begin{matrix}\sigma_u^2 &amp; \sigma_{uv}\\\sigma_{uv} &amp; \sigma_v^2\end{matrix}\right])\)` ,
+
+- 所以 `\(\hat{\beta}_{IV} \rightarrow^d \beta+\frac{\psi_u}{cE(Z_i^2)+\psi_v}\)` 。
+
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script>var slideshow = remark.create({
+"highlightStyle": "github",
+"highlightLines": true,
+"countIncrementalSlides": false
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();
+// add `data-at-shortcutkeys` attribute to <body> to resolve conflicts with JAWS
+// screen reader (see PR #262)
+(function(d) {
+  let res = {};
+  d.querySelectorAll('.remark-help-content table tr').forEach(tr => {
+    const t = tr.querySelector('td:nth-child(2)').innerText;
+    tr.querySelectorAll('td:first-child .key').forEach(key => {
+      const k = key.innerText;
+      if (/^[a-z]$/.test(k)) res[k] = t;  // must be a single letter (key)
+    });
+  });
+  d.body.setAttribute('data-at-shortcutkeys', JSON.stringify(res));
+})(document);
+(function() {
+  "use strict"
+  // Replace <script> tags in slides area to make them executable
+  var scripts = document.querySelectorAll(
+    '.remark-slides-area .remark-slide-container script'
+  );
+  if (!scripts.length) return;
+  for (var i = 0; i < scripts.length; i++) {
+    var s = document.createElement('script');
+    var code = document.createTextNode(scripts[i].textContent);
+    s.appendChild(code);
+    var scriptAttrs = scripts[i].attributes;
+    for (var j = 0; j < scriptAttrs.length; j++) {
+      s.setAttribute(scriptAttrs[j].name, scriptAttrs[j].value);
+    }
+    scripts[i].parentElement.replaceChild(s, scripts[i]);
+  }
+})();
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();
+// adds .remark-code-has-line-highlighted class to <pre> parent elements
+// of code chunks containing highlighted lines with class .remark-code-line-highlighted
+(function(d) {
+  const hlines = d.querySelectorAll('.remark-code-line-highlighted');
+  const preParents = [];
+  const findPreParent = function(line, p = 0) {
+    if (p > 1) return null; // traverse up no further than grandparent
+    const el = line.parentElement;
+    return el.tagName === "PRE" ? el : findPreParent(el, ++p);
+  };
+
+  for (let line of hlines) {
+    let pre = findPreParent(line);
+    if (pre && !preParents.includes(pre)) preParents.push(pre);
+  }
+  preParents.forEach(p => p.classList.add("remark-code-has-line-highlighted"));
+})(document);</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>

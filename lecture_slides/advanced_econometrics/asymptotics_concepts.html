@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+  <head>
+    <title>大样本渐近理论相关概念（Basic concepts of asymptotics）</title>
+    <meta charset="utf-8" />
+    <meta name="author" content="文旷宇" />
+    <script src="libs/header-attrs/header-attrs.js"></script>
+    <link href="libs/xaringanExtra-banner/banner.css" rel="stylesheet" />
+    <script src="libs/xaringanExtra-banner/banner.js"></script>
+    <script src="libs/fabric/fabric.min.js"></script>
+    <link href="libs/xaringanExtra-scribble/scribble.css" rel="stylesheet" />
+    <script src="libs/xaringanExtra-scribble/scribble.js"></script>
+    <script>document.addEventListener('DOMContentLoaded', function() { window.xeScribble = new Scribble({"pen_color":["#FF0000"],"pen_size":3,"eraser_size":30,"palette":[]}) })</script>
+    <link href="libs/panelset/panelset.css" rel="stylesheet" />
+    <script src="libs/panelset/panelset.js"></script>
+    <link rel="stylesheet" href="xaringan-themer.css" type="text/css" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+.title[
+# 大样本渐近理论相关概念（Basic concepts of asymptotics）
+]
+.author[
+### 文旷宇
+]
+.institute[
+### 华中科技大学
+]
+
+---
+
+class: left, middle
+layout: true
+
+
+
+<div>
+<style type="text/css">.xaringan-extra-logo {
+width: 55px;
+height: 64px;
+z-index: 0;
+background-image: url(../images/hust-logo.png);
+background-size: contain;
+background-repeat: no-repeat;
+position: absolute;
+top:1em;right:1em;
+}
+</style>
+<script>(function () {
+  let tries = 0
+  function addLogo () {
+    if (typeof slideshow === 'undefined') {
+      tries += 1
+      if (tries < 10) {
+        setTimeout(addLogo, 100)
+      }
+    } else {
+      document.querySelectorAll('.remark-slide-content:not(.title-slide):not(.inverse):not(.hide_logo)')
+        .forEach(function (slide) {
+          const logo = document.createElement('div')
+          logo.classList = 'xaringan-extra-logo'
+          logo.href = null
+          slide.appendChild(logo)
+        })
+    }
+  }
+  document.addEventListener('DOMContentLoaded', addLogo)
+})()</script>
+</div><script>document.addEventListener('DOMContentLoaded',function(){new xeBanner(JSON.parse('{"left":"","right":"","exclude":["title-slide"],"position":"top"}'))})</script>
+<script>document.addEventListener('DOMContentLoaded',function(){new xeBanner(JSON.parse('{"left":"文旷宇/华中科技大学","exclude":["title-slide"],"position":"bottom"}'))})</script>
+
+
+
+---
+
+### 主要内容
+
+
+- 随机变量收敛的相关概念
+
+- 弱大数定理
+
+- 随机变量的弱收敛：依分布收敛
+
+- 中心极限定理
+
+- Delta Method
+
+
+---
+
+###极限
+
+- `\(\{a_n: n=1,2,... \}\)`是一个非随机的实数序列。如果对于所有大于0的实数 `\(\delta\)`，可以找到一个整数 `\(N_{\delta}\)`，使得对于所有大于 `\(N_{\delta}\)`的数 `\(n\)`,有 `\(|a_n-a|&lt;\delta\)`。当极限存在时，就可以说 `\(\{a_n\}\)`收敛于 `\(a\)`（ `\(\displaystyle \lim_{n \to\infty}{a_n}=a\)`）。在这种情况下，可以通过选择足够大的 `\(N\)`，使得 `\(\{a_n: n&gt;N \}\)`中的元素任意靠近 `\(a\)`。自然地，如果 `\(a_n \rightarrow a\)`，则 `\(a_n-a\rightarrow0\)`。
+
+- 上述概念也可推广到向量或者矩阵形式。令 `\(\{A_n:n=1,2,...\}\)`是一个 `\(m\times k\)`维的矩阵，如果对于所有的 `\(i=1,..,m\)`， `\(j=1,..k\)`， `\(A_n\)`中的第 `\((i,j)\)`个元素收敛于 `\(A\)`中的第 `\((i,j)\)`个元素，则 `\(A_n\rightarrow A\)`。
+
+
+---
+###随机变量的收敛
+- 收敛的概念不能以一种直接的方式应用于随机变量序列,解决方法是考虑从随机序列衍生出的非随机序列的收敛性。由于推导非随机序列的方法很多，所以存在几个随机收敛的概念。
+
+- 令 `\(\{X_n: n=1,2,... \}\)`是一个随机变量序列。注意随机变量 `\(X_n\)` 是从概率空间 `\((\Omega,\mathcal{A},P)\)` 到 `\(\mathbb{R}\)` 的映射。令 `\(X\)`是随机或非随机的（即对于所有 `\(\omega\in \Omega\)`有可能 `\(X(\omega)\)`都是相同的)。考虑以下典型元素的非随机序列：
+  - `\(X_n(\omega)-X(\omega)\)`，对于一个固定的 `\(\omega \in \Omega\)`；
+  - `\(E|X_n-X|^r\)`；
+  - 对于某些 `\(\epsilon&gt;0\)`， `\(P(|X_n-X|&gt;\epsilon)\)`。
+
+- 这些都是非随机实数序列，因此，通常的收敛定义适用于每一个序列，从而得出相应的随机收敛定义。
+
+---
+
+###随机变量的收敛
+
+- **几乎处处（以概率1）收敛。**如果 `\(n\rightarrow\infty\)`时， `\(P(\{\omega:X_n(\omega)→X(\omega)\})=1\)`， `\(X_n\)`几乎处处收敛于 `\(X\)`。
+
+- **依 `\(r\)` 阶均方收敛。** 如果 `\(n\rightarrow\infty\)`时， `\(E|X_n-X|^r\rightarrow 0\)`， `\(X_n\)`收敛于 `\(X\)`的r均值。
+
+- **依概率收敛。**  如果对于所有 `\(\epsilon&gt;0\)`， `\(n\rightarrow\infty\)`时， `\(P(|X_n-X|&gt;\epsilon)\rightarrow 0\)`， `\(X_n\)`依概率收敛于 `\(X\)`。表示为 `\(X_n\rightarrow_pX\)`或者 `\(p\lim X_n=X\)`。此外，依概率收敛还可以被定义为：对于所有 `\(\epsilon&gt;0\)`， `\(n\rightarrow\infty\)`时， `\(P(|X_n-X|&lt;\epsilon)\rightarrow1\)`。这两个定义是等价的。
+
+几乎处处收敛是与非随机序列最密切相关的收敛性概念。它意味着对于随机实验的几乎所有结果， `\(X_n\)`收敛于 `\(X\)`。依概率收敛是三个概念中最常用的，因为计量经济学中的一致性概念使用该类型的收敛。
+
+---
+
+### 三种随机收敛概念的关系
+
+- 可以证明 `\(X_n\rightarrow X\)`几乎处处收敛当且仅当对于所有 `\(\epsilon&gt;0\)`，
+ `$$\displaystyle\lim_{n\rightarrow \infty}P\Big(\displaystyle\sup_{m\geq n}|X_m-X|\geq\epsilon\Big)=0$$`
+因此，依概率收敛只关注当 `\(n\rightarrow\infty\)`时 `\(|X_n-X|\)`的边缘分布，几乎处处收敛对序列中所有随机元素的联合分布施加了限制（ `\(|X_n-X|,|X_{n+1}-X|,...\)`）
+几乎处处收敛和依 `\(r\)` 阶平均收敛都能推出依概率收敛。然而，反之不成立。
+
+- eg.（a）考虑随机变量 `\(X_n\)`，使 `\(P(X_n=0)=1-1/n\)`， `\(P(X_n=n)=1/n\)`。此例中，当 `\(\epsilon&gt;0\)`， `\(X_n \rightarrow_p 0\)`
+
+`$$\begin{aligned}P\left(\left|X_{n}\right|\geq\varepsilon\right)&amp;\leq\quad P\left(X_{n}=n\right)\\&amp;=\quad1/n\\&amp;\to\quad0.\end{aligned}$$`
+然而 `\(E|X_{n}|=1\)`，因此， `\(X_n\)`的均值不收敛于零。
+
+---
+
+###三种随机收敛概念的关系（续）
+
+在（a）中，只描述了 `\(\{X_n\}\)`元素的边际分布。为了讨论几乎处处收敛，我们需要描述序列 `\(\{X_n\}\)`元素的联合分布。（a）中 `\(\{X_n\}\)`的一个简单模型是让 `\(\omega\)`服从[0,1]的均匀分布，使得对于 `\(a,b\in[0,1]\)`，有 `\(P\left(a\leq\omega\leq b\right)=|b-a|\)` 。有
+`$$\left.X_{n}\left(\omega\right)=\left\{\begin{matrix}n,&amp;\omega\in\left[0,1/n\right),\\0,&amp;\omega\in\left[1/n,1\right],\end{matrix}\right.\right.$$`
+使得 `\(P(X_n=0)=1-1/n\)`， `\(P(X_n=n)=1/n\)`。可以证明，在这个例子中， `\(X_n\)`几乎处处收敛于 `\(X\)`。用极限 `\(X=0\)`来定义
+`\(P_{n,\varepsilon}=P\left(\sup_{m\geq n}\left|X_{m}\right|&lt;\varepsilon\right)\)`
+
+当所有 `\(\epsilon&gt;0\)`足够小时，
+
+`$$\begin{aligned}P_{n,\varepsilon}&amp;=P\left(\left|X_{n}\right|&lt;\varepsilon,\left|X_{n+1}\right|&lt;\varepsilon,\ldots\right)=P\left(X_{n}=0,X_{n+1}=0,\ldots\right)\\&amp;=P\left(\omega\geq\frac{1}{n},\omega\geq\frac{1}{n+1},\ldots\right)=P\left(\omega\geq\frac{1}{n}\right)=1-\frac{1}{n}.\end{aligned}$$`
+
+因此，对于所有 `\(\epsilon&gt;0\)`且 `\(n\rightarrow \infty\)`， `\(\begin{aligned}\lim_{n\to\infty}P\left(\sup_{m\geq n}\left|X_{m}-X\right|&lt;\varepsilon\right)=\lim_{n\to\infty}P_{n,\varepsilon}=\lim_{n\to\infty}\left(1-\frac{1}{n}\right)=1.\end{aligned}\)`
+
+---
+
+###三种随机收敛概念的关系（续）
+
+假设序列 `\(\{X_n\}\)`的元素是独立的，但 `\(P(X_n=0)=1-1/n\)`， `\(P(X_n=n)=1/n\)`，对所有的正整数 `\(n\)`，
+`$$\begin{aligned}P_{n,\varepsilon}&amp;=\quad P\left(X_n=0,X_{n+1}=0,\ldots\right)=\quad\prod_{m=n}^{\infty}\left(1-\frac{1}{m}\right)\\&amp;=\quad\lim_{N\to\infty}\prod_{m=n}^{N}\left(1-\frac{1}{m}\right)=\quad\lim_{N\to\infty}\prod_{m=n}^{N}\frac{m-1}{m}\\&amp;=\quad\lim_{N\to\infty}\frac{n-1}{n}\frac{n}{n+1}\cdots\frac{N-2}{N-1}\frac{N-1}{N}\\&amp;=\quad\lim_{N\to\infty}\frac{n-1}{N}\\&amp;=\quad0,\end{aligned}$$`
+当所有 `\(\epsilon&gt;0\)`足够小时， `\(\displaystyle\lim_{n\to\infty}P\left(\sup_{m\geq n}\left|X_{m}\right|&lt;\varepsilon\right)=\lim_{n\to\infty}P_{n,\varepsilon}=0,\)`
+
+这里，几乎处处收敛到0和依均方收敛都失效，但是依概率收敛到0仍然成立。（ `\(X_n\rightarrow_p0\)`）
+
+---
+
+###三种随机收敛概念的关系（续）
+
+接下来，证明依 `\(r\)` 方均值收敛可以推出依概率收敛，证明需要以下引理：
+
+引理1：马尔科夫不等式（ `\(Markov’ s\textit{ Inequality}\)`）：令 `\(X\)`为一个随机变量。对 `\(\epsilon&gt;0\)`, `\(r&gt;0\)`，
+
+`$$P\left(|X|\geq\varepsilon\right)\leq E\left|X\right|^{r}/\varepsilon^{r}$$`
+
+假设 `\(X_n\)`依 `\(r\)` 方均值收敛于 `\(X\)`， `\(E\left|X_n-X\right|^r\to0\)`，则
+
+`$$P\left(\left|X_{n}-X\right|\geq\varepsilon\right)\leq E\left|X_{n}-X\right|^{r}/\varepsilon^{r}\\\rightarrow0.$$`
+
+---
+
+### 依概率收敛的一些结论
+
+- 假设 `\(X_n\to_pa\)`， `\(Y_n\to_pb\)`， `\(a,b\)`都是有限常数，令 `\(c\)`为另一常数，则
+
+  - `\(cX_{n}\rightarrow_{p}ca.\)`
+
+  - `\(X_{n}+Y_{n}\rightarrow_{p}a+b.\)`
+
+  - `\(X_{n}Y_{n}\to_{p}ab.\)`
+
+  - `\(X_{n}/Y_{n}\to_{p}a/b\)`，给定 `\(b\neq0.\)`
+
+- 如果一个随机变量依概率收敛于一个常数，那么其连续函数也依概率收敛。
+
+- 定理2： Slutsky定理：假设 `\(X_n\to_pc\)`， `\(c\)`为常数，令 `\(h(\cdot)\)`为在 `\(c\)`的连续函数，则 `\(h\left(X_{n}\right)\to_{p}h\left(c\right)\)`。
+
+- Slutsky定理在向量或者矩阵的形式下也是有效的。
+
+---
+
+###弱大数定理（WLLN）
+
+- 定理3： (WLLN) 令 `\(X_1,...,X_n\)`为满足 `\(iid\)`随机变量的样本，且 `\(E\left | X_1\right | &lt; \infty\)`，则当 `\(n\to\infty\)`时， `\(n^{-1}\sum_{i=1}^nX_i\to_pEX_1\)`。
+
+- 定理4：令 `\(X_1,...,X_n\)`为满足 `\(iid\)`随机变量的样本，且 `\(Var\left ( X_1\right ) &lt; \infty\)`，则当 `\(n\to\infty\)`时， `\(n^{-1}\sum_{i=1}^nX_i\to_pEX_1\)`。
+
+- 证明： `\(\begin{aligned}P\left(\left|n^{-1}\sum_{i=1}^{n}X_{i}-EX_{1}\right|\geq\varepsilon\right)&amp;=\quad P\left(\left|n^{-1}\sum_{i=1}^{n}\left(X_{i}-EX_{1}\right)\right|\geq\varepsilon\right)\\&amp;\leq\quad\frac{E\left|\sum_{i=1}^{n}\left(X_{i}-EX_{1}\right)\right|^{2}}{n^{2}\varepsilon^{2}}\\&amp;=\quad\frac{\sum_{i=1}^{n}\sum_{j=1}^{n}E\left(X_{i}-EX_{1}\right)\left(X_{j}-EX_{1}\right)}{n^{2}\varepsilon^{2}}\\&amp;=\quad\frac{\sum_{i=1}^{n}E\left(X_{i}-EX_{1}\right)^{2}}{n^{2}\varepsilon^{2}}\\&amp;=\quad\frac{nVar\left(X_{1}\right)}{n^{2}\varepsilon^{2}}\to\quad0\mathrm{~as~}n\to\infty.\end{aligned}\)`
+
+---
+
+###依分布收敛
+
+- 依分布收敛是另一种随机收敛的概念，用于在大样本中近似随机变量 `\(X_n\)`的分布。设 `\(\{X_n:n=1,2,\ldots\}\)`是一系列随机变量， `\(F_n(x)\)`表示 `\(X_n\)`的边缘分布，即 `\(F_n(x)=P(X_n\leq x)\)`。令 `\(F(x)\)`为另一分布函数。如果对于所有的 `\(x\)`， `\(F_n(x)\to F(x)\)`，其中 `\(F(x)\)`是连续的，则 `\(X_n\)`依分布收敛。记作 `\(X_n\to_dX\)`，其中 `\(X\)`是任意具有分布函数 `\(F(X)\)`的随机变量。注意，当我们说 `\(X_n\)`收敛于 `\(X\)`时，依分布收敛指的不是随机变量的收敛性，而是分布函数的收敛性。
+
+- 扩展到向量形式。令 `\(X_n\)`和 `\(X\)`为两个k维的随机向量。如果在所有点上 `\(X_n\)`的联合分布函数收敛于 `\(X\)`的联合分布函数，则 `\(X_n\to_dX\)` 。
+`$$\begin{aligned}F_{n}\left(x_{1},\ldots,x_{k}\right)&amp;=P\left(X_{n,1}\leq x_{1},\ldots,X_{n,k}\leq x_{k}\right)\\&amp;\to P\left(X_{1}\leq x_{1},\ldots,X_{k}\leq x_{k}\right)\\&amp;=F\left(x_{1},\ldots,x_{k}\right)\end{aligned}$$`
+
+- 对于所有点 `\((x_1,\ldots,x_k)\)`， `\(F\)`连续。在这种情况下，我们说 `\(X_n,X_{n,1},\ldots X_{n,k}\)`中的元素在分布上联合收敛于 `\(X_1,\ldots X_k\)`
+
+---
+
+###依分布收敛（续）
+
+依分布收敛的规则如下：
+
+- Cramer 收敛定理: 假设 `\(X_n\to_dX\)`,  `\(Y_n\to_pc\)`，则有
+
+ - `\(X_{n}+Y_{n}\rightarrow_{d}X+c\)`
+ 
+ - `\(Y_{n}X_{n}\rightarrow_{d}cX\)`
+ 
+ - `\(X_n/Y_n\to_dX/c\)`，给定 `\(c\neq0\)`。
+ 
+ - 在适当定义乘法和除法的向量或矩阵情况下，类似的结论也成立。
+ 
+- 如果 `\(X_n\to_pX\)`, 则 `\(X_n\to_dX\)`，反之不成立，但只有一个例外。
+- 如果 `\(X_n\to_dC\)`， `\(C\)`为一个常数，则有 `\(X_n\to_pC\)`。
+
+- 如果 `\(X_n-Y_n\to_p0\)`，且 `\(Y_n\to_dY\)`，则 `\(X_n\to_dY\)`
+
+---
+
+###连续映射定理
+
+- 定理5：连续映射定理（CMT）：假设 `\(X_n\to _dX\)`， `\(h(\cdot)\)`是集合 `\(\chi\)`上的连续函数， `\(P(X\in \chi)=1\)`，则 `\(h\left(X_{n}\right)\to_{d}h\left(X\right)\)`。
+
+ - eg1.假设 `\(X_n\to _dX\)`，则 `\(X_n^2\to_dX^2\)`；
+
+ - eg2.假设 `\(X_n\to_dN\left(0,1\right)\)`，则 `\(X_n^2\to_d\chi_1^2\)`。
+
+- 注意：与依概率收敛相反 ， `\(X_n\to_dX\)` ，  `\(Y_n\to_dY\)` 并不意味着
+
+`\(X_n+Y_n\to_dX+Y\)`，除非联合收敛结果成立。这是因为个别的依分布收敛是边缘密度
+
+的收敛。为了表示 `\(X_n+Y_n\)`的极限分布，必须要考虑到 `\(X_n\)` 和 `\(Y_n\)`的联合分布。
+
+---
+
+###中心极限定理（CLT)
+
+- 定理6：（ `\(CLT\)`）令 `\(X_1,\ldots,X_n\)`为一组服从 `\(iid\)`的随机变量，且 `\(EX_1=0\)`， `\(0&lt;EX_1^2&lt;\infty\)`。则当 `\(n\to\infty\)`时 ， `\(n^{-1/2}\sum_{i=1}^{n}X_{i}\to_{d}N\left(0,EX_{1}^{2}\right)\)`。
+
+- 中心极限定理可以用来近似大样本中均值的分布。eg.令 `\(X_1,\ldots,X_n\)`为一组服从 `\(iid\)`的随机变量，且 `\(EX_1=\mu\)`， `\(Var\left(X_1\right)=\sigma^2&lt;\infty\)`。定义 `\(\overline{X}_{n}=n^{-1}\sum_{i=1}^{n}X_{i}\)`。考虑   `\(n^{-1/2}\sum_{i=1}^n\left(X_i-\mu\right)\)`， `\(\left(X_1-\mu\right),\ldots,\left(X_n-\mu\right)\)`是 `\(iid\)`的，且 `\(E\left(X_1-\mu\right)=0\)`， `\(E\left(X_{1}-\mu\right)^{2}=\sigma^{2}&lt;\infty\)`，因此，由中心极限定理， `$$\begin{aligned}n^{1/2}\left(\overline{X}_{n}-\mu\right)&amp;=n^{-1/2}\sum_{i=1}^{n}\left(X_{i}-\mu\right)\\&amp;\rightarrow_{d}N\left(0,\sigma^{2}\right).\end{aligned}$$`
+
+- 实践中经常会用依分布收敛作为近似，eg. `\(\sqrt{n}\left(\overline{X}_n-\mu\right)\overset{a}{\operatorname*{\sim}}N\left(0,\sigma^2\right)\)`或 `\(\overline{X}_{n}\stackrel{a}{\sim}N\left(\mu,\sigma^{2}/n\right)\)`
+
+---
+
+###Delta method
+
+- Delta method 用于推导估计量的非线性函数的渐进分布。eg.对于 `\(iid\)`的随机样本，有 `\(\overline {X}_n\to _pEX_1= \mu\)`。进一步，由Slusky's定理， `\(h\left(\overline {X}_n\right)\to _ph(\mu)\)` ，但这不能让我们近似 `\(h\left ( \overline {X}_n\right )\)`的分布，因为 `\(h( \mu )\)`是一个非随机的常数。注意，CMT不能应用于一般非线性 `\(h\left ( \overline {X}_n\right )\)`，因为仅有 `\(n^{1/2}\left(\overline{X}_{n}-\mu\right)\)`的依分布收敛结果。
+
+- 定理9：（Delta method）令 `\(\widehat{\theta } _{n}\)`表示一个k维的随机向量，假设当 `\(n\to \infty\)`时 `\(n^{1/ 2}\left ( \widehat{\theta } _{n}- \theta \right ) \to _{d}Y\)` ， `\(\theta\)`为一个k维的常数向量， `\(Y\)`是k维的随机向量。令 `\(h: R^{k}\to R^{m}\)`为 `\(\theta\)`的开邻域上的连续可微函数，则 `$$n^{1/ 2}\left (h( \widehat{\theta } _{n})- h(\theta )\right ) \to _{d}\frac{\partial h(\theta)}{\partial \theta'} Y$$`
+
+---
+
+###Delta method（续）
+
+证明： `\(n^{1/2}\left(\widehat{\theta}_n-\theta\right)\to_dY\)`意味着  `\(\widehat{\theta}_n-\theta\to_p0\)`， `\(\widehat{\theta}_n\to_p\theta\)`。定义 `\(\tau_n=n^{-1/2}\)`，则 `\(\tau_n\to0\)`，因此 `\(\tau_n\to_p0\)`。由Cramer收敛定理，
+
+`$$\begin{aligned}\left(\widehat{\theta}_{n}-\theta\right)&amp;=\quad\tau_{n}n^{1/2}\left(\widehat{\theta}_{n}-\theta\right)\\&amp;\rightarrow_{d}\left(p\lim\tau_{n}\right)Y\\&amp;=0\end{aligned}$$`
+
+因此，由依分布收敛性质（iii）， `\(\widehat{\theta}_n\to_p\theta\)`。
+
+由中值定理 `\(h\left(\widehat\theta_{n}\right)=h\left(\theta\right)+\frac{\partial h\left(\theta_{n}^{*}\right)}{\partial\theta^{\prime}}\left(\widehat\theta_{n}-\theta\right)\)`
+
+其中， `\(\theta_n^*\)`是一个位于 `\(\widehat{\theta}_n\)` 和 `\(\theta\)`中间的随机变量。 由 `\(\widehat{\theta}_n\to_p\theta\)`可知 `\(\theta_n^*\to_p\theta\)`
+
+ `$$\begin{aligned}P\left(\left\|\theta_{n}^{*}-\theta\right\|\geq\varepsilon\right)&amp;\leq\quad P\left(\left\|\widehat{\theta}_{n}-\theta\right\|\geq\varepsilon\right)\\&amp;\rightarrow0\end{aligned}$$`
+---
+
+###Delta method（续）
+
+由Slutsky's定理
+
+`$$\frac{\partial h\left(\theta_{n}^{*}\right)}{\partial\theta^{\prime}}\rightarrow_{p}\frac{\partial h\left(\theta\right)}{\partial\theta^{\prime}}$$`
+
+因此
+`$$n^{1/2}\left(h\left(\widehat{\theta}_{n}\right)-h(\theta)\right)=\frac{\partial h\left(\theta_{n}^{*}\right)}{\partial\theta^{\prime}}n^{1/2}\left(\widehat{\theta}_{n}-\theta\right)$$`
+又由假设 `\(n^{1/2}\left(\widehat{\theta}_n-\theta\right)\to_dY\)` 和Cramer收敛定理
+`$$n^{1/2}\left(h\left(\widehat{\theta}_{n}\right)-h\left(\theta\right)\right)\rightarrow_{d}\frac{\partial h\left(\theta\right)}{\partial\theta^{\prime}}Y$$`
+
+---
+
+###Delta method（续）
+
+eg.考虑到方差有限的 `\(iid\)`随机变量的例子，有 `\(n^{1/2}\left(\overline{X}_n-\mu\right)\to_dN\left(0,\sigma^2\right)\)`。假设 `\(\mu\neq0\)`，那么由Delta method,
+`$$\begin{aligned}n^{1/2}\left(\frac{1}{\overline{X}_{n}}-\frac{1}{\mu}\right)&amp;\rightarrow_{d}-\frac{1}{\mu^{2}}N\left(0,\sigma^{2}\right)\\&amp;=N\left(0,\frac{\sigma^{2}}{\mu^{4}}\right)\end{aligned}$$`
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script>var slideshow = remark.create({
+"highlightStyle": "github",
+"highlightLines": true,
+"countIncrementalSlides": false
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();
+// add `data-at-shortcutkeys` attribute to <body> to resolve conflicts with JAWS
+// screen reader (see PR #262)
+(function(d) {
+  let res = {};
+  d.querySelectorAll('.remark-help-content table tr').forEach(tr => {
+    const t = tr.querySelector('td:nth-child(2)').innerText;
+    tr.querySelectorAll('td:first-child .key').forEach(key => {
+      const k = key.innerText;
+      if (/^[a-z]$/.test(k)) res[k] = t;  // must be a single letter (key)
+    });
+  });
+  d.body.setAttribute('data-at-shortcutkeys', JSON.stringify(res));
+})(document);
+(function() {
+  "use strict"
+  // Replace <script> tags in slides area to make them executable
+  var scripts = document.querySelectorAll(
+    '.remark-slides-area .remark-slide-container script'
+  );
+  if (!scripts.length) return;
+  for (var i = 0; i < scripts.length; i++) {
+    var s = document.createElement('script');
+    var code = document.createTextNode(scripts[i].textContent);
+    s.appendChild(code);
+    var scriptAttrs = scripts[i].attributes;
+    for (var j = 0; j < scriptAttrs.length; j++) {
+      s.setAttribute(scriptAttrs[j].name, scriptAttrs[j].value);
+    }
+    scripts[i].parentElement.replaceChild(s, scripts[i]);
+  }
+})();
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();
+// adds .remark-code-has-line-highlighted class to <pre> parent elements
+// of code chunks containing highlighted lines with class .remark-code-line-highlighted
+(function(d) {
+  const hlines = d.querySelectorAll('.remark-code-line-highlighted');
+  const preParents = [];
+  const findPreParent = function(line, p = 0) {
+    if (p > 1) return null; // traverse up no further than grandparent
+    const el = line.parentElement;
+    return el.tagName === "PRE" ? el : findPreParent(el, ++p);
+  };
+
+  for (let line of hlines) {
+    let pre = findPreParent(line);
+    if (pre && !preParents.includes(pre)) preParents.push(pre);
+  }
+  preParents.forEach(p => p.classList.add("remark-code-has-line-highlighted"));
+})(document);</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>
