@@ -1,0 +1,1378 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+  <head>
+    <title>第十三讲：时间序列回归的其他专题</title>
+    <meta charset="utf-8" />
+    <meta name="author" content="文旷宇" />
+    <script src="libs/header-attrs-2.20/header-attrs.js"></script>
+    <link href="libs/xaringanExtra-banner-0.0.1/banner.css" rel="stylesheet" />
+    <script src="libs/xaringanExtra-banner-0.0.1/banner.js"></script>
+    <script src="libs/fabric-4.3.1/fabric.min.js"></script>
+    <link href="libs/xaringanExtra-scribble-0.0.1/scribble.css" rel="stylesheet" />
+    <script src="libs/xaringanExtra-scribble-0.0.1/scribble.js"></script>
+    <script>document.addEventListener('DOMContentLoaded', function() { window.xeScribble = new Scribble({"pen_color":["#FF0000"],"pen_size":3,"eraser_size":30,"palette":[]}) })</script>
+    <link href="libs/panelset-0.2.6/panelset.css" rel="stylesheet" />
+    <script src="libs/panelset-0.2.6/panelset.js"></script>
+    <script src="libs/xaringanExtra_fit-screen-0.2.6/fit-screen.js"></script>
+    <link rel="stylesheet" href="xaringan-themer.css" type="text/css" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+.title[
+# 第十三讲：时间序列回归的其他专题
+]
+.author[
+### 文旷宇
+]
+.institute[
+### 华中科技大学
+]
+
+---
+
+&lt;style type="text/css"&gt;
+pre{
+  max-height:400px;
+  overflow-y:auto;
+}
+&lt;/style&gt;
+
+<div>
+<style type="text/css">.xaringan-extra-logo {
+width: 55px;
+height: 64px;
+z-index: 0;
+background-image: url(../images/hust-logo.png);
+background-size: contain;
+background-repeat: no-repeat;
+position: absolute;
+top:1em;right:1em;
+}
+</style>
+<script>(function () {
+  let tries = 0
+  function addLogo () {
+    if (typeof slideshow === 'undefined') {
+      tries += 1
+      if (tries < 10) {
+        setTimeout(addLogo, 100)
+      }
+    } else {
+      document.querySelectorAll('.remark-slide-content:not(.title-slide):not(.inverse):not(.hide_logo)')
+        .forEach(function (slide) {
+          const logo = document.createElement('div')
+          logo.classList = 'xaringan-extra-logo'
+          logo.href = null
+          slide.appendChild(logo)
+        })
+    }
+  }
+  document.addEventListener('DOMContentLoaded', addLogo)
+})()</script>
+</div><script>document.addEventListener('DOMContentLoaded',function(){new xeBanner(JSON.parse('{"left":"","right":"","exclude":["title-slide"],"position":"top"}'))})</script>
+<script>document.addEventListener('DOMContentLoaded',function(){new xeBanner(JSON.parse('{"left":"文旷宇/华中科技大学","exclude":["title-slide"],"position":"bottom"}'))})</script>
+
+
+
+
+
+
+
+
+### 主要内容
+- 多个变量的向量自回归模型 (VARs)
+
+- 未来两期、三期或更多期的预测
+
+- 随机性趋势
+
+ - 阶数和单位根检验
+
+- 协整
+
+- 波动集群现象
+
+- 预测误差为条件异方差的模型
+---
+
+###知识回顾：包含多个预测变量的时间序列回归
+$$
+`\begin{aligned}
+Y_t
+=&amp;\beta_0+\beta_1Y_{t-1}+···+\beta_pY_{t-p}+\delta_{11}X_{1t-1}+···+\delta_{1t-q}X_{1t-q}\\
+&amp;+\delta_{k1}X_{kt-1}+···+\delta_{kt-q}X_{kt-q}+u_t
+\end{aligned}`
+$$
+- **假设1：**条件零均值假设
+`$$E(u_t|Y_{t-1},Y_{t-2},···,X_{1t-1},X_{1t-2},···,X_{kt-1},X_{kt-2},···)=0$$`
+ - 基于 `\(X,Y\)` 所有过去值的 `\(Y_t\)` 最佳预测由该该回归给出
+
+- **假设2：**
+
+ - 随机变量 `\((Y_t,X_{1t},···，X_{kt})\)` 具有平稳分布（不随时间变化）
+ 
+ - `\(j\)` 较大时， `\((Y_t,X_{1t},···，X_{kt})\)` 和 `\((Y_{t-j},X_{1t-j},···，X_{kt-j})\)` 独立
+ 
+- **假设3：** `\(Y_t,X_{1t},···，X_{kt}\)` 具有非零、有限四阶矩
+
+- **假设4：**不存在完全多重共线性
+---
+
+###VAR模型
+- 12章我们学习了对单一变量建立预测模型的方法，但是实际生活中不止需要预测一个变量
+
+- 我们需要一个能预测多个变量的模型 `\(\longrightarrow\)` &lt;font color=darkred&gt;向量自回归：VAR模型&lt;/font&gt;
+
+ - VAR 为 `\(k\)` 个**时间序列回归的集合，回归变量为所有 `\(k\)` 个序列的滞后值**
+ 
+ - 考虑两个时间序列 `\(Y_t,X_t\)` 的情形（ `\(k=2\)` ）
+`$$Y_t=\beta_{10}+\beta_{11}Y_{t-1}+···+\beta_{1p}Y_{t-p}+\gamma_{11}X_{t-1}+···+\gamma_{1p}X_{t-p}+u_{1t}$$`
+`$$X_t=\beta_{20}+\beta_{21}Y_{t-1}+···+\beta_{2p}Y_{t-p}+\gamma_{21}X_{t-1}+···+\gamma_{2p}X_{t-p}+u_{2t}$$`
+- VAR 推断
+
+ - VAR 假设下，**OLS估计量一致且大样本下服从联合正态分布**
+ 
+     - `\(95\%\)` 置信区间：系数估计 `\(\pm1.96\)` 标准误差
+     
+     - `\(F\)` 统计量假设检验
+---
+
+###VAR模型
+- 建立 VAR 模型应该选择多少个变量？
+
+ - 确保**变量个数较少且变量之间相关** `\(\longrightarrow\)` 有助于相互预测
+ 
+ - 估计误差与预测精度的权衡
+ 
+- 滞后长度 `\(\longrightarrow\)` 信息准则
+`$$BIC(p)=ln[det(\hat \Sigma_u)]+k(kp+1)\frac{lnT}{T}$$`
+ - `\(\Sigma_u:\)` VAR误差的 `\(k\times k\)` 阶协方差矩阵； `\(det(\hat \Sigma_u):\)` 矩阵 `\(\hat \Sigma_u\)` 的行列式
+ 
+ - `\(k(kp+1):\)` 回归系数的总个数， `\(1\)` 代表截距项， `\(k\)` 代表时间序列变量个数
+ 
+ - `\(\hat p：\)` 使 `\(BIC(p)\)` 最小的 `\(p\)` 值
+ 
+- VAR 模型构建后，既可用于未来多期的预测，也可用于Granger因果分析
+---
+
+###迭代多期预测
+- 以最简单的 `\(AR(1)\)` 模型为例，考虑 `\(\Delta Inf_t\)` 的一阶自回归
+`$$\widehat{\Delta Inf_t}=0.02-0.24\Delta Inf_{t-1}$$`
+ - `\(\Delta Inf_{2005:Ⅰ|2004:Ⅳ}=0.02-0.24\Delta Inf_{2004:Ⅳ}=0.02-0.24\times1.9=-0.4\)`
+ 
+ - 将 `\(\Delta Inf_{2005:Ⅰ|2004:Ⅳ}=-0.4\)` **作为中间值预测下一期数据**
+ 
+ - `\(\Delta Inf_{2005:Ⅱ|2004:Ⅳ}=0.02-0.24\Delta Inf_{2005:Ⅰ|2004:Ⅳ}=\\0.02-0.24\times(-0.4)=0.1\)`
+ 
+- 以此类推，迭代多期 `\(AR\)` 预测和 `\(VAR\)` 预测分别为：
+`$$\hat Y_{T+2|T}=\hat \beta_0+\hat \beta_1\hat Y_{T+1|T}+\hat \beta_2Y_T+\hat \beta_3Y_{T-1}+···+\hat \beta_pY_{T-p+2}$$`
+$$
+`\begin{aligned}
+\hat Y_{T+2|T}
+&amp;=\hat \beta_{10}+\hat \beta_{11}\hat Y_{T+1|T}+\hat \beta_{12}Y_T+···+\hat \beta_{1p}Y_{T-p+2}\\
+&amp;+\hat \gamma_{11}\hat X_{T+1|T}+\hat \gamma_{12}X_T+···+\hat \gamma_pX_{T-p+2}
+\end{aligned}`
+$$
+---
+
+###直接多期预测
+- 在迭代多期预测中，以通货膨胀率和失业率数据为例：
+ 
+ - 必须利用直到 `\(T\)` 期的数据预测 `\(\widehat{\Delta Inf_{T+1}},\widehat{Unemp_{T+1}}\)` 作为预测 `\(\widehat{\Delta Inf_{T+2}}\)` 的中间步骤
+$$
+`\begin{aligned}
+\widehat{\Delta Inf_{2005:Ⅱ|2004:Ⅳ}}=
+&amp;1.47-0.64\widehat{\Delta Inf_{2005:Ⅰ|2004:Ⅳ}}-0.64\Delta Inf_{2004:Ⅳ}\\
+&amp;-0.13\Delta Inf_{2004:Ⅲ}-0.13\Delta Inf_{2004:Ⅱ}\\
+&amp;-3.49\widehat{Unemp_{2005:Ⅰ|2004:Ⅳ}}+2.80Unemp_{2004:Ⅳ}\\
+&amp;+2.44Unemp_{2004:Ⅲ}-2.03Unemp_{2004:Ⅱ}\\
+&amp;=-1.1
+\end{aligned}`
+$$
+- 我们也可以对自变量多取一阶滞后，直接利用直到 `\(T\)` 期的数据预测 `\(Y_{T+2}\)`
+
+$$
+`\begin{aligned}
+\widehat{\Delta Inf_{t|t-2}}=
+&amp;-0.15-0.25\Delta Inf_{t-2}+0.16\Delta Inf_{t-3}-0.15\Delta Inf_{t-4}\\
+&amp;-0.10\Delta Inf_{t-5}-0.17Unemp_{t-2}+1.82Unemp_{t-3}\\
+&amp;-3.53Unemp_{t-4}+1.89Unemp_{t-5}
+\end{aligned}`
+$$
+---
+
+###多期预测：迭代VS直接
+- 虽然直接多期回归可以免去迭代的繁琐，但是因变量发生在未来两期及以后
+
+ - 未来一期可能发生未预料到的干预事件 `\(\longrightarrow\)` 产生误差 `\(\longrightarrow\)` **多期回归误差项序列相关**
+ 
+ - 直接多期回归必须采用异方差和自相关一致（HAC）的标准误差
+
+ - 适用：1.确定向前一期回归的模型不正确; 2. 多元预测模型中有很多预测变量
+- 迭代预测：
+
+ - 向前一期回归得到的系数估计比向前多期更有效
+ 
+ - 迭代预测的时间路径在不同时期较稳定，而直接预测在不同范围采用不同模型
+ 
+ - 适用：确定向前一期回归的模型正确
+---
+
+###趋势的其他模型和单整阶数
+- 前面我们学习了趋势的随机游走模型
+`$$Y_t=\beta_0+Y_{t-1}+u_t$$`
+- 虽然趋势的随机游走模型描述了许多时间序列的长期运动
+
+- 但是有的时间序列趋势更加**平滑：一期到下一期的变化很小**
+
+- 我们需要引入新的模型：
+`$$\Delta Y_t=\beta_0+\Delta Y_{t-1}+u_t$$`
+ - `\(u_t\)` 序列不相关
+ 
+ - 一阶差分的差分 `\(\Delta^2Y_t=\Delta Y_t-\Delta Y_{t-1}\)` 称为 `\(Y_t\)` 的&lt;font color=darkred&gt;二阶差分&lt;/font&gt;
+ 
+     - 若 `\(Y_t\)` 满足该式 `\(\longrightarrow\)` **二阶差分平稳，一阶差分具有等于 `\(1\)` 的自回归根**（ `\(\Delta Y_{t-1}\)` 的系数 `\(\beta_1=1\)` ）
+     
+     - 该序列为&lt;font color=darkred&gt;二阶单整&lt;/font&gt;
+---
+
+### 趋势的其他模型和单整阶数
+
+.panelset.sideways[
+.panel[.panel-name[单整阶数]
+
+- &lt;font color=darkred&gt;单整阶数：&lt;/font&gt;使序列平稳的差分次数
+ 
+ - **零阶单整 `\(I(0)\)` ：**不具有趋势且平稳的序列
+ 
+ - **一阶单整 `\(I(1)\)` ：**具有随机游走趋势的序列 
+ 
+     - `\(Y_t=\beta_0+Y_{t-1}+u_t\)`
+ 
+     - `\(Y_t\)` 具有单位自回归根，一阶差分 `\(\Delta Y_t\)` 平稳
+ 
+ - **二阶单整 `\(I(2)\)` ：** 
+ 
+     - `\(\Delta Y_t=\beta_0+\Delta Y_{t-1}+u_t\)`
+ 
+     - `\(\Delta Y_t\)` 具有单位自回归根，二阶差分 `\(\Delta^2 Y_t\)` 平稳
+ 
+- 如何检验序列是 `\(I(1)\)` 还是 `\(I(2)\)` 呢？
+
+ - **检验 `\(\Delta Y_t\)` 是否具有单位自回归根即可**
+]
+.panel[.panel-name[]
+.panel[.panel-name[Code]
+
+```r
+library(dynlm)
+library(AER)
+data("USMacroG")
+# 设置图形布局为2行1列
+par(mfrow = c(2, 1))
+# 分别画出log(cpi)和近似年通货膨胀率图
+plot(log(USMacroG[,"cpi"]),
+     main = "美国消费者价格指数的对数",
+     ylab = "log(cpi)",
+     xlab = "时间",
+     col = "steelblue", 
+     lwd = 2)
+plot(400 * diff(log(USMacroG[,"cpi"])),
+     main = "基于cpi的美国通货膨胀率",
+     ylab = "每年百分比（年度百分比变化）",
+     xlab = "时间",
+     col = "steelblue", 
+     lwd = 2)
+# 在 y =  0 处添加一条虚线
+abline(0, 0, lty = 2)
+```
+
+
+
+]
+
+.panel[.panel-name[Output]
+
+![](Lecture_13_Time_Series_Other_Topics_files/figure-html/unnamed-chunk-2-1.png)&lt;!-- --&gt;
+
+]
+]
+.panel[.panel-name[注]
+- CPI是衡量一篮子消费品和服务价格变化的指标，它反映了消费者购买这些商品和服务的成本随时间的变化
+
+- 价格水平的对数 `\(log(cpi)\)` 具有平滑变化的趋势
+
+ - **若 `\(log(cpi)\)` 是 `\(I(2)\)` ，则其一阶差分应为 `\(I(1)\)` **
+ 
+- 由于我们正在考虑价格水平的对数，因此我们通过取第一个差值来获得增长率
+
+ - 差价水平序列是季度通货膨胀率序列
+ 
+ - 通过对CPI进行对数变换并乘以400，可以得到一个近似的年通货膨胀率估计值
+ 
+- 通货膨胀率的行为比  `\(cpi\)` 价格指数的平滑对数图要不稳定得多
+]]
+---
+
+###单位根的DF-GLS检验
+.panelset.sideways[
+.panel[.panel-name[DF-GLS检验]
+
+- 前面学习的 `\(ADF\)` 检验是**单位根原假设检验**中建立的**第一个检验 `\(\&amp;\)` 最常用的检验**
+
+- 但是**很多检验的势比 `\(ADF\)` 检验的势高**（在备择假设为真时更可能拒绝单位根的原假设而接受平稳的备择假设）：
+
+- `\(DF-GLS\)` 检验
+ 
+ - 原假设： `\(Y_t\)` 服从可能带漂移的随机游走趋势
+     
+ - 备择假设： `\(Y_t\)` 围绕线性时间趋势平稳
+ 
+ - 利用广义最小二乘（ `\(GLS\)` ）估计截距和趋势
+     
+ - 再利用 `\(Dickey-Fuller\)` 检验去趋势后的序列 `\(Y_t^d\)` 中的单位自回归根
+ 
+- **适用：时间序列的自相关根接近1但小于1时，即序列接近随机游走但有一些自相关结构的情况**
+]
+.panel[.panel-name[]
+.panel[.panel-name[Code]
+
+```r
+library(vars)
+library(AER)
+data("USMacroSWQ")
+GDP &lt;- USMacroSWQ[,"gdp"]
+# 使用 ur.ers 函数对对数变换后的GDP序列进行单位根检验，指定模型类型为 "trend"（包含趋势项），并设置最大滞后数为2
+summary(ur.ers(log(window(GDP, start = c(1947, 1), end = c(2004, 4))),
+               model = "trend", 
+               lag.max = 2))
+```
+
+
+
+]
+
+.panel[.panel-name[Output]
+
+```
+## 
+## ############################################### 
+## # Elliot, Rothenberg and Stock Unit Root Test # 
+## ############################################### 
+## 
+## Test of type DF-GLS 
+## detrending of series with intercept and trend 
+## 
+## 
+## Call:
+## lm(formula = dfgls.form, data = data.dfgls)
+## 
+## Residuals:
+##       Min        1Q    Median        3Q       Max 
+## -0.030302 -0.003976  0.000358  0.005644  0.034989 
+## 
+## Coefficients:
+##              Estimate Std. Error t value Pr(&gt;|t|)    
+## yd.lag       -0.03320    0.01336  -2.485   0.0137 *  
+## yd.diff.lag1  0.31229    0.06546   4.771 3.29e-06 ***
+## yd.diff.lag2  0.10768    0.06607   1.630   0.1046    
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## Residual standard error: 0.009307 on 226 degrees of freedom
+## Multiple R-squared:  0.139,	Adjusted R-squared:  0.1276 
+## F-statistic: 12.16 on 3 and 226 DF,  p-value: 2.086e-07
+## 
+## 
+## Value of test-statistic is: -2.4848 
+## 
+## Critical values of DF-GLS are:
+##                  1pct  5pct 10pct
+## critical values -3.48 -2.89 -2.57
+```
+
+
+
+]
+]
+.panel[.panel-name[临界值]
+
+|||||
+|:---:|:---:|:---:|:---:|
+|确定性回归变量|10%|5%|1%|
+|ADFD：只有截距|-2.57|-2.86|-3.43|
+|ADFD：截距和时间趋势|-3.12|-3.41|-3.96|
+|DF-GLS：只有截距（只有 `\(X_{1t}\)` ）|-1.62|-1.95|-2.58|
+|DF-GLS：截距和时间趋势（ `\(X_{1t}\)` 和 `\(X_{2t}\)` ）|-2.57|-2.89|-3.48|
+
+- `\(ADFD\)` 和 `\(DF-GLS\)` 两种检验统计量的渐近分布不同，它们的临界值也不同
+
+- 检验的摘要显示检验统计量约为 `\(-2.48(&gt;-2.57)\)`
+
+ - `\(test\)` 是左侧的，因此我们不能使用 `\(DF-GLS\)` 检验拒绝美国通货膨胀是非平稳的原假设
+]
+.panel[.panel-name[注]
+- `\(ur.ers\)` 函数是    `\(vars\)` 包中的一个功能，用于进行单位根检验
+
+ - 如果 `\(ur.ers\)` 检验的 `\(p\)` 值小于某个显著性水平（如 `\(0.05\)` ），则可以拒绝原假设（时间序列具有单位根，即非平稳），这表明序列是平稳的
+ 
+ - 如果 `\(p\)` 值较大，则不能拒绝原假设，序列可能是非平稳的，可能需要进一步的差分或其他转换
+
+- 这个检验考虑了时间序列中可能存在的趋势和自相关结构
+
+- `\(DF-GLS\)` 检验可以帮助研究者确定时间序列是否需要进行差分以使其平稳，这是进行协整分析等后续分析的重要步骤
+]]
+---
+
+###协整——仿真模拟
+.panelset[
+.panel[.panel-name[]
+.panel[.panel-name[Code]
+
+```r
+# 协整
+# 加载必要的库
+library(vars)
+library(AER)
+# 加载数据
+data("USMacroSW")
+tbill &lt;- USMacroSW[,"tbill"]
+tbond &lt;- USMacroSW[,"tbond"]
+TSpread &lt;- tbond-tbill
+# 绘制两个利率序列
+# 将3个月期和1年期国库券利率合并为一个zoo对象，以便在同一图表上绘制
+plot(merge(as.zoo(tbill), as.zoo(tbond)), 
+     plot.type = "single", 
+     lty = c(2, 1),
+     lwd = 2,
+     xlab = "日期",
+     ylab = "每年百分比",
+     ylim = c(-5, 17),
+     main = "利率")
+# 添加期限利差序列
+lines(as.zoo(TSpread), 
+      col = "steelblue",
+      lwd = 2,
+      xlab = "日期",
+      ylab = "每年百分比",
+      main = "期限利差")
+
+# 填充期限利差
+polygon(c(time(tbill), rev(time(tbill))), 
+        c(tbond, rev(tbill)),
+        col = rgb(0.2745, 0.5098, 0.7059, alpha = 0.3),
+        border = NA)
+# 添加水平虚线
+abline(0, 0,lty=2)
+# 添加图例
+legend("topleft", 
+       legend = c("3月期国库券利率", "1年期美国国债利率", "期限利差"),
+       col = c("black", "black", "steelblue"),
+       lwd = c(2, 2, 2),
+       lty = c(2, 1, 1),
+       cex = 0.7, # 调整图例文字大小
+       bty = "n", # 去掉图例边框
+       )
+```
+
+
+
+]
+
+.panel[.panel-name[Output]
+
+![](Lecture_13_Time_Series_Other_Topics_files/figure-html/unnamed-chunk-4-1.png)&lt;!-- --&gt;
+
+]
+]
+.panel[.panel-name[注]
+- 该图表明长期和短期利率是共整的：
+
+ - 两个利息序列似乎具有相同的长期行为（共同的随机趋势）
+ 
+     - 20世纪60年代都较低
+     
+     - 70年代开始上升于80年代达到峰顶
+     
+     - 然后双双于90年代下降
+ 
+- 通过取长期和短期利率之间的差额获得的期限利差似乎是平稳的
+
+ - 从1年期利率中减去90天利率后似乎消去了两个利率中的趋势
+]]
+---
+
+###协整
+- 两个或多个序列有时包含了相同的随机性趋势，我们称之为&lt;font color=darkred&gt;协整的&lt;/font&gt;序列
+
+- 设 `\(X_t\)` 和 `\(Y_t\)` 都是一阶单整的，若对某个系数 `\(\theta\)` , `\(Y_t-\theta X_t\)` 为零阶单整，则
+ 
+ - `\(X_t\)` 和 `\(Y_t\)` 是&lt;font color=darkred&gt;协整的&lt;/font&gt;， `\(\theta\)` 为&lt;font color=darkred&gt;协整系数&lt;/font&gt;
+ 
+  - `\(Y_t-\theta X_t\)` 的差异计算**消除**了共同的**随机趋势** `\(\longrightarrow\)` 是平稳的
+  
+  - **向量误差修正模型： `\(VECM\)` **
+$$
+`\begin{aligned}
+\Delta Y_t=
+&amp;\beta_{10}+\beta_{11}\Delta Y_{t-1}+···+\beta_{1p}\Delta Y_{t-p}+\gamma_{11}\Delta X_{t-1}+···\\
+&amp;+\gamma_{1p}\Delta X_{t-p}+\alpha_1(Y_{t-1}-\theta X_{t-1})+u_{1t}
+\end{aligned}`
+$$
+$$
+`\begin{aligned}
+\Delta X_t=
+&amp;\beta_{20}+\beta_{21}\Delta Y_{t-1}+···+\beta_{2p}\Delta Y_{t-p}+\gamma_{21}\Delta X_{t-1}+···\\
+&amp;+\gamma_{2p}\Delta X_{t-p}+\alpha_1(Y_{t-1}-\theta X_{t-1})+u_{2t}
+\end{aligned}`
+$$
+     - `\(Y_t-\theta X_t\)` 为误差修正项，其过去值有助于预测 `\(\Delta Y_t,\Delta X_t\)` 的过去值 
+     
+     - 该模型建立的前提是 `\(X_t\)` 和 `\(Y_t\)` 是协整的，但是如何判断呢？
+---
+
+###协整检验
+- 我们知道：如果 `\(Y_t\)` 和 `\(X_t\)` 具有协整系数为 `\(\theta\)` 的协整关系，则 `\(Y_t-\theta X_t\)` 是平稳的，否则是非平稳的 `\(I(1)\)`
+
+ - **差分**一阶**消除随机趋势**
+
+- 故 `\(Y_t,X_t\)` 不为协整 `\(\longleftrightarrow\)`  `\(Y_t-\theta X_t\)` 具有单位根 `\(\longrightarrow\)` 原假设
+
+ - `\(\theta\)` 已知时：
+ 
+     - 构造序列： `\(z_t=Y_t-\theta X_t\)`
+     
+     - `\(Dickey-Fuller\)` 和 `\(DF-GLS\)` 单位根检验 `\(z_t\)` 具有单位根的原假设
+     
+ - `\(\theta\)` 未知时： `\(EG-ADF\)` 检验
+ 
+     - `\(OLS\)` 估计 `\(\theta\)`
+`$$Y_t=\alpha+\theta X_t+z_t$$`
+
+     - 利用 `\(Dickey-Fuller\)` `\(t\)` 检验（含截距但不含时间趋势）检验 `\(\hat z_t\)` 是否具有单位根
+---
+
+###协整检验的实践应用—— `\(\theta\)` 已知
+
+.panelset[
+.panel[.panel-name[1理论]
+首先，利用这些变量的专业知识确定协整是否在实际中合理
+
+- 利率期限结构的预期理论（纯粹预期假说）
+
+ - 长期债券的利率是市场对未来短期利率预期的反映
+ 
+ - 具体来说，长期利率等于在该债券有效期内预期的短期利率的几何平均值
+ 
+     - 1月1日起的一年期国债利率为这一年第一季度的90天国债利率和第二、三和四季度发行的未来90天国债期望利率的平均值
+     - 否则投资者可以通过持有一年期国债或者持有四个90天国债序列来赚钱,这会抬高价格直至期望收益相等
+
+- 若90天利率中包含随机游走的随机性趋势,则一年期利率继承了这一随机性趋势
+
+ - 若利率为 `\(I(1)\)` ，则它们是协整的,协整系数 `\(\theta=1\)` （**已知**）
+]
+
+.panel[.panel-name[2图形]
+其次，序列的直观图形有助于识别看似协整的情形
+
+![](Lecture_13_Time_Series_Other_Topics_files/figure-html/unnamed-chunk-5-1.png)&lt;!-- --&gt;
+]
+.panel[.panel-name[]
+.panel[.panel-name[3协整检验]
+
+```r
+# 不同的单位根检验测试美国短期（3个月）和长期（1年）国债利率的时间序列是否平稳
+# ur.df 函数用于执行ADF检验，它检查时间序列是否存在单位根，即是否非平稳
+# test for nonstationarity of 3-month treasury bills using ADF test
+# window 函数用于提取时间序列的特定时间段
+ur.df(window(tbill, c(1957, 1), c(2005, 1)), 
+      lags = 6,
+      # 使用赤池信息准则（Akaike Information Criterion）自动选择最优的滞后阶数
+      selectlags = "AIC",
+      # 模型包含一个漂移项（即时间趋势的常数项），但不包括截距项
+      type = "drift")
+
+ur.df(window(tbond, c(1957, 1), c(2005, 1)), 
+      lags = 6, 
+      selectlags = "AIC", 
+      type = "drift")
+
+ur.df(window(tbond, c(1957, 1), c(2005, 1)) - window(tbill, c(1957, 1), c(2005, 1)), 
+      lags = 6, 
+      selectlags = "AIC", 
+      type = "drift")
+
+
+# ur.ers 函数用于执行DF-GLS检验
+ur.ers(window(tbill, c(1957, 1), c(2005, 1)),
+       # 在DF-GLS检验中包括一个常数项
+       model = "constant", 
+       lag.max = 6)
+ur.ers(window(tbond, c(1957, 1), c(2005, 1)),
+       model = "constant", 
+       lag.max = 6)
+
+ur.ers(window(tbond, c(1957, 1), c(2005, 1)) - window(tbill, c(1957, 1), c(2005, 1)),
+       model = "constant", 
+       lag.max = 6)
+```
+
+
+
+]
+
+.panel[.panel-name[Output]
+
+```
+## 
+## ############################################################### 
+## # Augmented Dickey-Fuller Test Unit Root / Cointegration Test # 
+## ############################################################### 
+## 
+## The value of the test statistic is: -2.3916 2.8623 
+## 
+## 
+## ############################################################### 
+## # Augmented Dickey-Fuller Test Unit Root / Cointegration Test # 
+## ############################################################### 
+## 
+## The value of the test statistic is: -2.1745 2.3655 
+## 
+## 
+## ############################################################### 
+## # Augmented Dickey-Fuller Test Unit Root / Cointegration Test # 
+## ############################################################### 
+## 
+## The value of the test statistic is: -5.742 16.4851 
+## 
+## 
+## ############################################################### 
+## # Elliot, Rothenberg and Stock Unit Root / Cointegration Test # 
+## ############################################################### 
+## 
+## The value of the test statistic is: -2.1366 
+## 
+## 
+## ############################################################### 
+## # Elliot, Rothenberg and Stock Unit Root / Cointegration Test # 
+## ############################################################### 
+## 
+## The value of the test statistic is: -1.7726 
+## 
+## 
+## ############################################################### 
+## # Elliot, Rothenberg and Stock Unit Root / Cointegration Test # 
+## ############################################################### 
+## 
+## The value of the test statistic is: -2.916
+```
+
+
+
+]
+]
+.panel[.panel-name[注]
+在 `\(10\%\)` 置信水平下：
+- `\(ADF\)` 检验中：
+
+ - 第一个统计量考虑了时间趋势，第二个统计量不考虑时间趋势
+
+|时间序列|ADF测试统计量|DF-GLS测试统计量| 
+|:---:|:---:|:---:|
+|3个月利率|-2.39|-2.14|
+|1年利率|-2.17|-1.77|
+|利差|-5.74|-2.92|
+ 
+- 所以我们不能拒绝任一级数的非平稳原假设，一年期国债利率时间序列亦然
+
+- 而二者的利率差序列的两个检验都否定了 `\(5\%\)` 显著性水平 `\(\rightarrow\)` 支持利差平稳的假设 `\(\rightarrow\)` 长短期利率共整
+]]
+---
+
+###协整检验的实践应用—— `\(\theta\)` 未知
+- 首先进行第一阶段 `\(OLS\)` 回归
+
+
+```r
+# 协整EG-ADF检验：θ未知
+library(dynlm)
+FS_EGADF &lt;- dynlm(window(tbond,c(1957, 1), c(2005, 1)) ~ window(tbill, c(1957, 1), c(2005, 1)))
+FS_EGADF
+## 
+## Time series regression with "ts" data:
+## Start = 1957(1), End = 2005(1)
+## 
+## Call:
+## dynlm(formula = window(tbond, c(1957, 1), c(2005, 1)) ~ window(tbill, 
+##     c(1957, 1), c(2005, 1)))
+## 
+## Coefficients:
+##                           (Intercept)  window(tbill, c(1957, 1), c(2005, 1))  
+##                                0.3655                                 1.0442
+```
+
+`\(\widehat {tbond}=0.37+1.04\cdot tbill\)` ，其中 `\(\hat \theta=1.04\)`
+---
+
+###协整检验的实践应用—— `\(\theta\)` 未知
+.panelset[
+.panel[.panel-name[]
+.panel[.panel-name[Code]
+
+```r
+# 提取模型 FS_EGADF 的残差
+z_hat &lt;- resid(FS_EGADF)
+
+# 对残差序列 z_hat 进行ADF单位根检验
+ur.df(z_hat, lags = 6, type = "none", selectlags = "AIC")
+```
+
+
+
+]
+
+.panel[.panel-name[Output]
+
+```
+## 
+## ############################################################### 
+## # Augmented Dickey-Fuller Test Unit Root / Cointegration Test # 
+## ############################################################### 
+## 
+## The value of the test statistic is: -6.528
+```
+
+
+
+]
+]
+.panel[.panel-name[注]
+- 使用 dynlm 包中的 resid 函数来计算动态线性模型的残差
+
+- 然后使用 ur.df 函数从 urca 包中对这些残差进行ADF（Augmented Dickey-Fuller）单位根检验
+
+- 如果残差是平稳的，则表明模型已经充分捕捉了数据中的信息，没有遗漏任何重要的结构
+
+- 得到的检验统计量为 `\(-6.528&lt;-3.48\)` 
+
+ - 有 `\(99\%\)` 的把握拒绝非共整的原假设
+ 
+ - 但是有时由于需要估计 `\(\theta\)` 会降低 `\(EG-ADF\)` 的效力
+ 
+ - 而我们期望残差序列 `\(\hat z=tbond-tbill\)` 的 `\(ADF\)` 单位根检验比使用 `\(\hat \theta\)` 时的效力更高
+]] 
+---
+
+###协整——VECM模型
+.panelset[
+.panel[.panel-name[VECM]
+
+- 如果两个 `\(I(1)\)` 时间序列 `\(X_t,Y_t\)` 是协整的
+
+ - 那么它们的差分是平稳的，并且能通过 `\(Y_t-\theta X_{t-1}\)` 扩充为矢量自回归模型（ `\(VAR\)` ）
+ 
+     - 这个模型叫做**矢量误差纠正模型（ `\(VECM\)` ）**
+     
+     - `\(Y_t-\theta X_{t-1}\)` 叫做**误差纠正项**
+]
+.panel[.panel-name[]
+.panel[.panel-name[Code]
+
+```r
+# 矢量纠正模型VECM
+# 加载必要的库
+library(vars)
+library(AER)
+# 加载数据
+data("USMacroSW")
+TB3MS &lt;- USMacroSW[,"tbill"]
+TB1YS &lt;- USMacroSW[,"tbond"]
+TSpread &lt;- TB1YS-TB3MS
+TB1YS &lt;- window(TB1YS, c(1957, 1), c(2005, 1))
+TB3MS &lt;- window(TB3MS, c(1957, 1), c(2005, 1))
+
+# 设置误差纠正项
+VECM_ECT &lt;- TB1YS - TB3MS
+
+# 使用'dynlm()'估计VECM方程
+VECM_EQ1 &lt;- dynlm(d(TB1YS) ~ L(d(TB3MS), 1:2) + L(d(TB1YS), 1:2) + L(VECM_ECT))
+VECM_EQ2 &lt;- dynlm(d(TB3MS) ~ L(d(TB3MS), 1:2) + L(d(TB1YS), 1:2) + L(VECM_ECT))
+
+# 重命名回归变量
+names(VECM_EQ1$coefficients) &lt;- c("Intercept", "D_TB3MS_l1", "D_TB3MS_l2",
+                                  "D_TB1YS_l1", "D_TB1YS_l2", "ect_l1")
+names(VECM_EQ2$coefficients) &lt;- names(VECM_EQ1$coefficients)
+
+# 使用HAC标准误的系数总结
+coeftest(VECM_EQ1, vcov. = NeweyWest(VECM_EQ1, prewhite = F, adjust = T))
+coeftest(VECM_EQ2, vcov. = NeweyWest(VECM_EQ2, prewhite = F, adjust = T))
+```
+
+
+
+]
+
+.panel[.panel-name[Output]
+
+```
+## 
+## t test of coefficients:
+## 
+##             Estimate Std. Error t value Pr(&gt;|t|)
+## Intercept   0.190758   0.175409  1.0875   0.2782
+## D_TB3MS_l1 -0.048054   0.252130 -0.1906   0.8491
+## D_TB3MS_l2 -0.318444   0.274006 -1.1622   0.2467
+## D_TB1YS_l1 -0.135255   0.330155 -0.4097   0.6825
+## D_TB1YS_l2  0.127498   0.227298  0.5609   0.5755
+## ect_l1     -0.324216   0.292543 -1.1083   0.2692
+## 
+## 
+## t test of coefficients:
+## 
+##             Estimate Std. Error t value Pr(&gt;|t|)
+## Intercept  -0.016693   0.153318 -0.1089   0.9134
+## D_TB3MS_l1 -0.152047   0.315413 -0.4821   0.6303
+## D_TB3MS_l2 -0.416254   0.323141 -1.2881   0.1993
+## D_TB1YS_l1 -0.035436   0.377802 -0.0938   0.9254
+## D_TB1YS_l2  0.166786   0.267539  0.6234   0.5338
+## ect_l1      0.015578   0.257540  0.0605   0.9518
+```
+
+
+
+]
+]
+.panel[.panel-name[注]
+$$
+`\begin{aligned}
+\widehat{\Delta tbond}=
+&amp;0.191-0.048\Delta tbill_{t-1}-0.318\Delta tbill_{t-2}-0.135\Delta tbond_{t-1}\\
+&amp;+0.127\Delta tbond_{t-2}-\underset{(0.27)}{0.324}ECT_{t-1}\\
+\end{aligned}`
+$$
+
+$$
+`\begin{aligned}
+\widehat{\Delta tbill}=
+&amp;-0.017-0.152\Delta tbill_{t-1}-0.416\Delta tbill_{t-2}-0.035\Delta tbond_{t-1}\\
+&amp;+0.167\Delta tbond_{t-2}+\underset{(0.95)}{0.016}ECT_{t-1}\\
+\end{aligned}`
+$$
+- coeftest生成的输出表明，几乎没有证据表明差分利率序列的滞后值对预测有用（系数不显著）
+
+ - **误差校正项（滞后项价差）在任何常见显著性水平上都与零没有显著差异（无“*”）**
+]
+.panel[.panel-name[注]
+- **如果有足够多的数据能从2005年往后扩充**
+
+ - 可能会发现对于差分的1年期国债利率，误差修正项在统计上**显著**，且估计值为**负值**
+ 
+     - 尽管两种利率都是非平稳的，但它们的共整关系允许使用 VECM 预测 1年期国债利率的变化
+     
+     - 1年期国债利率相对于当期3个月期国库券利率异常高时，下一期 1年期国债利率将发生负变化，与前述利率期限理论相符
+     
+- **注意**：若对没有协整关系的变量错误地建立了 `\(VECM\)` ,则误差修正项为 `\(I(1)\)` 
+
+ - 这将在预测中引入趋势,由此得到的样本外预测表现很糟糕
+]]
+---
+
+###协整系数的估计
+- 若 `\(X_t\)` 和 `\(Y_t\)` 协整
+
+ - 利用 OLS 估计 `\(Y_t=\alpha+\theta X_t+z_t\)` 中 `\(\theta\)` 的估计量是一致的，但是服从非正态分布
+ 
+- 故不论 `\(t\)` 统计量是否用 HAC 标准误差计算，基于这些 `\(t\)` 统计量的推断都是不正确的
+
+- 在实践中，我们通常应用动态OLS估计量（ DOLS ）
+`$$Y_t=\alpha+\theta X_t+\sum_{j=-p}^{p}\delta_j\Delta X_{t-j}+u_t$$`
+ - 修正式包含了 `\(X_t\)` 变化的过去、现在和未来值
+ 
+ - 若 `\(X_t,Y_t\)` 协整，在大样本下
+ 
+     - 利用HAC标准误差的DOLS估计量构造的t统计量服从正态分布
+     
+     - DOLS估计量有效
+---
+
+###波动集群性
+.panelset[
+.panel[.panel-name[]
+.panel[.panel-name[1]
+
+```r
+# 波动集群现象
+library(AER)
+data("NYSESW")  
+S_t &lt;- diff(log(NYSESW))*100
+plot((S_t),
+     col = "steelblue",
+     lwd = 2,
+     ylab = "指数每日的对数收益率的百分比变化（%）",
+     xaxt = "n",
+     xlab = "年份",
+     main = "纽约证券交易所综合股价指数",
+     cex.main = 0.8)
+# 假设NYSESW是一个带有日期索引的时间序列对象
+index(NYSESW) &lt;- as.Date(index(NYSESW))
+
+# 创建一个日期序列
+date_seq &lt;- seq(from = as.Date(min(index(NYSESW))), 
+                to = as.Date(max(index(NYSESW))), 
+                by = "year")
+
+# 添加自定义x轴
+axis.Date(side = 1, at = date_seq, labels = format(date_seq, "%Y"))
+# 添加虚线
+abline(0,0,lty=2)
+```
+
+
+
+]
+
+.panel[.panel-name[图1]
+
+![](Lecture_13_Time_Series_Other_Topics_files/figure-html/unnamed-chunk-10-1.png)&lt;!-- --&gt;
+
+]
+]
+.panel[.panel-name[注]
+- 现在我们学习了平稳和非平稳的时间序列，并初步了解了消除趋势的方法
+
+ - 但是许多经济时间序列中都存在**时而平稳时而非平稳**,即波动成群出现的现象
+
+
+- 纽约股票交易所(NYSE)股票价格指数日百分率变化显示了如1990年和2003年的剧烈波动时期和如1993年的低波动时期
+
+ - 这种某些时候波动性低而某些时候波动性高的序列称为**波动集群性(volatility clustering)**
+
+- 由于**波动成群出现**,因此即使难以预测NYSE指数的日价格变化,我们也能预测其价格日百分率变化的方差
+
+- 波动集群性可视为误差项方差在时间上的集聚
+
+ - 若某个时期的回归误差方差较小,则它下一期的方差往往也较小
+ 
+ - 波动集群性意味着**误差具有时变异方差性**
+]
+.panel[.panel-name[]
+.panel[.panel-name[2]
+
+```r
+# 计算并绘制时间序列（日百分比变化）的自相关系数，这些系数表示了序列与其自身在不同滞后阶数下的关联程度
+# 设置 na.action 参数为 na.pass，这样即使数据中存在NA值，函数也会尝试继续执行
+acf(S_t, na.action = na.pass, main = "指数每日价格变化的自相关",xlab="滞后阶数",ylab="每日百分比变化")
+```
+
+
+
+]
+
+.panel[.panel-name[图2]
+
+![](Lecture_13_Time_Series_Other_Topics_files/figure-html/unnamed-chunk-11-1.png)&lt;!-- --&gt;
+
+]
+]
+.panel[.panel-name[注]
+- 图1中指数的每日变化百分比变化似乎在零附近随机波动，这意味着几乎没有自相关
+
+- 样本自相关函数的图（图2）证实了这一点
+
+ - 图2中计算并绘制了*指数每日价格变化*的自相关系数，这些系数表示了**序列与其自身在不同滞后阶数下的关联程度**
+
+ - 我们看到自相关相当弱，因此很难使用 AR 模型等模型预测未来结果
+ 
+- 但是图1中我们观察到波动性聚类，因此一系列回归表现出条件异方差性
+
+ - 可以使用假设波动性可以用自回归过程来描述的模型来测量和预测这些模式
+]]
+---
+
+###自回归条件异方差
+- 波动集群性的**两个**模型为**自回归条件异方差 `\((ARCH)\)` 模型**及其推广,即**广义 `\(ARCH(GARCH)\)` 模型**
+
+.panelset[
+.panel[.panel-name[ARCH:GARCH]
+
+- `\(ARCH\)` （考虑 `\(ADL(1,1)\)` 回归）
+`$$Y_t=\beta_0+\beta_1Y_{t-1}+\gamma_1X_{t-1}+u_t$$`
+ - 假设 `\(u_t\)` 服从均值为 `\(0\)` 、方差为 `\(\sigma_t^2\)` （依赖于 `\(u_t\)` 的过去值） 的正态分布模型
+ `$$\sigma_t^2=\alpha_0+\alpha_1u_{t-1}^2+\alpha_2u_{t-2}^2+···+\alpha u_{t-p}^2$$`
+
+- `\(GARCH\)`
+`$$\sigma_t^2=\alpha_0+\alpha_1 u_{t-1}^2+···+\alpha u_{t-p}^2+\phi_1\sigma_{t-1}^2+···+\phi_q\sigma_{t-q}^2$$`
+
+ - `\(\sigma_t^2\)` 不仅依赖于误差平方滞后而且还依赖于自身的滞后项
+]
+.panel[.panel-name[比较]
+
+- ARCH模型类似于分布滞后模型,而GARCH模型类似于ADL模型
+ 
+ - GARCH模型中加入 `\(\sigma_t^2\)` 滞后项后用少于ARCH模型的参数抓住了渐变方差
+ 
+- 二者的重要应用是**度量和预测**金融资产收益的**时变波动性**
+ 
+- 可用最大似然法估计二模型
+ 
+ - 其系数估计量在大样本下服从正态分布
+     
+     - 大样本下 `\(t\)` 统计量服从正态分布
+     
+     - 系数的置信区间为最大似然估计 `\(\pm1.96\)` 标准误 
+
+]]
+---
+
+###自回归条件异方差——在股票价格波动性中的应用
+.panelset[
+.panel[.panel-name[]
+.panel[.panel-name[Code]
+
+```r
+# 自回归条件异方差
+# 使用 garchFit 函数来估计指数日百分比变化的广义自回归条件异方差（GARCH）模型
+if (!require("rugarch")) install.packages("rugarch")
+library(rugarch)
+# 拟合 GARCH(1,1) 模型
+spec &lt;- ugarchspec(variance.model = list(model = "sGARCH", garchOrder = c(1, 1)),
+                   mean.model = list(armaOrder = c(0, 0), include.mean = TRUE),
+                   distribution.model = "norm")
+GARCH_S_t &lt;- ugarchfit(spec = spec, data = S_t,trace=F)
+GARCH_S_t
+```
+
+
+
+]
+
+.panel[.panel-name[Output]
+
+```
+## 
+## *---------------------------------*
+## *          GARCH Model Fit        *
+## *---------------------------------*
+## 
+## Conditional Variance Dynamics 	
+## -----------------------------------
+## GARCH Model	: sGARCH(1,1)
+## Mean Model	: ARFIMA(0,0,0)
+## Distribution	: norm 
+## 
+## Optimal Parameters
+## ------------------------------------
+##         Estimate  Std. Error  t value Pr(&gt;|t|)
+## mu      0.049044    0.011133   4.4054 0.000011
+## omega   0.007934    0.002162   3.6693 0.000243
+## alpha1  0.072438    0.009738   7.4384 0.000000
+## beta1   0.919080    0.010981  83.6943 0.000000
+## 
+## Robust Standard Errors:
+##         Estimate  Std. Error  t value Pr(&gt;|t|)
+## mu      0.049044    0.011030   4.4462 0.000009
+## omega   0.007934    0.003525   2.2510 0.024383
+## alpha1  0.072438    0.018731   3.8672 0.000110
+## beta1   0.919080    0.020332  45.2029 0.000000
+## 
+## LogLikelihood : -4762.76 
+## 
+## Information Criteria
+## ------------------------------------
+##                    
+## Akaike       2.3822
+## Bayes        2.3885
+## Shibata      2.3822
+## Hannan-Quinn 2.3844
+## 
+## Weighted Ljung-Box Test on Standardized Residuals
+## ------------------------------------
+##                         statistic   p-value
+## Lag[1]                      20.41 6.260e-06
+## Lag[2*(p+q)+(p+q)-1][2]     20.41 3.466e-06
+## Lag[4*(p+q)+(p+q)-1][5]     23.86 1.656e-06
+## d.o.f=0
+## H0 : No serial correlation
+## 
+## Weighted Ljung-Box Test on Standardized Squared Residuals
+## ------------------------------------
+##                         statistic p-value
+## Lag[1]                   0.007367  0.9316
+## Lag[2*(p+q)+(p+q)-1][5]  3.596290  0.3089
+## Lag[4*(p+q)+(p+q)-1][9]  4.159915  0.5620
+## d.o.f=2
+## 
+## Weighted ARCH LM Tests
+## ------------------------------------
+##             Statistic Shape Scale P-Value
+## ARCH Lag[3]   0.04494 0.500 2.000  0.8321
+## ARCH Lag[5]   0.06433 1.440 1.667  0.9929
+## ARCH Lag[7]   0.18773 2.315 1.543  0.9974
+## 
+## Nyblom stability test
+## ------------------------------------
+## Joint Statistic:  0.6315
+## Individual Statistics:             
+## mu     0.1171
+## omega  0.2204
+## alpha1 0.2887
+## beta1  0.2072
+## 
+## Asymptotic Critical Values (10% 5% 1%)
+## Joint Statistic:     	 1.07 1.24 1.6
+## Individual Statistic:	 0.35 0.47 0.75
+## 
+## Sign Bias Test
+## ------------------------------------
+##                    t-value      prob sig
+## Sign Bias            1.265 2.058e-01    
+## Negative Sign Bias   1.223 2.213e-01    
+## Positive Sign Bias   2.310 2.091e-02  **
+## Joint Effect        25.769 1.066e-05 ***
+## 
+## 
+## Adjusted Pearson Goodness-of-Fit Test:
+## ------------------------------------
+##   group statistic p-value(g-1)
+## 1    20     95.95    2.877e-12
+## 2    30     98.54    1.673e-09
+## 3    40    115.84    1.504e-09
+## 4    50    124.26    1.817e-08
+## 
+## 
+## Elapsed time : 0.1530471
+```
+
+
+
+]
+]
+.panel[.panel-name[注]
+`$$\sigma_t^2=\omega+\alpha_1 u_{t-1}^2+\beta_1\sigma_{t-1}^2$$`
+- 由代码输出结果可知
+`$$\hat R_t^2=\mu=\underset{(0.011)}{0.049}$$`
+`$$\hat\sigma_t^2=\underset{(0.002)}{0.0079}+\underset{(0.009)}{0.072} u_{t-1}^2+\underset{(0.01)}{0.919}\sigma_{t-1}^2$$`
+- 方差变动持续性的-种度量是GARCH模型中 `\(u_{t-1}^2\)` 和 `\(\sigma_{t-1}^2\)` 系数之和
+ 
+ - 其和 `\((0.991)\)` 较大,表明条件方差中的变化具有持续性
+ 
+     - 即 `\(GARCH\)` 模型估计表明 `\(NYSE\)` 中高波动性时期是持久的
+     
+     - 与前面图中观察到的长期波动集群性是一致的
+
+]
+.panel[.panel-name[]
+.panel[.panel-name[Code]
+
+```r
+# 计算日百分比变化与其均值fit$coef[1]的偏差
+dev_mean_S_t &lt;- S_t - GARCH_S_t@fit$coef[1]
+
+# 绘制偏差
+plot(time(S_t), dev_mean_S_t, 
+     type = "l", 
+     col = "steelblue",
+     ylab = "百分率（%）", 
+     xlab = "年份",
+     main = "估计的正负一个条件标准差的区间带",
+     cex.main=0.8,
+     lwd = 0.2)
+
+# 在y=0的位置添加一条水平线，表示零偏差
+abline(0, 0,lty=2)
+
+# 添加GARCH(1,1)置信区间
+lines(time(S_t), 
+      GARCH_S_t@fit$coef[1] + sigma(GARCH_S_t), 
+      col = "darkred", 
+      lwd = 0.5)
+
+lines(time(S_t), 
+      GARCH_S_t@fit$coef[1] - sigma(GARCH_S_t), 
+      col = "darkred", 
+      lwd = 0.5)
+```
+
+
+
+]
+
+.panel[.panel-name[Output]
+
+![](Lecture_13_Time_Series_Other_Topics_files/figure-html/unnamed-chunk-13-1.png)&lt;!-- --&gt;
+
+]
+]
+.panel[.panel-name[注]
+- 条件标准差波幅定量刻画了日价格变化的时变波动性
+
+ - 在20世纪90年代中期,条件标准差波幅较紧,表明投资者持有NYSE指数的风险水平较低
+ 
+ - 相反,世纪之交时,这些条件标准差波幅较宽，表明较大的日股票价格波动
+
+- 估计的条件标准差的波段很好地跟踪了指数的一系列每日变化中观察到的异方差性
+
+ - 这对于**量化***时变波动性*以及由指数总结的持有股票的投资者所面临的*风险*非常有用
+
+- 此外， `\(GARCH\)` 模型还可用于**生成预测区间**，其宽度取决于最近时期的波动性
+]]
+---
+
+###小结
+- 向量自回归对 `\(k\)` 个时间序列变量组成的“向量”中的每一个变量建立依赖于自身滞后及其他 `\(k-1\)` 个序列滞后的模型
+
+- 迭代多期预测
+ 
+- 直接多期预测
+ 
+- 两个具有共同随机性趋势的序列是协整的
+
+ - `\(Y_t,X_t\)` 为 `\(I(1)\)` ， `\(Y_t-\theta X_t\)` 为 `\(I(0)\)` `\(\longrightarrow\)` `\(Y_t\)` 和 `\(X_t\)` 是协整的
+ 
+ - 误差修正项 `\(Y_t-\theta X_t\)` 有利于预测 `\(\Delta Y_t,\Delta X_t\)` `\(\longrightarrow\)` 向量误差修正模型
+ 
+- 波动集群性：序列方差时大时小
+
+ - ARCH模型将回归误差的条件方差表示为近期回归误差平方的函数
+ 
+ - GARCH在ARCH基础上加入了滞后条件方差
+ 
+ - 预测区间长度取决于最近的回归残差波动性
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script>var slideshow = remark.create({
+"highlightStyle": "github",
+"highlightLines": true,
+"countIncrementalSlides": false
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();
+// add `data-at-shortcutkeys` attribute to <body> to resolve conflicts with JAWS
+// screen reader (see PR #262)
+(function(d) {
+  let res = {};
+  d.querySelectorAll('.remark-help-content table tr').forEach(tr => {
+    const t = tr.querySelector('td:nth-child(2)').innerText;
+    tr.querySelectorAll('td:first-child .key').forEach(key => {
+      const k = key.innerText;
+      if (/^[a-z]$/.test(k)) res[k] = t;  // must be a single letter (key)
+    });
+  });
+  d.body.setAttribute('data-at-shortcutkeys', JSON.stringify(res));
+})(document);
+(function() {
+  "use strict"
+  // Replace <script> tags in slides area to make them executable
+  var scripts = document.querySelectorAll(
+    '.remark-slides-area .remark-slide-container script'
+  );
+  if (!scripts.length) return;
+  for (var i = 0; i < scripts.length; i++) {
+    var s = document.createElement('script');
+    var code = document.createTextNode(scripts[i].textContent);
+    s.appendChild(code);
+    var scriptAttrs = scripts[i].attributes;
+    for (var j = 0; j < scriptAttrs.length; j++) {
+      s.setAttribute(scriptAttrs[j].name, scriptAttrs[j].value);
+    }
+    scripts[i].parentElement.replaceChild(s, scripts[i]);
+  }
+})();
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();
+// adds .remark-code-has-line-highlighted class to <pre> parent elements
+// of code chunks containing highlighted lines with class .remark-code-line-highlighted
+(function(d) {
+  const hlines = d.querySelectorAll('.remark-code-line-highlighted');
+  const preParents = [];
+  const findPreParent = function(line, p = 0) {
+    if (p > 1) return null; // traverse up no further than grandparent
+    const el = line.parentElement;
+    return el.tagName === "PRE" ? el : findPreParent(el, ++p);
+  };
+
+  for (let line of hlines) {
+    let pre = findPreParent(line);
+    if (pre && !preParents.includes(pre)) preParents.push(pre);
+  }
+  preParents.forEach(p => p.classList.add("remark-code-has-line-highlighted"));
+})(document);</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>
