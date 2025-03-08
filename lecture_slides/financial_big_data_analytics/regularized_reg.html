@@ -1,0 +1,956 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="zh-Hans" xml:lang="zh-Hans"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.6.40">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="文旷宇">
+
+<title>正则化回归方法</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { display: inline-block; text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="regularized_reg_files/libs/clipboard/clipboard.min.js"></script>
+<script src="regularized_reg_files/libs/quarto-html/quarto.js"></script>
+<script src="regularized_reg_files/libs/quarto-html/popper.min.js"></script>
+<script src="regularized_reg_files/libs/quarto-html/tippy.umd.min.js"></script>
+<script src="regularized_reg_files/libs/quarto-html/anchor.min.js"></script>
+<link href="regularized_reg_files/libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="regularized_reg_files/libs/quarto-html/quarto-syntax-highlighting-549806ee2085284f45b00abea8c6df48.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="regularized_reg_files/libs/bootstrap/bootstrap.min.js"></script>
+<link href="regularized_reg_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="regularized_reg_files/libs/bootstrap/bootstrap-6021346ce6ec68ee34ae0f02a7acaa68.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+
+  <script>window.backupDefine = window.define; window.define = undefined;</script><script src="https://cdn.jsdelivr.net/npm/katex@latest/dist/katex.min.js"></script>
+  <script>document.addEventListener("DOMContentLoaded", function () {
+ var mathElements = document.getElementsByClassName("math");
+ var macros = [];
+ for (var i = 0; i < mathElements.length; i++) {
+  var texText = mathElements[i].firstChild;
+  if (mathElements[i].tagName == "SPAN") {
+   katex.render(texText.data, mathElements[i], {
+    displayMode: mathElements[i].classList.contains('display'),
+    throwOnError: false,
+    macros: macros,
+    fleqn: false
+   });
+}}});
+  </script>
+  <script>window.define = window.backupDefine; window.backupDefine = undefined;</script><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@latest/dist/katex.min.css">
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN") {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+</head>
+
+<body>
+
+<div id="quarto-content" class="page-columns page-rows-contents page-layout-article">
+<div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+  <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">目录</h2>
+   
+  <ul class="collapse">
+  <li><a href="#线性回归回顾及其局限性" id="toc-线性回归回顾及其局限性" class="nav-link active" data-scroll-target="#线性回归回顾及其局限性"><span class="header-section-number">1</span> 线性回归回顾及其局限性</a></li>
+  <li><a href="#正则化方法简介" id="toc-正则化方法简介" class="nav-link" data-scroll-target="#正则化方法简介"><span class="header-section-number">2</span> 正则化方法简介</a>
+  <ul class="collapse">
+  <li><a href="#ridge" id="toc-ridge" class="nav-link" data-scroll-target="#ridge"><span class="header-section-number">2.1</span> Ridge</a></li>
+  <li><a href="#lasso" id="toc-lasso" class="nav-link" data-scroll-target="#lasso"><span class="header-section-number">2.2</span> Lasso</a></li>
+  <li><a href="#elastic-net" id="toc-elastic-net" class="nav-link" data-scroll-target="#elastic-net"><span class="header-section-number">2.3</span> Elastic Net</a></li>
+  <li><a href="#smoothly-clipped-abosolute-deviation-scad" id="toc-smoothly-clipped-abosolute-deviation-scad" class="nav-link" data-scroll-target="#smoothly-clipped-abosolute-deviation-scad"><span class="header-section-number">2.4</span> Smoothly Clipped Abosolute Deviation (SCAD)</a></li>
+  <li><a href="#minimax-concave-penalty-mcp" id="toc-minimax-concave-penalty-mcp" class="nav-link" data-scroll-target="#minimax-concave-penalty-mcp"><span class="header-section-number">2.5</span> Minimax Concave Penalty (MCP)</a></li>
+  <li><a href="#参数选择策略" id="toc-参数选择策略" class="nav-link" data-scroll-target="#参数选择策略"><span class="header-section-number">2.6</span> 参数选择策略</a></li>
+  </ul></li>
+  <li><a href="#r语言实现" id="toc-r语言实现" class="nav-link" data-scroll-target="#r语言实现"><span class="header-section-number">3</span> R语言实现</a>
+  <ul class="collapse">
+  <li><a href="#数据生成" id="toc-数据生成" class="nav-link" data-scroll-target="#数据生成"><span class="header-section-number">3.1</span> 数据生成</a></li>
+  <li><a href="#ridgelasso以及elastic-net回归实现" id="toc-ridgelasso以及elastic-net回归实现" class="nav-link" data-scroll-target="#ridgelasso以及elastic-net回归实现"><span class="header-section-number">3.2</span> Ridge、Lasso以及Elastic Net回归实现</a></li>
+  <li><a href="#scad与mcp回归实现" id="toc-scad与mcp回归实现" class="nav-link" data-scroll-target="#scad与mcp回归实现"><span class="header-section-number">3.3</span> SCAD与MCP回归实现</a></li>
+  <li><a href="#结果可视化" id="toc-结果可视化" class="nav-link" data-scroll-target="#结果可视化"><span class="header-section-number">3.4</span> 结果可视化</a></li>
+  <li><a href="#性能评估" id="toc-性能评估" class="nav-link" data-scroll-target="#性能评估"><span class="header-section-number">3.5</span> 性能评估</a></li>
+  </ul></li>
+  </ul>
+</nav>
+</div>
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">正则化回归方法</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">作者</div>
+    <div class="quarto-title-meta-contents">
+             <p>文旷宇 </p>
+          </div>
+  </div>
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<div class="cell">
+<style type="text/css">
+p {
+  text-indent: 2em;
+  margin-bottom: 0.5;
+  margin-top: 0.5;
+}
+</style>
+</div>
+<style>
+/* 设置正文文字为宋体 */
+body {
+    font-family: "SimSun", serif;
+}
+
+/* 设置标题（h1, h2, h3 等）为楷体加黑 */
+h1, h2, h3, h4, h5, h6 {
+    font-family: "KaiTi", serif;
+    font-weight: bold;
+}
+</style>
+<section id="线性回归回顾及其局限性" class="level1" data-number="1">
+<h1 data-number="1"><span class="header-section-number">1</span> 线性回归回顾及其局限性</h1>
+<p>线性回归是一种广泛应用于统计学和机器学习中的方法，用于研究一个因变量与一个或多个自变量之间的线性关系。线性回归模型可以表示为： <span id="eq-linear"><span class="math display">
+  y_i = \beta_0 + \beta_1 x_{i1} + \beta_2 x_{i2} + \dots + \beta_p x_{ip} + \epsilon_i, \quad \quad i=1,\cdots,n
+\tag{1}</span></span></p>
+<p>其中：</p>
+<ul>
+<li><p><span class="math inline">y_i</span> 是第 <span class="math inline">i</span> 个观测的因变量</p></li>
+<li><p><span class="math inline">x_{i1}, x_{i2}, \dots, x_{ip}</span>是第 <span class="math inline">i</span> 个观测的自变量</p></li>
+<li><p><span class="math inline">\beta_0, \beta_1, \dots, \beta_p</span>是回归系数</p></li>
+<li><p><span class="math inline">\epsilon_i</span> 是误差项。</p></li>
+</ul>
+<p>令<span class="math inline">\mathbf{y} = (y_1,\cdots,y_n)^T</span>, <span class="math inline">\boldsymbol \beta=(\beta_0,\beta_1,\cdots,\beta_p)^T</span>，<span class="math inline">\boldsymbol \epsilon = (\epsilon_1,\cdots,\epsilon_n)^T</span>，以及 <span class="math display">
+\mathbf{X} = \begin{bmatrix}
+1 &amp; x_{11} &amp; x_{12} &amp; \cdots &amp; x_{1p} \\
+1 &amp; x_{21} &amp; x_{22} &amp; \cdots &amp; x_{2p} \\
+\vdots &amp; \vdots &amp; \vdots &amp; \ddots &amp; \vdots \\
+1 &amp; x_{n1} &amp; x_{n2} &amp; \cdots &amp; x_{np}
+\end{bmatrix}.
+</span> 那么线性回归模型 <a href="#eq-linear" class="quarto-xref">式&nbsp;1</a> 可以用矩阵的形式表示为： <span class="math display">
+\mathbf y = \mathbf{X} \boldsymbol{\beta} +\boldsymbol{\epsilon}.
+</span> 普通最小二乘法（OLS）的目标是最小化残差平方和，通常也称为<span class="math inline">L_2</span>损失函数，其公式为：</p>
+<p><span id="eq-l2loss"><span class="math display">
+    L(\boldsymbol \beta) =\|\mathbf y - \mathbf X \boldsymbol \beta\|_2^2 = \sum_{i=1}^n (y_i - \beta_0 - \beta_1 x_{i1} - \beta_2 x_{i2} - \cdots - \beta_p x_{ip})^2
+\tag{2}</span></span> 其中<span class="math inline">\|\cdot\|_2</span>为向量的<span class="math inline">L_2</span>范数。最小化 <a href="#eq-l2loss" class="quarto-xref">式&nbsp;2</a> 可以得到回归系数的估计量：</p>
+<p><span class="math display">
+\hat{\boldsymbol{\beta}}^{OLS} = (\mathbf{X}^T \mathbf{X})^{-1} \mathbf{X}^T \mathbf{y}.
+</span> 关于OLS估计量最为有名的结论是Gauss-Markov定理，该定理表明OLS估计量在所有<span class="math inline">\beta</span>的线性无偏估量中方差最小，也即均方误差<span class="math inline">\mathrm{MSE}(\hat \beta) = E\left[\hat \beta - \beta\right]\left[\hat \beta - \beta\right]^T</span>最小。但是，如果将有偏估计量也纳入考虑的话，可能存在一个有偏估计量以少量偏差为代价换来估计量方差的大幅减小，最终其均方误差比OLS估计量更小。在一些特殊情况下，为得到偏差和方差之间的平衡，这一类估计量是必要的：</p>
+<ul>
+<li><p>自变量<span class="math inline">x_{i1}, x_{i2}, \dots, x_{ip}</span>间存在较强的相关性，OLS估计量方差膨胀，估计结果不稳健；</p></li>
+<li><p>当自变量个数大于样本容量，即<span class="math inline">p&gt;n</span>时，<span class="math inline">X^TX</span> 不可逆，OLS失效。</p></li>
+</ul>
+</section>
+<section id="正则化方法简介" class="level1" data-number="2">
+<h1 data-number="2"><span class="header-section-number">2</span> 正则化方法简介</h1>
+<p>正则化方法在OLS目标函数 <a href="#eq-l2loss" class="quarto-xref">式&nbsp;2</a> 的基础上引入回归系数的惩罚项，通过限制回归系数估计的变化幅度来实现压缩估计。一般来说，正则化回归方法的目标函数可以表示为 <span id="eq-regularization"><span class="math display">
+L_R(\boldsymbol \beta) = \sum_{i=1}^n (y_i - \beta_0 - \beta_1 x_{i1} - \beta_2 x_{i2} - \cdots - \beta_p x_{ip})^2 + \sum_{j=1}^p p_{\lambda}(\beta_j),
+\tag{3}</span></span> 其中<span class="math inline">\sum_{j=1}^p p_{\lambda}(\beta_j)</span>是对回归系数<span class="math inline">\beta_1,\cdots,\beta_p</span>的惩罚项，需要指出的是，我们一般不对截距<span class="math inline">\beta_0</span>施加惩罚。惩罚项中包含一个超参数<span class="math inline">\lambda</span>，该参数控制整体惩罚强度，需要在估计前予以给定。一般来说，当<span class="math inline">\lambda\to 0</span>时，正则化估计逼近OLS解，而当<span class="math inline">\lambda \to \infty</span>时，正则化估计趋于0。惩罚项中函数<span class="math inline">p_{\lambda}(\cdot)</span>的不同形式对应着不同的正则化方法。</p>
+<p>需要注意的是，一般来说，在进入正则化回归之前，自变量数据需要进行标准化的预处理。标准化可以消除量纲的影响，让不同变量在相同尺度上，这样正则化才不会偏向某个变量。此外，标准化还能加速优化过程。在没有标准化的情况下，梯度下降可能会在不同方向上变化很大，导致收敛速度变慢。预处理后，数据分布更均匀，优化过程更高效。</p>
+<section id="ridge" class="level2" data-number="2.1">
+<h2 data-number="2.1" class="anchored" data-anchor-id="ridge"><span class="header-section-number">2.1</span> Ridge</h2>
+<p>Ridge回归的惩罚函数是平方形式，通常称之为<span class="math inline">L_2</span>惩罚，具体表达式为 <span class="math display">
+p_\lambda^{ridge}(\beta_j) = \lambda \beta_j^2,
+</span></p>
+<p>对应的最小化 <a href="#eq-regularization" class="quarto-xref">式&nbsp;3</a> 存在显示解析解 <span class="math display">
+\hat{\boldsymbol \beta}^{ridge} = (\mathbf X^T \mathbf X + \lambda I)^{-1} \mathbf X^T \mathbf y,
+</span> 其中<span class="math inline">I</span>为单位矩阵。Ridge回归可以有效解决自变量存在较高相关性时的方差膨胀问题。在高维回归问题上，我们通常假设回归系数<span class="math inline">(\beta_1,\cdots,\beta_p)</span>具有稀疏性，即仅有少量的<span class="math inline">\beta_j</span>不为0，在这种情况下，我们不仅需要正则化实现压缩估计的目的，更需要将部分估计压缩到0，以实现变量选择的作用。但是，Ridge回归无法有效地进行变量选择。</p>
+</section>
+<section id="lasso" class="level2" data-number="2.2">
+<h2 data-number="2.2" class="anchored" data-anchor-id="lasso"><span class="header-section-number">2.2</span> Lasso</h2>
+<p>Lasso回归的惩罚函数是绝对值形式，又称为<span class="math inline">L_1</span>惩罚，具体形式为 <span class="math display">
+p_\lambda^{lasso}(\beta_j) = \lambda \left|\beta_j \right|.
+</span> 在<span class="math inline">L_1</span>惩罚函数下，由于是在菱形约束区域内寻找最小化残差平方和，Lasso回归可以得到回归系数估计的稀疏解，这也称之为<span class="math inline">L_1</span>惩罚的角点效应。假设高维回归模型的确是稀疏的，那么在一些假设条件下可以证明Lasso在极限（即样本容量<span class="math inline">n</span>和变量个数<span class="math inline">p</span>趋于无穷）下可以正确筛选出非0系数的自变量。与Ridge回归不同，Lasso估计量一般没有显示解析表达式，需要依赖数值优化。 <a href="#tbl-compuation-comparison" class="quarto-xref">表&nbsp;1</a> 列出并比较了Lasso以及其它几种正则化方法的数值寻优算法。</p>
+<div id="tbl-compuation-comparison" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-compuation-comparison-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+表&nbsp;1: 算法实现比较
+</figcaption>
+<div aria-describedby="tbl-compuation-comparison-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>方法</th>
+<th>典型算法</th>
+<th>计算复杂度</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Ridge</td>
+<td>直接矩阵求逆</td>
+<td><span class="math inline">O(p^3)</span></td>
+</tr>
+<tr class="even">
+<td>Lasso</td>
+<td>坐标下降法</td>
+<td><span class="math inline">O(np)</span></td>
+</tr>
+<tr class="odd">
+<td>Elastic Net</td>
+<td>广义坐标下降法</td>
+<td><span class="math inline">O(np)</span></td>
+</tr>
+<tr class="even">
+<td>SCAD/MCP</td>
+<td>局部二次近似(LQA)或坐标下降</td>
+<td><span class="math inline">O(np)</span></td>
+</tr>
+</tbody>
+</table>
+</div>
+</figure>
+</div>
+<p>我们进一步比较Ridge与Lasso回归的压缩估计结果。当矩阵 <span class="math inline">\mathbf X</span>为正交矩阵时，两种估计量存在解析表达式，我们有<span class="math inline">\hat \beta_j^{ridge}=\hat \beta_j/(1+\lambda)</span>以及<span class="math inline">\hat \beta_j^{lasso} = sign(\hat \beta_j)(| \hat \beta_j| - \lambda)_+</span>，其中<span class="math inline">\hat \beta_j</span> 为OLS估计量。可以发现，两种估计量都是不一致的，Ridge回归所做的是等比例压缩，而Lasso回归属于线性压缩，即始终将OLS估计量向0移动<span class="math inline">\lambda</span>，直到在0处截断。Lasso回归的这种压缩方式的一个不足在于可能带来较大的偏差，尤其是当系数的绝对值<span class="math inline">\left|\beta_j\right|</span>较大时。</p>
+</section>
+<section id="elastic-net" class="level2" data-number="2.3">
+<h2 data-number="2.3" class="anchored" data-anchor-id="elastic-net"><span class="header-section-number">2.3</span> Elastic Net</h2>
+<p>为了综合Lasso的变量选择功能以及Ridge的等比例压缩优势，Elastic Net回归对<span class="math inline">L_1</span>惩罚和<span class="math inline">L_2</span>惩罚进行加权平均，从而得到 <span class="math display">
+p_\lambda^{enet}(\beta_j) = \lambda\left\{\alpha|\beta_j|+(1-\alpha)\beta_j^2  \right\}.
+</span> 其中参数<span class="math inline">\alpha</span>控制<span class="math inline">L_1/L_2</span>混合比例（<span class="math inline">\alpha=0</span>为Ridge，<span class="math inline">\alpha=1</span>为Lasso）。</p>
+<p>需要指出的是，提出Elastic Net的另一个出发点在于模拟一般化的<span class="math inline">L_q</span>惩罚，其中<span class="math inline">q\in (1,2)</span>，即惩罚函数为<span class="math inline">p_\lambda(\beta_j) = \lambda |\beta_j|^q</span>。相较于<span class="math inline">L_q</span>惩罚，Elastic Net在计算上更为简便。</p>
+</section>
+<section id="smoothly-clipped-abosolute-deviation-scad" class="level2" data-number="2.4">
+<h2 data-number="2.4" class="anchored" data-anchor-id="smoothly-clipped-abosolute-deviation-scad"><span class="header-section-number">2.4</span> Smoothly Clipped Abosolute Deviation (SCAD)</h2>
+<p>与Ridge、Lasso以及Elastic Net的惩罚函数均为凸函数不同，接下来要介绍的SCAD和MCP的惩罚函数非凸，因此常统称为非凸惩罚。这两种非凸惩罚函数旨在保留Lasso的变量选择功能的同时缓解Lasso偏差过大的不足。</p>
+<p>SCAD惩罚函数是一种常用的非凸惩罚函数，广泛应用于高维数据的变量选择问题。其具体形式如下：</p>
+<p><span class="math display">
+p_{\lambda, a}(\beta_j) =
+\begin{cases}
+\lambda |\beta_j| &amp; \text{if } |\beta_j| \leq \lambda, \\\
+\frac{2a\lambda |\beta_j| - \beta_j^2 - \lambda^2}{2(a-1)} &amp; \text{if } \lambda &lt; |\beta_j| \leq a\lambda, \\
+\frac{\lambda^2(a+1)}{2} &amp; \text{if } |\beta_j| &gt; a\lambda,
+\end{cases}
+</span></p>
+<p>其中<span class="math inline">a &gt; 2</span>是形状参数，通常取值为3.7。</p>
+<div class="cell">
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="regularized_reg_files/figure-html/unnamed-chunk-2-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>上图绘制了不同惩罚函数的图像。将SCAD与Lasso对比可以发现：当<span class="math inline">\beta_j \leq \lambda</span>时，SCAD惩罚函数与<span class="math inline">L_1</span>惩罚（Lasso）相同，表现为线性增长。当<span class="math inline">\lambda &lt; |\beta_j| \leq a\lambda</span> 时，SCAD惩罚函数逐渐平滑地过渡到二次增长，避免对较大系数的过度惩罚。当<span class="math inline">|\beta_j| &gt; a\lambda</span> 时，SCAD惩罚函数变为常数，不再对更大的系数施加额外惩罚。</p>
+<p>SCAD惩罚函数的设计使得它能根据系数的大小自适应地调整惩罚强度：对于较小的系数施加较大的惩罚（类似于 Lasso），而对于较大的系数施加较小的惩罚（类似于 Ridge）。这种自适应性使得 SCAD 在估计中既保留了变量选择功能（在理论上具有 Oracle 性质，即在满足一定条件下，SCAD 估计量能够以概率 1 选择出真实的模型），又避免了使得它对于较大的系数施加过度的惩罚，从而避免了估计偏差。</p>
+</section>
+<section id="minimax-concave-penalty-mcp" class="level2" data-number="2.5">
+<h2 data-number="2.5" class="anchored" data-anchor-id="minimax-concave-penalty-mcp"><span class="header-section-number">2.5</span> Minimax Concave Penalty (MCP)</h2>
+<p>MCP是另外一种常用的非凸惩罚函数，它的形式是 <span class="math display">
+p_{\lambda, \gamma}(\beta_j) =
+\begin{cases}
+\lambda |\beta_j| - \frac{\beta_j^2}{2\gamma}, &amp; \text{if } |\beta_j| \leq \gamma \lambda \\
+\frac{1}{2} \gamma \lambda^2, &amp; \text{if } |\beta_j| &gt; \gamma \lambda
+\end{cases}
+</span> 其中<span class="math inline">\gamma</span>为形状参数，一般取3。MCP同样具有变量选择的oracle性质，且能自适应地调节惩罚强度，当回归系数超过一定的阈值后，MCP的惩罚趋于常数，从而对较大的系数不会施加过度的惩罚。</p>
+<p>无论是SCAD还是MCP都额外引入了形状参数，不同的形状参数值可能会导致不同的估计结果。MCP 在数值优化方便比SCAD更为便捷，但在处理强相关变量时可能不如 SCAD。</p>
+</section>
+<section id="参数选择策略" class="level2" data-number="2.6">
+<h2 data-number="2.6" class="anchored" data-anchor-id="参数选择策略"><span class="header-section-number">2.6</span> 参数选择策略</h2>
+<p>正则化回归通过引入惩罚项来控制模型的复杂度，防止过拟合，正则化参数 (<span class="math inline">\lambda</span>)控制了整体的惩罚强度，通常使用 K-fold 交叉验证来选择最优的<span class="math inline">\lambda</span>。</p>
+<p>记数据集<span class="math inline">\mathcal{D}=(\mathbf X, \mathbf y)</span>。K-fold 交叉验证的步骤如下：</p>
+<ul>
+<li><p>将数据集中的样本点随机划分为<span class="math inline">K</span>个大小相似的子集，分别记为<span class="math inline">\mathcal D_1,\cdots,\mathcal D_K</span>。</p></li>
+<li><p>记<span class="math inline">\mathcal D_{-k} = \mathcal D \setminus D_k</span>。给定惩罚参数<span class="math inline">\lambda</span>，按照<span class="math inline">k=1,\cdots,K</span>依次使用<span class="math inline">\mathcal D_{-k}</span>作为训练集，拟合正则化回归模型。在拟合模型的基础上使用<span class="math inline">\mathcal D_k</span>作为验证集，计算模型的预测误差并汇总，得到交叉验证的目标函数： <span class="math display">
+\mathrm{CV}(\lambda)= \frac{1}{K}\sum_{k=1}^K (\mathbf y_k - \mathbf X_k \hat \beta(\lambda;\mathcal D_{-k}))^2,
+</span> 其中<span class="math inline">\hat \beta(\lambda;\mathcal D_{-k})</span>是基于惩罚参数<span class="math inline">\lambda</span>和数据集<span class="math inline">\mathcal D_{-k}</span>所得到的正则化估计。记<span class="math inline">\lambda_{opt}=\arg\min_\lambda \mathrm{CV}(\lambda)</span>，我们将<span class="math inline">\lambda_{opt}</span>作为最优正则化参数。</p></li>
+</ul>
+</section>
+</section>
+<section id="r语言实现" class="level1" data-number="3">
+<h1 data-number="3"><span class="header-section-number">3</span> R语言实现</h1>
+<section id="数据生成" class="level2" data-number="3.1">
+<h2 data-number="3.1" class="anchored" data-anchor-id="数据生成"><span class="header-section-number">3.1</span> 数据生成</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(glmnet)</span></code><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Loading required package: Matrix</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>
+Attaching package: 'Matrix'</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>The following objects are masked from 'package:tidyr':
+
+    expand, pack, unpack</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Loaded glmnet 4.1-8</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">2023</span>)</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="dv">200</span>  <span class="co"># 样本量</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>p <span class="ot">&lt;-</span> <span class="dv">50</span>   <span class="co"># 变量数</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>X <span class="ot">&lt;-</span> <span class="fu">matrix</span>(<span class="fu">rnorm</span>(n<span class="sc">*</span>p), n, p)</span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>true_beta <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="fu">rep</span>(<span class="dv">2</span>,<span class="dv">5</span>), <span class="fu">rep</span>(<span class="dv">0</span>,p<span class="dv">-5</span>))  <span class="co"># 前5个变量有效</span></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>y <span class="ot">&lt;-</span> X <span class="sc">%*%</span> true_beta <span class="sc">+</span> <span class="fu">rnorm</span>(n, <span class="at">sd=</span><span class="dv">3</span>)</span></code><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="ridgelasso以及elastic-net回归实现" class="level2" data-number="3.2">
+<h2 data-number="3.2" class="anchored" data-anchor-id="ridgelasso以及elastic-net回归实现"><span class="header-section-number">3.2</span> Ridge、Lasso以及Elastic Net回归实现</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co"># 10折交叉验证选择lambda</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>cv_ridge <span class="ot">&lt;-</span> <span class="fu">cv.glmnet</span>(X, y, <span class="at">alpha =</span> <span class="dv">0</span>)</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(cv_ridge, <span class="at">main=</span><span class="st">""</span>)</span></code><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="regularized_reg_files/figure-html/unnamed-chunk-4-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>ridge_coef <span class="ot">&lt;-</span> <span class="fu">coef</span>(cv_ridge, <span class="at">s =</span> <span class="st">"lambda.min"</span>)[<span class="sc">-</span><span class="dv">1</span>]</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>cv_lasso <span class="ot">&lt;-</span> <span class="fu">cv.glmnet</span>(X, y, <span class="at">alpha =</span> <span class="dv">1</span>)</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(cv_lasso, <span class="at">main=</span><span class="st">""</span>)</span></code><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="regularized_reg_files/figure-html/unnamed-chunk-4-2.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>lasso_coef <span class="ot">&lt;-</span> <span class="fu">coef</span>(cv_lasso, <span class="at">s =</span> <span class="st">"lambda.min"</span>)[<span class="sc">-</span><span class="dv">1</span>]</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a><span class="co"># 设置alpha=0.5混合比例</span></span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>cv_enet <span class="ot">&lt;-</span> <span class="fu">cv.glmnet</span>(X, y, <span class="at">alpha =</span> <span class="fl">0.5</span>)</span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(cv_enet, <span class="at">main=</span><span class="st">""</span>)</span></code><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="regularized_reg_files/figure-html/unnamed-chunk-4-3.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>enet_coef <span class="ot">&lt;-</span> <span class="fu">coef</span>(cv_enet, <span class="at">s =</span> <span class="st">"lambda.min"</span>)[<span class="sc">-</span><span class="dv">1</span>]</span></code><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="scad与mcp回归实现" class="level2" data-number="3.3">
+<h2 data-number="3.3" class="anchored" data-anchor-id="scad与mcp回归实现"><span class="header-section-number">3.3</span> SCAD与MCP回归实现</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ncvreg)</span></code><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Warning: package 'ncvreg' was built under R version 4.4.3</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>cv_scad <span class="ot">&lt;-</span> <span class="fu">cv.ncvreg</span>(X, y, <span class="at">penalty =</span> <span class="st">"SCAD"</span>, <span class="at">gamma =</span> <span class="fl">3.7</span>)</span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(cv_scad, <span class="at">main=</span><span class="st">""</span>)</span></code><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="regularized_reg_files/figure-html/unnamed-chunk-5-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>scad_coef <span class="ot">&lt;-</span> cv_scad<span class="sc">$</span>fit<span class="sc">$</span>beta[<span class="sc">-</span><span class="dv">1</span>, <span class="fu">which.min</span>(cv_scad<span class="sc">$</span>cve)]</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>cv_mcp <span class="ot">&lt;-</span> <span class="fu">cv.ncvreg</span>(X, y, <span class="at">penalty =</span> <span class="st">"MCP"</span>, <span class="at">gamma =</span> <span class="dv">3</span>)</span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(cv_mcp, <span class="at">main=</span><span class="st">""</span>)</span></code><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="regularized_reg_files/figure-html/unnamed-chunk-5-2.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>mcp_coef <span class="ot">&lt;-</span> cv_mcp<span class="sc">$</span>fit<span class="sc">$</span>beta[<span class="sc">-</span><span class="dv">1</span>, <span class="fu">which.min</span>(cv_mcp<span class="sc">$</span>cve)]</span></code><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="结果可视化" class="level2" data-number="3.4">
+<h2 data-number="3.4" class="anchored" data-anchor-id="结果可视化"><span class="header-section-number">3.4</span> 结果可视化</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mfrow=</span><span class="fu">c</span>(<span class="dv">2</span>,<span class="dv">3</span>))</span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(true_beta, <span class="at">type=</span><span class="st">'h'</span>, <span class="at">col=</span><span class="st">'red'</span>, <span class="at">main=</span><span class="st">"真实系数"</span>)</span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(lasso_coef, <span class="at">type=</span><span class="st">'h'</span>, <span class="at">main=</span><span class="st">"Lasso估计"</span>)</span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(ridge_coef, <span class="at">type=</span><span class="st">'h'</span>, <span class="at">main=</span><span class="st">"Ridge估计"</span>)</span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(enet_coef, <span class="at">type=</span><span class="st">'h'</span>, <span class="at">main=</span><span class="st">"Elastic Net估计"</span>)</span>
+<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(scad_coef, <span class="at">type=</span><span class="st">'h'</span>, <span class="at">main=</span><span class="st">"SCAD估计"</span>)</span>
+<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(mcp_coef, <span class="at">type=</span><span class="st">'h'</span>, <span class="at">main=</span><span class="st">"MCP估计"</span>)</span></code><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="regularized_reg_files/figure-html/unnamed-chunk-6-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="性能评估" class="level2" data-number="3.5">
+<h2 data-number="3.5" class="anchored" data-anchor-id="性能评估"><span class="header-section-number">3.5</span> 性能评估</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>results <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">True =</span> true_beta,</span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">Lasso =</span> lasso_coef,</span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">Ridge =</span> ridge_coef,</span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">Enet =</span> enet_coef,</span>
+<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">SCAD =</span> scad_coef,</span>
+<span id="cb17-7"><a href="#cb17-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">MCP =</span> mcp_coef</span>
+<span id="cb17-8"><a href="#cb17-8" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb17-9"><a href="#cb17-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-10"><a href="#cb17-10" aria-hidden="true" tabindex="-1"></a><span class="co"># 计算均方误差</span></span>
+<span id="cb17-11"><a href="#cb17-11" aria-hidden="true" tabindex="-1"></a>mse <span class="ot">&lt;-</span> <span class="fu">sapply</span>(results[,<span class="sc">-</span><span class="dv">1</span>], <span class="cf">function</span>(x) <span class="fu">mean</span>((x <span class="sc">-</span> true_beta)<span class="sc">^</span><span class="dv">2</span>))</span>
+<span id="cb17-12"><a href="#cb17-12" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">kable</span>(<span class="fu">t</span>(mse), <span class="at">caption =</span> <span class="st">"各方法系数估计MSE比较"</span>)</span></code><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<table class="caption-top table table-sm table-striped small">
+<caption>各方法系数估计MSE比较</caption>
+<thead>
+<tr class="header">
+<th style="text-align: right;">Lasso</th>
+<th style="text-align: right;">Ridge</th>
+<th style="text-align: right;">Enet</th>
+<th style="text-align: right;">SCAD</th>
+<th style="text-align: right;">MCP</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: right;">0.0090503</td>
+<td style="text-align: right;">0.0540851</td>
+<td style="text-align: right;">0.0140827</td>
+<td style="text-align: right;">0.0093169</td>
+<td style="text-align: right;">0.0092871</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="co"># 变量选择准确性</span></span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>selection_acc <span class="ot">&lt;-</span> <span class="fu">sapply</span>(results[,<span class="sc">-</span><span class="dv">1</span>], <span class="cf">function</span>(x) {</span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">sum</span>((x <span class="sc">!=</span> <span class="dv">0</span>) <span class="sc">==</span> (true_beta <span class="sc">!=</span> <span class="dv">0</span>))<span class="sc">/</span>p</span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>})</span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">kable</span>(<span class="fu">t</span>(selection_acc), <span class="at">caption =</span> <span class="st">"变量选择准确率"</span>)</span></code><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<table class="caption-top table table-sm table-striped small">
+<caption>变量选择准确率</caption>
+<thead>
+<tr class="header">
+<th style="text-align: right;">Lasso</th>
+<th style="text-align: right;">Ridge</th>
+<th style="text-align: right;">Enet</th>
+<th style="text-align: right;">SCAD</th>
+<th style="text-align: right;">MCP</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: right;">0.88</td>
+<td style="text-align: right;">0.1</td>
+<td style="text-align: right;">0.66</td>
+<td style="text-align: right;">0.98</td>
+<td style="text-align: right;">1</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</section>
+</section>
+
+</main>
+<!-- /main column -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const isCodeAnnotation = (el) => {
+    for (const clz of el.classList) {
+      if (clz.startsWith('code-annotation-')) {                     
+        return true;
+      }
+    }
+    return false;
+  }
+  const onCopySuccess = function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "已复制");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "已复制");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  }
+  const getTextToCopy = function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+    text: getTextToCopy
+  });
+  clipboard.on('success', onCopySuccess);
+  if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+    const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+      text: getTextToCopy,
+      container: window.document.getElementById('quarto-embedded-source-code-modal')
+    });
+    clipboardModal.on('success', onCopySuccess);
+  }
+    var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+    var mailtoRegex = new RegExp(/^mailto:/);
+      var filterRegex = new RegExp('/' + window.location.host + '/');
+    var isInternal = (href) => {
+        return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+    }
+    // Inspect non-navigation links and adorn them if external
+ 	var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+    for (var i=0; i<links.length; i++) {
+      const link = links[i];
+      if (!isInternal(link.href)) {
+        // undo the damage that might have been done by quarto-nav.js in the case of
+        // links that we want to consider external
+        if (link.dataset.originalHref !== undefined) {
+          link.href = link.dataset.originalHref;
+        }
+      }
+    }
+  function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+    const config = {
+      allowHTML: true,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start',
+    };
+    if (contentFn) {
+      config.content = contentFn;
+    }
+    if (onTriggerFn) {
+      config.onTrigger = onTriggerFn;
+    }
+    if (onUntriggerFn) {
+      config.onUntrigger = onUntriggerFn;
+    }
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      if (note) {
+        return note.innerHTML;
+      } else {
+        return "";
+      }
+    });
+  }
+  const xrefs = window.document.querySelectorAll('a.quarto-xref');
+  const processXRef = (id, note) => {
+    // Strip column container classes
+    const stripColumnClz = (el) => {
+      el.classList.remove("page-full", "page-columns");
+      if (el.children) {
+        for (const child of el.children) {
+          stripColumnClz(child);
+        }
+      }
+    }
+    stripColumnClz(note)
+    if (id === null || id.startsWith('sec-')) {
+      // Special case sections, only their first couple elements
+      const container = document.createElement("div");
+      if (note.children && note.children.length > 2) {
+        container.appendChild(note.children[0].cloneNode(true));
+        for (let i = 1; i < note.children.length; i++) {
+          const child = note.children[i];
+          if (child.tagName === "P" && child.innerText === "") {
+            continue;
+          } else {
+            container.appendChild(child.cloneNode(true));
+            break;
+          }
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(container);
+        }
+        return container.innerHTML
+      } else {
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        return note.innerHTML;
+      }
+    } else {
+      // Remove any anchor links if they are present
+      const anchorLink = note.querySelector('a.anchorjs-link');
+      if (anchorLink) {
+        anchorLink.remove();
+      }
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(note);
+      }
+      if (note.classList.contains("callout")) {
+        return note.outerHTML;
+      } else {
+        return note.innerHTML;
+      }
+    }
+  }
+  for (var i=0; i<xrefs.length; i++) {
+    const xref = xrefs[i];
+    tippyHover(xref, undefined, function(instance) {
+      instance.disable();
+      let url = xref.getAttribute('href');
+      let hash = undefined; 
+      if (url.startsWith('#')) {
+        hash = url;
+      } else {
+        try { hash = new URL(url).hash; } catch {}
+      }
+      if (hash) {
+        const id = hash.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note !== null) {
+          try {
+            const html = processXRef(id, note.cloneNode(true));
+            instance.setContent(html);
+          } finally {
+            instance.enable();
+            instance.show();
+          }
+        } else {
+          // See if we can fetch this
+          fetch(url.split('#')[0])
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.getElementById(id);
+            if (note !== null) {
+              const html = processXRef(id, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      } else {
+        // See if we can fetch a full url (with no hash to target)
+        // This is a special case and we should probably do some content thinning / targeting
+        fetch(url)
+        .then(res => res.text())
+        .then(html => {
+          const parser = new DOMParser();
+          const htmlDoc = parser.parseFromString(html, "text/html");
+          const note = htmlDoc.querySelector('main.content');
+          if (note !== null) {
+            // This should only happen for chapter cross references
+            // (since there is no id in the URL)
+            // remove the first header
+            if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+              note.children[0].remove();
+            }
+            const html = processXRef(null, note);
+            instance.setContent(html);
+          } 
+        }).finally(() => {
+          instance.enable();
+          instance.show();
+        });
+      }
+    }, function(instance) {
+    });
+  }
+      let selectedAnnoteEl;
+      const selectorForAnnotation = ( cell, annotation) => {
+        let cellAttr = 'data-code-cell="' + cell + '"';
+        let lineAttr = 'data-code-annotation="' +  annotation + '"';
+        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+        return selector;
+      }
+      const selectCodeLines = (annoteEl) => {
+        const doc = window.document;
+        const targetCell = annoteEl.getAttribute("data-target-cell");
+        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+        const lineIds = lines.map((line) => {
+          return targetCell + "-" + line;
+        })
+        let top = null;
+        let height = null;
+        let parent = null;
+        if (lineIds.length > 0) {
+            //compute the position of the single el (top and bottom and make a div)
+            const el = window.document.getElementById(lineIds[0]);
+            top = el.offsetTop;
+            height = el.offsetHeight;
+            parent = el.parentElement.parentElement;
+          if (lineIds.length > 1) {
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+            height = bottom - top;
+          }
+          if (top !== null && height !== null && parent !== null) {
+            // cook up a div (if necessary) and position it 
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            div.style.top = top - 2 + "px";
+            div.style.height = height + 4 + "px";
+            div.style.left = 0;
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            gutterDiv.style.top = top - 2 + "px";
+            gutterDiv.style.height = height + 4 + "px";
+          }
+          selectedAnnoteEl = annoteEl;
+        }
+      };
+      const unselectCodeLines = () => {
+        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+        elementsIds.forEach((elId) => {
+          const div = window.document.getElementById(elId);
+          if (div) {
+            div.remove();
+          }
+        });
+        selectedAnnoteEl = undefined;
+      };
+        // Handle positioning of the toggle
+    window.addEventListener(
+      "resize",
+      throttle(() => {
+        elRect = undefined;
+        if (selectedAnnoteEl) {
+          selectCodeLines(selectedAnnoteEl);
+        }
+      }, 10)
+    );
+    function throttle(fn, ms) {
+    let throttle = false;
+    let timer;
+      return (...args) => {
+        if(!throttle) { // first call gets through
+            fn.apply(this, args);
+            throttle = true;
+        } else { // all the others get throttled
+            if(timer) clearTimeout(timer); // cancel #2
+            timer = setTimeout(() => {
+              fn.apply(this, args);
+              timer = throttle = false;
+            }, ms);
+        }
+      };
+    }
+      // Attach click handler to the DT
+      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+      for (const annoteDlNode of annoteDls) {
+        annoteDlNode.addEventListener('click', (event) => {
+          const clickedEl = event.target;
+          if (clickedEl !== selectedAnnoteEl) {
+            unselectCodeLines();
+            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+            if (activeEl) {
+              activeEl.classList.remove('code-annotation-active');
+            }
+            selectCodeLines(clickedEl);
+            clickedEl.classList.add('code-annotation-active');
+          } else {
+            // Unselect the line
+            unselectCodeLines();
+            clickedEl.classList.remove('code-annotation-active');
+          }
+        });
+      }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+</div> <!-- /content -->
+
+
+
+
+</body></html>
