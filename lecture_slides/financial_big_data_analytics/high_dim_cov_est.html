@@ -120,6 +120,11 @@ window.Quarto = {
   <li><a href="#线性压缩估计" id="toc-线性压缩估计" class="nav-link" data-scroll-target="#线性压缩估计"><span class="header-section-number">3.1</span> 线性压缩估计</a></li>
   <li><a href="#非线性压缩估计" id="toc-非线性压缩估计" class="nav-link" data-scroll-target="#非线性压缩估计"><span class="header-section-number">3.2</span> 非线性压缩估计</a></li>
   </ul></li>
+  <li><a href="#因子结构假设与高维协方差矩阵估计方法" id="toc-因子结构假设与高维协方差矩阵估计方法" class="nav-link" data-scroll-target="#因子结构假设与高维协方差矩阵估计方法"><span class="header-section-number">4</span> 因子结构假设与高维协方差矩阵估计方法</a>
+  <ul class="collapse">
+  <li><a href="#可观测因子" id="toc-可观测因子" class="nav-link" data-scroll-target="#可观测因子"><span class="header-section-number">4.1</span> 可观测因子</a></li>
+  <li><a href="#潜因子" id="toc-潜因子" class="nav-link" data-scroll-target="#潜因子"><span class="header-section-number">4.2</span> 潜因子</a></li>
+  </ul></li>
   </ul>
 </nav>
 </div>
@@ -624,11 +629,12 @@ z \quad &amp; |z|&gt;a\omega
 <span id="cb35-51"><a href="#cb35-51" aria-hidden="true" tabindex="-1"></a>cv_sum<span class="sc">$</span>bestInClass</span></code><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code># A tibble: 3 × 6
-  estimator        hyperparameter                cv_risk cond_num sign  sparsity
-  &lt;chr&gt;            &lt;chr&gt;                           &lt;dbl&gt;    &lt;dbl&gt; &lt;chr&gt;    &lt;dbl&gt;
-1 scadEst          lambda = 0.210526315789474      2511.   -144   IND       0.82
-2 adaptiveLassoEst lambda = 0.273684210526316, …   2512.   -183   IND       0.9 
-3 thresholdingEst  gamma = 0.457894736842105       2520.    -13.4 IND       0.97</code></pre>
+  estimator        hyperparameter                  cv_risk cond_…¹ sign  spars…²
+  &lt;chr&gt;            &lt;chr&gt;                             &lt;dbl&gt;   &lt;dbl&gt; &lt;chr&gt;   &lt;dbl&gt;
+1 scadEst          lambda = 0.210526315789474        2511.  -144   IND      0.82
+2 adaptiveLassoEst lambda = 0.273684210526316, n …   2512.  -183   IND      0.9 
+3 thresholdingEst  gamma = 0.457894736842105         2520.   -13.4 IND      0.97
+# … with abbreviated variable names ¹​cond_num, ²​sparsity</code></pre>
 </div>
 <div class="sourceCode cell-code" id="cb37"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a><span class="co"># 三种方法的热度图</span></span>
 <span id="cb37-2"><a href="#cb37-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(result, <span class="at">dat_orig =</span> X, <span class="at">estimator =</span> <span class="fu">c</span>(<span class="st">'thresholdingEst'</span>, <span class="st">'scadEst'</span>, <span class="st">'adaptiveLassoEst'</span>), </span>
@@ -730,6 +736,60 @@ z \quad &amp; |z|&gt;a\omega
 -\frac{3x}{10\pi} \quad &amp; |x|=\sqrt{5}.
 \end{cases}
 \]</span></p>
+</section>
+</section>
+<section id="因子结构假设与高维协方差矩阵估计方法" class="level1" data-number="4">
+<h1 data-number="4"><span class="header-section-number">4</span> 因子结构假设与高维协方差矩阵估计方法</h1>
+<p>在稀疏性结构假设不适用的应用中，除了压缩估计之外，另外一种技术路线是假设高维数据可以由少量的共同因子解释，这一假设在金融数据分析中通常是合理的，其本质是对高维协方差矩阵做了一定程度的低秩结构假设。</p>
+<p>假设数据具有线性因子结构： <span id="eq-factor-v"><span class="math display">\[
+X_{it} = \mu_i + \mathbf b_i^T \cdot \mathbf f_t + u_{it},
+\tag{12}\]</span></span> 其中<span class="math inline">\(\mu_i\)</span>是第<span class="math inline">\(i\)</span>个变量<span class="math inline">\(X_i\)</span>的均值，<span class="math inline">\(\mathbf f_t\)</span>是<span class="math inline">\(K\)</span>个共同因子组成的向量，<span class="math inline">\(\mathbf b_i\)</span>则是第<span class="math inline">\(i\)</span>个变量对应的因子载荷向量，<span class="math inline">\(u_{it}\)</span>是误差项，也称异质性成分，通常假设与因子<span class="math inline">\(\mathbf f_t\)</span>不相关。这一因子结构 <a href="#eq-factor-v" class="quarto-xref">式&nbsp;12</a> 的矩阵形式写作： <span id="eq-factor-m"><span class="math display">\[
+\mathbf X_t = \boldsymbol \mu + \mathbf B \mathbf f_t + \mathbf u_t
+\tag{13}\]</span></span> 其中<span class="math inline">\(\mathbf X_t = (X_{1t},\cdots,X_{pt})^T\)</span>，<span class="math inline">\(\mathbf u_t = (u_{1t},\cdots,u_{pt})^T\)</span>，以及<span class="math inline">\(p\times K\)</span>的因子载荷矩阵<span class="math inline">\(\mathbf B = (\mathbf b_1,\cdots,\mathbf b_p)^T\)</span>。在因子结构 <a href="#eq-factor-m" class="quarto-xref">式&nbsp;13</a> 下，<span class="math inline">\(\mathbf X_t\)</span>的总体协方差矩阵可以表示为 <span id="eq-var-decompose"><span class="math display">\[
+\Sigma = \mathbf B \Sigma_f \mathbf B^T +\Sigma_u
+\tag{14}\]</span></span> 其中<span class="math inline">\(\Sigma_f = \mathrm{Cov}\{\mathbf f_t\}\)</span> 为共同因子的协方差矩阵，<span class="math inline">\(\Sigma_u\)</span>为<span class="math inline">\(\mathbf u_t\)</span>的协方差矩阵。在因子模型中，我们往往需要对异质项的协方差<span class="math inline">\(\Sigma_u\)</span>做一定的结构假设。Fan et al (2008) 假设<span class="math inline">\(\Sigma_u\)</span>为对角矩阵，在<span class="math inline">\(p\to \infty\)</span>且<span class="math inline">\(p\)</span>可能大于<span class="math inline">\(n\)</span>的情形下研究了基于 <a href="#eq-var-decompose" class="quarto-xref">式&nbsp;14</a> 估计高维协方差矩阵。近似因子模型（approximate factor model）假设给定共同因子下<span class="math inline">\(\mathbf X_t\)</span>间仍然可能存在弱相关性，即<span class="math inline">\(\Sigma_u\)</span>为非对角矩阵，在非对角线区域存在许多较小的非零元素。对于高维协方差矩阵估计而言，一个介于中间且更为合理的假设是<span class="math inline">\(\Sigma_u\)</span>虽然不是对角矩阵，但是具有稀疏结构。</p>
+<section id="可观测因子" class="level2" data-number="4.1">
+<h2 data-number="4.1" class="anchored" data-anchor-id="可观测因子"><span class="header-section-number">4.1</span> 可观测因子</h2>
+<p>假设 <a href="#eq-factor-v" class="quarto-xref">式&nbsp;12</a> 中的因子可观测。这一假设在一些应用中是合理的，比如著名的Fama-French三因子/五因子模型。那么高维协方差矩阵<span class="math inline">\(\Sigma\)</span>可以很方便地根据 <a href="#eq-var-decompose" class="quarto-xref">式&nbsp;14</a> 并结合<span class="math inline">\(\Sigma_u\)</span>的稀疏假设进行估计。</p>
+<p>第一步，将数据中的<span class="math inline">\(p\)</span>个变量逐次对共同因子做普通最小二乘回归，即对于<span class="math inline">\(i=1,\cdots,p\)</span>，得到估计<span class="math inline">\(\hat \mu_i\)</span>和<span class="math inline">\(\hat{\mathbf b}_i\)</span>如下： <span class="math display">\[
+(\hat \mu_i, \hat{\mathbf b}_i) = \arg\min_{\mu_i, \mathbf b_i} \frac{1}{n}\sum_{t=1}^n (X_{it}-\mu_i - \mathbf b_i^T \mathbf f_t)^2.
+\]</span> 由此可得载荷矩阵估计<span class="math inline">\(\hat{\mathbf B} = (\hat{\mathbf b}_1,\cdots,\hat{\mathbf b}_p)^T\)</span>和样本残差<span class="math inline">\(\hat u_{it} = X_{it} - \hat \mu_i -\hat{\mathbf b}_i^T \mathbf f_t\)</span>。记<span class="math inline">\(\hat{\mathbf u}_t = (\hat u_{1t},\cdots,\hat u_{pt})^T\)</span>，那么残差协方差矩阵可表示为 <span class="math display">\[
+S_u = \frac{1}{n}\sum_{t=1}^n \hat{\mathbf u}_t\hat{\mathbf u}_t^T.
+\]</span></p>
+<p>第二步，在<span class="math inline">\(\Sigma_u\)</span>为稀疏结构的假设前提下，使用阈值法对<span class="math inline">\(S_u\)</span>做修正，得到估计<span class="math inline">\(\hat \Sigma_u\)</span>，即 <span class="math display">\[
+\hat \Sigma_{u,ij} = \begin{cases}
+S_{u,ij}, \quad &amp; i=j;\\
+h(S_{u,ij};\omega), \quad &amp; i\ne j.
+\end{cases}
+\]</span> 其中压缩函数<span class="math inline">\(h(\cdot;\omega)\)</span>可以使用前述任一适合的形式，比如硬阈值、软阈值、SCAD或者MCP，也可以是硬阈值或者软阈值的自适应改进，阈值参数<span class="math inline">\(\omega=C\cdot K \sqrt{\frac{\log p}{n}}\)</span>，常数<span class="math inline">\(C&gt;0\)</span>可以由交叉验证进行选择。</p>
+<p>第三步，计算因子数据的样本协方差矩阵，即 <span class="math display">\[
+S_f = \frac{1}{n}\sum_{t=1}^n (\mathbf f_t-\bar{\mathbf f})(\mathbf f_t-\bar{\mathbf f})^T, \quad \quad \bar{\mathbf f} = \frac{1}{n}\sum_{t=1}^n \mathbf f_t.
+\]</span> 由于共同因子数量<span class="math inline">\(K\)</span>较小，此时样本协方差矩阵<span class="math inline">\(S_f\)</span>无需进行调整。最终，我们得到高维协方差矩阵估计量为 <span class="math display">\[
+\hat \Sigma^{\text{observed-factor}} = \hat{\mathbf B}S_f\hat{\mathbf B}^T+\hat \Sigma_u.
+\]</span></p>
+</section>
+<section id="潜因子" class="level2" data-number="4.2">
+<h2 data-number="4.2" class="anchored" data-anchor-id="潜因子"><span class="header-section-number">4.2</span> 潜因子</h2>
+<p>在许多应用中，共同因子的研究面临两大挑战：其一，现有理论难以准确识别哪些因素构成共同因子；其二，即使共同因子的形式已知，它们也可能无法直接观测。这类无法直接观测的因子被称为<strong>潜因子</strong>。</p>
+<p>在潜因子的假设下，因子结构 <a href="#eq-factor-m" class="quarto-xref">式&nbsp;13</a> 中的载荷矩阵<span class="math inline">\(\mathbf B\)</span>和因子<span class="math inline">\(\mathbf f_t\)</span>无法同时识别。这是因为对于任意一个<span class="math inline">\(K\times K\)</span>非奇异矩阵<span class="math inline">\(\mathbf H\)</span>，<span class="math inline">\((\mathbf B,\mathbf f_t)\)</span>和<span class="math inline">\((\mathbf B \mathbf H^{-1},\mathbf H \mathbf f_t)\)</span>是等价的。矩阵<span class="math inline">\(\mathbf H\)</span>通常被称为旋转矩阵。这一现象表明，因子（或因子载荷）的识别具有旋转不确定性，或者说因子只能在旋转矩阵的意义下被识别。因此，我们需要引入一些额外的假设条件来保证模型的可识别性。在高维协方差矩阵估计中，Fan, Liao and Mincheva (2013)提出了以下两个识别条件：(1) 共同因子的协方差矩阵为单位阵，即<span class="math inline">\(\Sigma_f = I_K\)</span>; (2) 载荷矩阵<span class="math inline">\(\mathbf B\)</span>的列向量正交，即<span class="math inline">\(\mathbf B^T \mathbf B\)</span>为<span class="math inline">\(K\times K\)</span>对角矩阵。在这两个条件下，<a href="#eq-var-decompose" class="quarto-xref">式&nbsp;14</a> 中协方差矩阵<span class="math inline">\(\Sigma\)</span>的分解可以简化为 <span class="math display">\[
+\Sigma = \mathbf B \mathbf B^T + \Sigma_u.
+\]</span></p>
+<p>接下来的关键问题是如何将低秩部分<span class="math inline">\(\mathbf B \mathbf B^T\)</span>与异质性部分<span class="math inline">\(\Sigma_u\)</span>进行分离。当<span class="math inline">\(\Sigma_u\)</span>为非对角阵时，在<span class="math inline">\((p,n)\)</span>有限的情况下，两者的分离是无法完成的。然而，Fan, Liao and Mincheva (2013)指出，当变量数量<span class="math inline">\(p \to \infty\)</span>时，这一分离是可行的。此外，还需要满足以下条件：1）矩阵<span class="math inline">\(\Sigma_u\)</span>的特征值一致有界，或者随着<span class="math inline">\(p\to \infty\)</span>缓慢增长；2）因子为<strong>全局因子</strong>（pervasive factor），即<span class="math inline">\(K\)</span>个共同因子对几乎所有的<span class="math inline">\(p\)</span>个变量都有影响。这一条件的数学表述为：随着<span class="math inline">\(p\to \infty\)</span>，<span class="math inline">\(K\times K\)</span>矩阵<span class="math inline">\(p^{-1}\mathbf B^T \mathbf B\)</span>的特征值一致有界且远离0。在这些假设条件下，Fan, Liao and Mincheva (2013)得出了以下结论：记矩阵<span class="math inline">\(\Sigma\)</span>的特征值为<span class="math inline">\(\lambda_1^* \ge \lambda_2^* \ge \cdots \ge \lambda_p^*\)</span>，特征值<span class="math inline">\(\lambda_i^*\)</span>对应的特征向量为<span class="math inline">\(\xi_i^*\)</span>，那么 <span id="eq-low-rank-approx"><span class="math display">\[
+\mathbf B \mathbf B^T \approx \sum_{i=1}^K \lambda_i^* \xi_i^* \xi_i^{*T},
+\tag{15}\]</span></span> 同时，根据特征分解<span class="math inline">\(\Sigma = \sum_{i=1}^p \lambda_i^* \xi_i^* \xi_i^{*T}\)</span>以及因子分解<span class="math inline">\(\Sigma = \mathbf B \mathbf B^T + \Sigma_u\)</span>，可以进一步得到 <span id="eq-residual-approx"><span class="math display">\[
+\Sigma_u \approx \sum_{i=K+1}^p \lambda_i^* \xi_i^* \xi_i^{*T}.
+\tag{16}\]</span></span></p>
+<p>在 <a href="#eq-low-rank-approx" class="quarto-xref">式&nbsp;15</a> 和 <a href="#eq-residual-approx" class="quarto-xref">式&nbsp;16</a> 的基础上，Fan, Liao and Mincheva (2013)提出了<strong>POET</strong>（Principal Orthogonal complEment Thresholding）估计量。首先，将样本协方差矩阵<span class="math inline">\(S\)</span>进行特征分解，得到特征值<span class="math inline">\(\lambda_1 \ge \lambda_2 \ge \cdots \ge \lambda_p\)</span>和对应的特征向量<span class="math inline">\(\xi_1,\xi_2,\cdots,\xi_p\)</span>，那么样本协方差矩阵可以表示为 <span class="math display">\[
+S=\sum_{i=1}^K \lambda_i \xi_i \xi_i^{T}+S_u,
+\]</span> 其中<span class="math inline">\(S_u = \sum_{i=K+1}^p \lambda_i \xi_i \xi_i^{T}\)</span>。接下来，对矩阵<span class="math inline">\(S_u\)</span>进行广义阈值处理，得到 <span class="math display">\[
+\hat \Sigma_{u,ij} = \begin{cases}
+S_{u,ij}, \quad &amp; i=j;\\
+h(S_{u,ij};\tilde \omega), \quad &amp; i\ne j.
+\end{cases}
+\]</span> 这里可以使用任意适合的压缩函数<span class="math inline">\(h(\cdot;\tilde \omega)\)</span>，其中阈值参数<span class="math inline">\(\tilde \omega = C\left(\sqrt{\frac{\log p}{n}}+\frac{1}{\sqrt{p}} \right)\)</span>，常数<span class="math inline">\(C&gt;0\)</span>可以通过交叉验证进行选择。与可观测因子下的阈值参数<span class="math inline">\(\omega\)</span>相比，潜因子下的阈值参数<span class="math inline">\(\tilde \omega\)</span>多了一项<span class="math inline">\(1/\sqrt{p}\)</span>，这一项可以理解为因子未知所付出的代价。当变量个数<span class="math inline">\(p\)</span>远大于样本容量<span class="math inline">\(n\)</span>时，这一项可以忽略不计。最终，POET估计量的形式为 <span class="math display">\[
+\hat \Sigma^{\text{POET}} = \sum_{i=1}^K \lambda_i \xi_i \xi_i^{T} + \hat \Sigma_u.
+\]</span></p>
+<p>值得注意的是，POET估计量依赖于共同因子的个数<span class="math inline">\(K\)</span>，然而这一信息在现实中通常是未知的。文献中有许多估计因子个数<span class="math inline">\(K\)</span>的方法，例如Bai and Ng (2002)的信息准则法。理论上，任何一致的方法都可以使用。Fan, Liao and Mincheva (2013)的仿真模拟结果表明，POET估计量在因子个数被高估的情况下依然是稳健的，因此在实践中，我们可以选择相对较大的<span class="math inline">\(K\)</span>值。</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb46"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb46-1"><a href="#cb46-1" aria-hidden="true" tabindex="-1"></a><span class="co"># 安装和加载所需包</span></span>
 <span id="cb46-2"><a href="#cb46-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(pedquant)</span></code><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></pre></div>
@@ -739,10 +799,10 @@ z \quad &amp; |z|&gt;a\omega
 <div class="sourceCode cell-code" id="cb48"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb48-1"><a href="#cb48-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span></code><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stderr">
 <pre><code>── Attaching core tidyverse packages ──────────────────────── tidyverse 2.0.0 ──
-✔ forcats   1.0.0     ✔ stringr   1.5.1
-✔ lubridate 1.9.3     ✔ tibble    3.2.1
-✔ purrr     1.0.2     ✔ tidyr     1.3.1
-✔ readr     2.1.5     
+✔ forcats   1.0.0     ✔ stringr   1.5.0
+✔ lubridate 1.9.2     ✔ tibble    3.2.1
+✔ purrr     1.0.1     ✔ tidyr     1.3.0
+✔ readr     2.1.4     
 ── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──
 ✖ purrr::%||%()   masks base::%||%()
 ✖ tidyr::expand() masks Matrix::expand()
@@ -753,215 +813,294 @@ z \quad &amp; |z|&gt;a\omega
 ✖ tidyr::unpack() masks Matrix::unpack()
 ℹ Use the conflicted package (&lt;http://conflicted.r-lib.org/&gt;) to force all conflicts to become errors</code></pre>
 </div>
-<div class="sourceCode cell-code" id="cb50"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb50-1"><a href="#cb50-1" aria-hidden="true" tabindex="-1"></a><span class="co"># 沪深300成分股股票代码向量</span></span>
-<span id="cb50-2"><a href="#cb50-2" aria-hidden="true" tabindex="-1"></a>hs300_stock_codes <span class="ot">&lt;-</span> <span class="fu">c</span>(</span>
-<span id="cb50-3"><a href="#cb50-3" aria-hidden="true" tabindex="-1"></a>  <span class="st">"600000.SH"</span>, <span class="st">"600004.SH"</span>, <span class="st">"600009.SH"</span>, <span class="st">"600010.SH"</span>, <span class="st">"600011.SH"</span>, <span class="st">"600015.SH"</span>,</span>
-<span id="cb50-4"><a href="#cb50-4" aria-hidden="true" tabindex="-1"></a>  <span class="st">"600016.SH"</span>, <span class="st">"600018.SH"</span>, <span class="st">"600019.SH"</span>, <span class="st">"600025.SH"</span>, <span class="st">"600028.SH"</span>, <span class="st">"600029.SH"</span>,</span>
-<span id="cb50-5"><a href="#cb50-5" aria-hidden="true" tabindex="-1"></a>  <span class="st">"600030.SH"</span>, <span class="st">"600031.SH"</span>, <span class="st">"600036.SH"</span>, <span class="st">"600048.SH"</span>, <span class="st">"600050.SH"</span>, <span class="st">"600104.SH"</span>,</span>
-<span id="cb50-6"><a href="#cb50-6" aria-hidden="true" tabindex="-1"></a>  <span class="st">"600109.SH"</span>, <span class="st">"600111.SH"</span>, <span class="st">"600115.SH"</span>, <span class="st">"600118.SH"</span>, <span class="st">"600170.SH"</span>, <span class="st">"600176.SH"</span>,</span>
-<span id="cb50-7"><a href="#cb50-7" aria-hidden="true" tabindex="-1"></a>  <span class="st">"600177.SH"</span>, <span class="st">"600183.SH"</span>, <span class="st">"600188.SH"</span>, <span class="st">"600196.SH"</span>, <span class="st">"600208.SH"</span>, <span class="st">"600219.SH"</span>,</span>
-<span id="cb50-8"><a href="#cb50-8" aria-hidden="true" tabindex="-1"></a>  <span class="st">"600221.SH"</span>, <span class="st">"600233.SH"</span>, <span class="st">"600271.SH"</span>, <span class="st">"600276.SH"</span>, <span class="st">"600297.SH"</span>, <span class="st">"600309.SH"</span>,</span>
-<span id="cb50-9"><a href="#cb50-9" aria-hidden="true" tabindex="-1"></a>  <span class="st">"600332.SH"</span>, <span class="st">"600340.SH"</span>, <span class="st">"600346.SH"</span>, <span class="st">"600352.SH"</span>, <span class="st">"600362.SH"</span>, <span class="st">"600369.SH"</span>,</span>
-<span id="cb50-10"><a href="#cb50-10" aria-hidden="true" tabindex="-1"></a>  <span class="st">"600383.SH"</span>, <span class="st">"600390.SH"</span>, <span class="st">"600406.SH"</span>, <span class="st">"600436.SH"</span>, <span class="st">"600438.SH"</span>, <span class="st">"600482.SH"</span>,</span>
-<span id="cb50-11"><a href="#cb50-11" aria-hidden="true" tabindex="-1"></a>  <span class="st">"600487.SH"</span>, <span class="st">"600489.SH"</span>, <span class="st">"600498.SH"</span>, <span class="st">"600516.SH"</span>, <span class="st">"600519.SH"</span>, <span class="st">"600522.SH"</span>,</span>
-<span id="cb50-12"><a href="#cb50-12" aria-hidden="true" tabindex="-1"></a>  <span class="st">"600547.SH"</span>, <span class="st">"600570.SH"</span>, <span class="st">"600585.SH"</span>, <span class="st">"600588.SH"</span>, <span class="st">"600606.SH"</span>, <span class="st">"600637.SH"</span>,</span>
-<span id="cb50-13"><a href="#cb50-13" aria-hidden="true" tabindex="-1"></a>  <span class="st">"600655.SH"</span>, <span class="st">"600660.SH"</span>, <span class="st">"600663.SH"</span>, <span class="st">"600674.SH"</span>, <span class="st">"600690.SH"</span>, <span class="st">"600703.SH"</span>,</span>
-<span id="cb50-14"><a href="#cb50-14" aria-hidden="true" tabindex="-1"></a>  <span class="st">"600705.SH"</span>, <span class="st">"600741.SH"</span>, <span class="st">"600745.SH"</span>, <span class="st">"600760.SH"</span>, <span class="st">"600795.SH"</span>, <span class="st">"600809.SH"</span>,</span>
-<span id="cb50-15"><a href="#cb50-15" aria-hidden="true" tabindex="-1"></a>  <span class="st">"600837.SH"</span>, <span class="st">"600848.SH"</span>, <span class="st">"600867.SH"</span>, <span class="st">"600886.SH"</span>, <span class="st">"600887.SH"</span>, <span class="st">"600893.SH"</span>,</span>
-<span id="cb50-16"><a href="#cb50-16" aria-hidden="true" tabindex="-1"></a>  <span class="st">"600900.SH"</span>, <span class="st">"600905.SH"</span>, <span class="st">"600919.SH"</span>, <span class="st">"600926.SH"</span>, <span class="st">"600928.SH"</span>, <span class="st">"600929.SH"</span>,</span>
-<span id="cb50-17"><a href="#cb50-17" aria-hidden="true" tabindex="-1"></a>  <span class="st">"600933.SH"</span>, <span class="st">"600938.SH"</span>, <span class="st">"600958.SH"</span>, <span class="st">"600959.SH"</span>, <span class="st">"600968.SH"</span>, <span class="st">"600977.SH"</span>,</span>
-<span id="cb50-18"><a href="#cb50-18" aria-hidden="true" tabindex="-1"></a>  <span class="st">"600989.SH"</span>, <span class="st">"600998.SH"</span>, <span class="st">"600999.SH"</span>, <span class="st">"601006.SH"</span>, <span class="st">"601009.SH"</span>, <span class="st">"601012.SH"</span>,</span>
-<span id="cb50-19"><a href="#cb50-19" aria-hidden="true" tabindex="-1"></a>  <span class="st">"601018.SH"</span>, <span class="st">"601021.SH"</span>, <span class="st">"601066.SH"</span>, <span class="st">"601077.SH"</span>, <span class="st">"601088.SH"</span>, <span class="st">"601099.SH"</span>,</span>
-<span id="cb50-20"><a href="#cb50-20" aria-hidden="true" tabindex="-1"></a>  <span class="st">"601100.SH"</span>, <span class="st">"601108.SH"</span>, <span class="st">"601111.SH"</span>, <span class="st">"601117.SH"</span>, <span class="st">"601138.SH"</span>, <span class="st">"601155.SH"</span>,</span>
-<span id="cb50-21"><a href="#cb50-21" aria-hidden="true" tabindex="-1"></a>  <span class="st">"601162.SH"</span>, <span class="st">"601166.SH"</span>, <span class="st">"601169.SH"</span>, <span class="st">"601186.SH"</span>, <span class="st">"601198.SH"</span>, <span class="st">"601211.SH"</span>,</span>
-<span id="cb50-22"><a href="#cb50-22" aria-hidden="true" tabindex="-1"></a>  <span class="st">"601216.SH"</span>, <span class="st">"601225.SH"</span>, <span class="st">"601229.SH"</span>, <span class="st">"601231.SH"</span>, <span class="st">"601236.SH"</span>, <span class="st">"601238.SH"</span>,</span>
-<span id="cb50-23"><a href="#cb50-23" aria-hidden="true" tabindex="-1"></a>  <span class="st">"601288.SH"</span>, <span class="st">"601318.SH"</span>, <span class="st">"601319.SH"</span>, <span class="st">"601328.SH"</span>, <span class="st">"601336.SH"</span>, <span class="st">"601360.SH"</span>,</span>
-<span id="cb50-24"><a href="#cb50-24" aria-hidden="true" tabindex="-1"></a>  <span class="st">"601377.SH"</span>, <span class="st">"601390.SH"</span>, <span class="st">"601398.SH"</span>, <span class="st">"601555.SH"</span>, <span class="st">"601577.SH"</span>, <span class="st">"601600.SH"</span>,</span>
-<span id="cb50-25"><a href="#cb50-25" aria-hidden="true" tabindex="-1"></a>  <span class="st">"601601.SH"</span>, <span class="st">"601607.SH"</span>, <span class="st">"601618.SH"</span>, <span class="st">"601628.SH"</span>, <span class="st">"601633.SH"</span>, <span class="st">"601658.SH"</span>,</span>
-<span id="cb50-26"><a href="#cb50-26" aria-hidden="true" tabindex="-1"></a>  <span class="st">"601668.SH"</span>, <span class="st">"601669.SH"</span>, <span class="st">"601688.SH"</span>, <span class="st">"601696.SH"</span>, <span class="st">"601698.SH"</span>, <span class="st">"601727.SH"</span>,</span>
-<span id="cb50-27"><a href="#cb50-27" aria-hidden="true" tabindex="-1"></a>  <span class="st">"601766.SH"</span>, <span class="st">"601788.SH"</span>, <span class="st">"601800.SH"</span>, <span class="st">"601808.SH"</span>, <span class="st">"601818.SH"</span>, <span class="st">"601828.SH"</span>,</span>
-<span id="cb50-28"><a href="#cb50-28" aria-hidden="true" tabindex="-1"></a>  <span class="st">"601838.SH"</span>, <span class="st">"601857.SH"</span>, <span class="st">"601878.SH"</span>, <span class="st">"601881.SH"</span>, <span class="st">"601888.SH"</span>, <span class="st">"601898.SH"</span>,</span>
-<span id="cb50-29"><a href="#cb50-29" aria-hidden="true" tabindex="-1"></a>  <span class="st">"601899.SH"</span>, <span class="st">"601901.SH"</span>, <span class="st">"601916.SH"</span>, <span class="st">"601919.SH"</span>, <span class="st">"601933.SH"</span>, <span class="st">"601939.SH"</span>,</span>
-<span id="cb50-30"><a href="#cb50-30" aria-hidden="true" tabindex="-1"></a>  <span class="st">"601985.SH"</span>, <span class="st">"601988.SH"</span>, <span class="st">"601989.SH"</span>, <span class="st">"601992.SH"</span>, <span class="st">"601997.SH"</span>, <span class="st">"601998.SH"</span>,</span>
-<span id="cb50-31"><a href="#cb50-31" aria-hidden="true" tabindex="-1"></a>  <span class="st">"603019.SH"</span>, <span class="st">"603156.SH"</span>, <span class="st">"603160.SH"</span>, <span class="st">"603259.SH"</span>, <span class="st">"603288.SH"</span>, <span class="st">"603369.SH"</span>,</span>
-<span id="cb50-32"><a href="#cb50-32" aria-hidden="true" tabindex="-1"></a>  <span class="st">"603501.SH"</span>, <span class="st">"603658.SH"</span>, <span class="st">"603799.SH"</span>, <span class="st">"603833.SH"</span>, <span class="st">"603899.SH"</span>, <span class="st">"603986.SH"</span>,</span>
-<span id="cb50-33"><a href="#cb50-33" aria-hidden="true" tabindex="-1"></a>  <span class="st">"603993.SH"</span>, <span class="st">"688008.SH"</span>, <span class="st">"688009.SH"</span>, <span class="st">"688012.SH"</span>, <span class="st">"688036.SH"</span>, <span class="st">"688111.SH"</span>,</span>
-<span id="cb50-34"><a href="#cb50-34" aria-hidden="true" tabindex="-1"></a>  <span class="st">"688126.SH"</span>, <span class="st">"688169.SH"</span>, <span class="st">"688396.SH"</span>, <span class="st">"688561.SH"</span>, <span class="st">"000001.SZ"</span>, <span class="st">"000002.SZ"</span>,</span>
-<span id="cb50-35"><a href="#cb50-35" aria-hidden="true" tabindex="-1"></a>  <span class="st">"000063.SZ"</span>, <span class="st">"000066.SZ"</span>, <span class="st">"000069.SZ"</span>, <span class="st">"000100.SZ"</span>, <span class="st">"000157.SZ"</span>, <span class="st">"000166.SZ"</span>,</span>
-<span id="cb50-36"><a href="#cb50-36" aria-hidden="true" tabindex="-1"></a>  <span class="st">"000333.SZ"</span>, <span class="st">"000338.SZ"</span>, <span class="st">"000425.SZ"</span>, <span class="st">"000538.SZ"</span>, <span class="st">"000568.SZ"</span>, <span class="st">"000596.SZ"</span>,</span>
-<span id="cb50-37"><a href="#cb50-37" aria-hidden="true" tabindex="-1"></a>  <span class="st">"000625.SZ"</span>, <span class="st">"000627.SZ"</span>, <span class="st">"000651.SZ"</span>, <span class="st">"000656.SZ"</span>, <span class="st">"000661.SZ"</span>, <span class="st">"000671.SZ"</span>,</span>
-<span id="cb50-38"><a href="#cb50-38" aria-hidden="true" tabindex="-1"></a>  <span class="st">"000703.SZ"</span>, <span class="st">"000708.SZ"</span>, <span class="st">"000709.SZ"</span>, <span class="st">"000723.SZ"</span>, <span class="st">"000725.SZ"</span>, <span class="st">"000728.SZ"</span>,</span>
-<span id="cb50-39"><a href="#cb50-39" aria-hidden="true" tabindex="-1"></a>  <span class="st">"000738.SZ"</span>, <span class="st">"000768.SZ"</span>, <span class="st">"000776.SZ"</span>, <span class="st">"000783.SZ"</span>, <span class="st">"000786.SZ"</span>, <span class="st">"000858.SZ"</span>,</span>
-<span id="cb50-40"><a href="#cb50-40" aria-hidden="true" tabindex="-1"></a>  <span class="st">"000860.SZ"</span>, <span class="st">"000876.SZ"</span>, <span class="st">"000895.SZ"</span>, <span class="st">"000938.SZ"</span>, <span class="st">"000959.SZ"</span>, <span class="st">"000961.SZ"</span>,</span>
-<span id="cb50-41"><a href="#cb50-41" aria-hidden="true" tabindex="-1"></a>  <span class="st">"000963.SZ"</span>, <span class="st">"000977.SZ"</span>, <span class="st">"001979.SZ"</span>, <span class="st">"002001.SZ"</span>, <span class="st">"002007.SZ"</span>, <span class="st">"002008.SZ"</span>,</span>
-<span id="cb50-42"><a href="#cb50-42" aria-hidden="true" tabindex="-1"></a>  <span class="st">"002024.SZ"</span>, <span class="st">"002027.SZ"</span>, <span class="st">"002032.SZ"</span>, <span class="st">"002044.SZ"</span>, <span class="st">"002049.SZ"</span>, <span class="st">"002050.SZ"</span>,</span>
-<span id="cb50-43"><a href="#cb50-43" aria-hidden="true" tabindex="-1"></a>  <span class="st">"002120.SZ"</span>, <span class="st">"002142.SZ"</span>, <span class="st">"002146.SZ"</span>, <span class="st">"002153.SZ"</span>, <span class="st">"002179.SZ"</span>, <span class="st">"002202.SZ"</span>,</span>
-<span id="cb50-44"><a href="#cb50-44" aria-hidden="true" tabindex="-1"></a>  <span class="st">"002230.SZ"</span>, <span class="st">"002236.SZ"</span>, <span class="st">"002241.SZ"</span>, <span class="st">"002252.SZ"</span>, <span class="st">"002271.SZ"</span>, <span class="st">"002304.SZ"</span>,</span>
-<span id="cb50-45"><a href="#cb50-45" aria-hidden="true" tabindex="-1"></a>  <span class="st">"002311.SZ"</span>, <span class="st">"002352.SZ"</span>, <span class="st">"002371.SZ"</span>, <span class="st">"002410.SZ"</span>, <span class="st">"002415.SZ"</span>, <span class="st">"002422.SZ"</span>,</span>
-<span id="cb50-46"><a href="#cb50-46" aria-hidden="true" tabindex="-1"></a>  <span class="st">"002456.SZ"</span>, <span class="st">"002460.SZ"</span>, <span class="st">"002466.SZ"</span>, <span class="st">"002475.SZ"</span>, <span class="st">"002493.SZ"</span>, <span class="st">"002555.SZ"</span>,</span>
-<span id="cb50-47"><a href="#cb50-47" aria-hidden="true" tabindex="-1"></a>  <span class="st">"002594.SZ"</span>, <span class="st">"002601.SZ"</span>, <span class="st">"002602.SZ"</span>, <span class="st">"002607.SZ"</span>, <span class="st">"002624.SZ"</span>, <span class="st">"002648.SZ"</span>,</span>
-<span id="cb50-48"><a href="#cb50-48" aria-hidden="true" tabindex="-1"></a>  <span class="st">"002714.SZ"</span>, <span class="st">"002736.SZ"</span>, <span class="st">"002739.SZ"</span>, <span class="st">"002812.SZ"</span>, <span class="st">"002821.SZ"</span>, <span class="st">"002831.SZ"</span>,</span>
-<span id="cb50-49"><a href="#cb50-49" aria-hidden="true" tabindex="-1"></a>  <span class="st">"002841.SZ"</span>, <span class="st">"002916.SZ"</span>, <span class="st">"002938.SZ"</span>, <span class="st">"002939.SZ"</span>, <span class="st">"002945.SZ"</span>, <span class="st">"002958.SZ"</span>,</span>
-<span id="cb50-50"><a href="#cb50-50" aria-hidden="true" tabindex="-1"></a>  <span class="st">"003816.SZ"</span>, <span class="st">"300003.SZ"</span>, <span class="st">"300014.SZ"</span>, <span class="st">"300015.SZ"</span>, <span class="st">"300033.SZ"</span>, <span class="st">"300059.SZ"</span>,</span>
-<span id="cb50-51"><a href="#cb50-51" aria-hidden="true" tabindex="-1"></a>  <span class="st">"300122.SZ"</span>, <span class="st">"300124.SZ"</span>, <span class="st">"300136.SZ"</span>, <span class="st">"300142.SZ"</span>, <span class="st">"300144.SZ"</span>, <span class="st">"300347.SZ"</span>,</span>
-<span id="cb50-52"><a href="#cb50-52" aria-hidden="true" tabindex="-1"></a>  <span class="st">"300408.SZ"</span>, <span class="st">"300413.SZ"</span>, <span class="st">"300433.SZ"</span>, <span class="st">"300498.SZ"</span>, <span class="st">"300601.SZ"</span>, <span class="st">"300628.SZ"</span>,</span>
-<span id="cb50-53"><a href="#cb50-53" aria-hidden="true" tabindex="-1"></a>  <span class="st">"300661.SZ"</span>, <span class="st">"300676.SZ"</span>, <span class="st">"300750.SZ"</span>, <span class="st">"300759.SZ"</span>, <span class="st">"300760.SZ"</span>, <span class="st">"300782.SZ"</span>,</span>
-<span id="cb50-54"><a href="#cb50-54" aria-hidden="true" tabindex="-1"></a>  <span class="st">"300832.SZ"</span>, <span class="st">"300866.SZ"</span>, <span class="st">"300896.SZ"</span></span>
-<span id="cb50-55"><a href="#cb50-55" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb50-56"><a href="#cb50-56" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb50-57"><a href="#cb50-57" aria-hidden="true" tabindex="-1"></a><span class="co"># 初始化一个列表来存储每支股票的数据</span></span>
-<span id="cb50-58"><a href="#cb50-58" aria-hidden="true" tabindex="-1"></a>stock_data_list <span class="ot">&lt;-</span> <span class="fu">list</span>()</span>
-<span id="cb50-59"><a href="#cb50-59" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb50-60"><a href="#cb50-60" aria-hidden="true" tabindex="-1"></a><span class="co"># 获取每支股票的数据</span></span>
-<span id="cb50-61"><a href="#cb50-61" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (symbol <span class="cf">in</span> hs300_stock_codes) {</span>
-<span id="cb50-62"><a href="#cb50-62" aria-hidden="true" tabindex="-1"></a>  <span class="co"># 获取股票数据</span></span>
-<span id="cb50-63"><a href="#cb50-63" aria-hidden="true" tabindex="-1"></a>  stock_data <span class="ot">&lt;-</span> <span class="fu">md_stock</span>(symbol, <span class="at">date_range =</span> <span class="st">'5y'</span>, <span class="at">source =</span> <span class="st">"163"</span>, <span class="at">print_step =</span> <span class="dv">0</span>)</span>
-<span id="cb50-64"><a href="#cb50-64" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb50-65"><a href="#cb50-65" aria-hidden="true" tabindex="-1"></a>  <span class="co"># 将数据存储到列表中</span></span>
-<span id="cb50-66"><a href="#cb50-66" aria-hidden="true" tabindex="-1"></a>  stock_data_list[[symbol]] <span class="ot">&lt;-</span> stock_data</span>
-<span id="cb50-67"><a href="#cb50-67" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb50-68"><a href="#cb50-68" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb50-69"><a href="#cb50-69" aria-hidden="true" tabindex="-1"></a><span class="co"># 查看第一支股票的数据</span></span>
-<span id="cb50-70"><a href="#cb50-70" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(stock_data_list[[<span class="dv">1</span>]])</span></code><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>$`600000.sh`
-         symbol     name       date  open  high   low close volume    amount
-         &lt;char&gt;   &lt;char&gt;     &lt;Date&gt; &lt;num&gt; &lt;num&gt; &lt;num&gt; &lt;num&gt;  &lt;num&gt;     &lt;num&gt;
-   1: 600000.SH 浦发银行 2020-03-09 11.00 11.00 10.75 10.78 594952 644379968
-   2: 600000.SH 浦发银行 2020-03-10 10.71 10.96 10.70 10.87 447617 485896704
-   3: 600000.SH 浦发银行 2020-03-11 10.93 10.93 10.77 10.77 316888 343734176
-   4: 600000.SH 浦发银行 2020-03-12 10.75 10.75 10.61 10.64 326324 348157968
-   5: 600000.SH 浦发银行 2020-03-13 10.40 10.73 10.28 10.70 574571 603756304
-  ---                                                                       
-1208: 600000.SH 浦发银行 2025-03-03 10.19 10.22 10.08 10.15 430109 436849850
-1209: 600000.SH 浦发银行 2025-03-04 10.10 10.19 10.10 10.10 297698 301634439
-1210: 600000.SH 浦发银行 2025-03-05 10.14 10.26 10.05 10.25 416864 424730036
-1211: 600000.SH 浦发银行 2025-03-06 10.25 10.26 10.08 10.13 434994 441681584
-1212: 600000.SH 浦发银行 2025-03-07 10.15 10.19 10.06 10.14 370059 374991809
-      turnover close_adj
-         &lt;num&gt;     &lt;num&gt;
-   1:     0.21     90.87
-   2:     0.16     91.47
-   3:     0.11     90.81
-   4:     0.12     89.95
-   5:     0.20     90.34
-  ---                   
-1208:     0.15    100.78
-1209:     0.10    100.45
-1210:     0.14    101.43
-1211:     0.15    100.64
-1212:     0.13    100.71</code></pre>
+<div class="sourceCode cell-code" id="cb50"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb50-1"><a href="#cb50-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(quantmod)</span></code><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Loading required package: xts
+Loading required package: zoo
+
+Attaching package: 'zoo'
+
+The following objects are masked from 'package:base':
+
+    as.Date, as.Date.numeric
+
+
+######################### Warning from 'xts' package ##########################
+#                                                                             #
+# The dplyr lag() function breaks how base R's lag() function is supposed to  #
+# work, which breaks lag(my_xts). Calls to lag(my_xts) that you type or       #
+# source() into this session won't work correctly.                            #
+#                                                                             #
+# Use stats::lag() to make sure you're not using dplyr::lag(), or you can add #
+# conflictRules('dplyr', exclude = 'lag') to your .Rprofile to stop           #
+# dplyr from breaking base R's lag() function.                                #
+#                                                                             #
+# Code in packages is not affected. It's protected by R's namespace mechanism #
+# Set `options(xts.warn_dplyr_breaks_lag = FALSE)` to suppress this warning.  #
+#                                                                             #
+###############################################################################
+
+Attaching package: 'xts'
+
+The following objects are masked from 'package:dplyr':
+
+    first, last
+
+Loading required package: TTR
+Registered S3 method overwritten by 'quantmod':
+  method            from
+  as.zoo.data.frame zoo </code></pre>
 </div>
-<div class="sourceCode cell-code" id="cb52"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb52-1"><a href="#cb52-1" aria-hidden="true" tabindex="-1"></a><span class="co"># 初始化一个列表来存储每支股票的周度收益率</span></span>
-<span id="cb52-2"><a href="#cb52-2" aria-hidden="true" tabindex="-1"></a>weekly_returns_list <span class="ot">&lt;-</span> <span class="fu">list</span>()</span>
-<span id="cb52-3"><a href="#cb52-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb52-4"><a href="#cb52-4" aria-hidden="true" tabindex="-1"></a><span class="co"># 计算每支股票的周度收益率</span></span>
-<span id="cb52-5"><a href="#cb52-5" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (symbol <span class="cf">in</span> hs300_stock_codes) {</span>
-<span id="cb52-6"><a href="#cb52-6" aria-hidden="true" tabindex="-1"></a>  <span class="co"># 提取当前股票的数据</span></span>
-<span id="cb52-7"><a href="#cb52-7" aria-hidden="true" tabindex="-1"></a>  stock_data <span class="ot">&lt;-</span> stock_data_list[[symbol]][[<span class="dv">1</span>]]</span>
-<span id="cb52-8"><a href="#cb52-8" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb52-9"><a href="#cb52-9" aria-hidden="true" tabindex="-1"></a>  <span class="co"># 计算日度收益率</span></span>
-<span id="cb52-10"><a href="#cb52-10" aria-hidden="true" tabindex="-1"></a>  stock_data <span class="ot">&lt;-</span> stock_data <span class="sc">%&gt;%</span></span>
-<span id="cb52-11"><a href="#cb52-11" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">daily_return =</span> (close <span class="sc">-</span> <span class="fu">lag</span>(close)) <span class="sc">/</span> <span class="fu">lag</span>(close))</span>
-<span id="cb52-12"><a href="#cb52-12" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb52-13"><a href="#cb52-13" aria-hidden="true" tabindex="-1"></a>  <span class="co"># 按周汇总日度收益率</span></span>
-<span id="cb52-14"><a href="#cb52-14" aria-hidden="true" tabindex="-1"></a>  weekly_returns <span class="ot">&lt;-</span> stock_data <span class="sc">%&gt;%</span></span>
-<span id="cb52-15"><a href="#cb52-15" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">week =</span> <span class="fu">floor_date</span>(date, <span class="st">"week"</span>)) <span class="sc">%&gt;%</span></span>
-<span id="cb52-16"><a href="#cb52-16" aria-hidden="true" tabindex="-1"></a>    <span class="fu">group_by</span>(week) <span class="sc">%&gt;%</span></span>
-<span id="cb52-17"><a href="#cb52-17" aria-hidden="true" tabindex="-1"></a>    <span class="fu">summarise</span>(<span class="at">weekly_return =</span> <span class="fu">mean</span>(daily_return, <span class="at">na.rm =</span> <span class="cn">TRUE</span>)) <span class="sc">%&gt;%</span></span>
-<span id="cb52-18"><a href="#cb52-18" aria-hidden="true" tabindex="-1"></a>    <span class="fu">ungroup</span>()</span>
-<span id="cb52-19"><a href="#cb52-19" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb52-20"><a href="#cb52-20" aria-hidden="true" tabindex="-1"></a>  <span class="co"># 将周度收益率存储到列表中</span></span>
-<span id="cb52-21"><a href="#cb52-21" aria-hidden="true" tabindex="-1"></a>  weekly_returns_list[[symbol]] <span class="ot">&lt;-</span> weekly_returns</span>
-<span id="cb52-22"><a href="#cb52-22" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb52-23"><a href="#cb52-23" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb52-24"><a href="#cb52-24" aria-hidden="true" tabindex="-1"></a><span class="co"># 合并所有股票的周度收益率</span></span>
-<span id="cb52-25"><a href="#cb52-25" aria-hidden="true" tabindex="-1"></a>weekly_returns_df <span class="ot">&lt;-</span> <span class="fu">bind_rows</span>(weekly_returns_list, <span class="at">.id =</span> <span class="st">"symbol"</span>)</span>
-<span id="cb52-26"><a href="#cb52-26" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb52-27"><a href="#cb52-27" aria-hidden="true" tabindex="-1"></a><span class="co"># 将 weekly_returns_df 转换为宽格式</span></span>
-<span id="cb52-28"><a href="#cb52-28" aria-hidden="true" tabindex="-1"></a>weekly_returns_wide <span class="ot">&lt;-</span> weekly_returns_df <span class="sc">%&gt;%</span></span>
-<span id="cb52-29"><a href="#cb52-29" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_wider</span>(<span class="at">names_from =</span> symbol, <span class="at">values_from =</span> weekly_return)</span>
-<span id="cb52-30"><a href="#cb52-30" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb52-31"><a href="#cb52-31" aria-hidden="true" tabindex="-1"></a><span class="co"># 移除包含缺失值的列</span></span>
-<span id="cb52-32"><a href="#cb52-32" aria-hidden="true" tabindex="-1"></a>weekly_returns_wide <span class="ot">&lt;-</span> weekly_returns_wide <span class="sc">%&gt;%</span></span>
-<span id="cb52-33"><a href="#cb52-33" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="fu">where</span>(<span class="sc">~</span> <span class="fu">all</span>(<span class="sc">!</span><span class="fu">is.na</span>(.))))</span>
-<span id="cb52-34"><a href="#cb52-34" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb52-35"><a href="#cb52-35" aria-hidden="true" tabindex="-1"></a><span class="co"># 查看转换后的宽格式数据</span></span>
-<span id="cb52-36"><a href="#cb52-36" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(weekly_returns_wide)</span></code><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb52"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb52-1"><a href="#cb52-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(cvCovEst)</span>
+<span id="cb52-2"><a href="#cb52-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(POET)</span>
+<span id="cb52-3"><a href="#cb52-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(Matrix)</span>
+<span id="cb52-4"><a href="#cb52-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb52-5"><a href="#cb52-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb52-6"><a href="#cb52-6" aria-hidden="true" tabindex="-1"></a><span class="co"># 沪深300成分股股票代码向量</span></span>
+<span id="cb52-7"><a href="#cb52-7" aria-hidden="true" tabindex="-1"></a>hs300_stock_codes <span class="ot">&lt;-</span> <span class="fu">c</span>(</span>
+<span id="cb52-8"><a href="#cb52-8" aria-hidden="true" tabindex="-1"></a>  <span class="st">"600000.SH"</span>, <span class="st">"600004.SH"</span>, <span class="st">"600009.SH"</span>, <span class="st">"600010.SH"</span>, <span class="st">"600011.SH"</span>, <span class="st">"600015.SH"</span>,</span>
+<span id="cb52-9"><a href="#cb52-9" aria-hidden="true" tabindex="-1"></a>  <span class="st">"600016.SH"</span>, <span class="st">"600018.SH"</span>, <span class="st">"600019.SH"</span>, <span class="st">"600025.SH"</span>, <span class="st">"600028.SH"</span>, <span class="st">"600029.SH"</span>,</span>
+<span id="cb52-10"><a href="#cb52-10" aria-hidden="true" tabindex="-1"></a>  <span class="st">"600030.SH"</span>, <span class="st">"600031.SH"</span>, <span class="st">"600036.SH"</span>, <span class="st">"600048.SH"</span>, <span class="st">"600050.SH"</span>, <span class="st">"600104.SH"</span>,</span>
+<span id="cb52-11"><a href="#cb52-11" aria-hidden="true" tabindex="-1"></a>  <span class="st">"600109.SH"</span>, <span class="st">"600111.SH"</span>, <span class="st">"600115.SH"</span>, <span class="st">"600118.SH"</span>, <span class="st">"600170.SH"</span>, <span class="st">"600176.SH"</span>,</span>
+<span id="cb52-12"><a href="#cb52-12" aria-hidden="true" tabindex="-1"></a>  <span class="st">"600177.SH"</span>, <span class="st">"600183.SH"</span>, <span class="st">"600188.SH"</span>, <span class="st">"600196.SH"</span>, <span class="st">"600208.SH"</span>, <span class="st">"600219.SH"</span>,</span>
+<span id="cb52-13"><a href="#cb52-13" aria-hidden="true" tabindex="-1"></a>  <span class="st">"600221.SH"</span>, <span class="st">"600233.SH"</span>, <span class="st">"600271.SH"</span>, <span class="st">"600276.SH"</span>, <span class="st">"600297.SH"</span>, <span class="st">"600309.SH"</span>,</span>
+<span id="cb52-14"><a href="#cb52-14" aria-hidden="true" tabindex="-1"></a>  <span class="st">"600332.SH"</span>, <span class="st">"600340.SH"</span>, <span class="st">"600346.SH"</span>, <span class="st">"600352.SH"</span>, <span class="st">"600362.SH"</span>, <span class="st">"600369.SH"</span>,</span>
+<span id="cb52-15"><a href="#cb52-15" aria-hidden="true" tabindex="-1"></a>  <span class="st">"600383.SH"</span>, <span class="st">"600390.SH"</span>, <span class="st">"600406.SH"</span>, <span class="st">"600436.SH"</span>, <span class="st">"600438.SH"</span>, <span class="st">"600482.SH"</span>,</span>
+<span id="cb52-16"><a href="#cb52-16" aria-hidden="true" tabindex="-1"></a>  <span class="st">"600487.SH"</span>, <span class="st">"600489.SH"</span>, <span class="st">"600498.SH"</span>, <span class="st">"600516.SH"</span>, <span class="st">"600519.SH"</span>, <span class="st">"600522.SH"</span>,</span>
+<span id="cb52-17"><a href="#cb52-17" aria-hidden="true" tabindex="-1"></a>  <span class="st">"600547.SH"</span>, <span class="st">"600570.SH"</span>, <span class="st">"600585.SH"</span>, <span class="st">"600588.SH"</span>, <span class="st">"600606.SH"</span>, <span class="st">"600637.SH"</span>,</span>
+<span id="cb52-18"><a href="#cb52-18" aria-hidden="true" tabindex="-1"></a>  <span class="st">"600655.SH"</span>, <span class="st">"600660.SH"</span>, <span class="st">"600663.SH"</span>, <span class="st">"600674.SH"</span>, <span class="st">"600690.SH"</span>, <span class="st">"600703.SH"</span>,</span>
+<span id="cb52-19"><a href="#cb52-19" aria-hidden="true" tabindex="-1"></a>  <span class="st">"600705.SH"</span>, <span class="st">"600741.SH"</span>, <span class="st">"600745.SH"</span>, <span class="st">"600760.SH"</span>, <span class="st">"600795.SH"</span>, <span class="st">"600809.SH"</span>,</span>
+<span id="cb52-20"><a href="#cb52-20" aria-hidden="true" tabindex="-1"></a>  <span class="st">"600837.SH"</span>, <span class="st">"600848.SH"</span>, <span class="st">"600867.SH"</span>, <span class="st">"600886.SH"</span>, <span class="st">"600887.SH"</span>, <span class="st">"600893.SH"</span>,</span>
+<span id="cb52-21"><a href="#cb52-21" aria-hidden="true" tabindex="-1"></a>  <span class="st">"600900.SH"</span>, <span class="st">"600905.SH"</span>, <span class="st">"600919.SH"</span>, <span class="st">"600926.SH"</span>, <span class="st">"600928.SH"</span>, <span class="st">"600929.SH"</span>,</span>
+<span id="cb52-22"><a href="#cb52-22" aria-hidden="true" tabindex="-1"></a>  <span class="st">"600933.SH"</span>, <span class="st">"600938.SH"</span>, <span class="st">"600958.SH"</span>, <span class="st">"600959.SH"</span>, <span class="st">"600968.SH"</span>, <span class="st">"600977.SH"</span>,</span>
+<span id="cb52-23"><a href="#cb52-23" aria-hidden="true" tabindex="-1"></a>  <span class="st">"600989.SH"</span>, <span class="st">"600998.SH"</span>, <span class="st">"600999.SH"</span>, <span class="st">"601006.SH"</span>, <span class="st">"601009.SH"</span>, <span class="st">"601012.SH"</span>,</span>
+<span id="cb52-24"><a href="#cb52-24" aria-hidden="true" tabindex="-1"></a>  <span class="st">"601018.SH"</span>, <span class="st">"601021.SH"</span>, <span class="st">"601066.SH"</span>, <span class="st">"601077.SH"</span>, <span class="st">"601088.SH"</span>, <span class="st">"601099.SH"</span>,</span>
+<span id="cb52-25"><a href="#cb52-25" aria-hidden="true" tabindex="-1"></a>  <span class="st">"601100.SH"</span>, <span class="st">"601108.SH"</span>, <span class="st">"601111.SH"</span>, <span class="st">"601117.SH"</span>, <span class="st">"601138.SH"</span>, <span class="st">"601155.SH"</span>,</span>
+<span id="cb52-26"><a href="#cb52-26" aria-hidden="true" tabindex="-1"></a>  <span class="st">"601162.SH"</span>, <span class="st">"601166.SH"</span>, <span class="st">"601169.SH"</span>, <span class="st">"601186.SH"</span>, <span class="st">"601198.SH"</span>, <span class="st">"601211.SH"</span>,</span>
+<span id="cb52-27"><a href="#cb52-27" aria-hidden="true" tabindex="-1"></a>  <span class="st">"601216.SH"</span>, <span class="st">"601225.SH"</span>, <span class="st">"601229.SH"</span>, <span class="st">"601231.SH"</span>, <span class="st">"601236.SH"</span>, <span class="st">"601238.SH"</span>,</span>
+<span id="cb52-28"><a href="#cb52-28" aria-hidden="true" tabindex="-1"></a>  <span class="st">"601288.SH"</span>, <span class="st">"601318.SH"</span>, <span class="st">"601319.SH"</span>, <span class="st">"601328.SH"</span>, <span class="st">"601336.SH"</span>, <span class="st">"601360.SH"</span>,</span>
+<span id="cb52-29"><a href="#cb52-29" aria-hidden="true" tabindex="-1"></a>  <span class="st">"601377.SH"</span>, <span class="st">"601390.SH"</span>, <span class="st">"601398.SH"</span>, <span class="st">"601555.SH"</span>, <span class="st">"601577.SH"</span>, <span class="st">"601600.SH"</span>,</span>
+<span id="cb52-30"><a href="#cb52-30" aria-hidden="true" tabindex="-1"></a>  <span class="st">"601601.SH"</span>, <span class="st">"601607.SH"</span>, <span class="st">"601618.SH"</span>, <span class="st">"601628.SH"</span>, <span class="st">"601633.SH"</span>, <span class="st">"601658.SH"</span>,</span>
+<span id="cb52-31"><a href="#cb52-31" aria-hidden="true" tabindex="-1"></a>  <span class="st">"601668.SH"</span>, <span class="st">"601669.SH"</span>, <span class="st">"601688.SH"</span>, <span class="st">"601696.SH"</span>, <span class="st">"601698.SH"</span>, <span class="st">"601727.SH"</span>,</span>
+<span id="cb52-32"><a href="#cb52-32" aria-hidden="true" tabindex="-1"></a>  <span class="st">"601766.SH"</span>, <span class="st">"601788.SH"</span>, <span class="st">"601800.SH"</span>, <span class="st">"601808.SH"</span>, <span class="st">"601818.SH"</span>, <span class="st">"601828.SH"</span>,</span>
+<span id="cb52-33"><a href="#cb52-33" aria-hidden="true" tabindex="-1"></a>  <span class="st">"601838.SH"</span>, <span class="st">"601857.SH"</span>, <span class="st">"601878.SH"</span>, <span class="st">"601881.SH"</span>, <span class="st">"601888.SH"</span>, <span class="st">"601898.SH"</span>,</span>
+<span id="cb52-34"><a href="#cb52-34" aria-hidden="true" tabindex="-1"></a>  <span class="st">"601899.SH"</span>, <span class="st">"601901.SH"</span>, <span class="st">"601916.SH"</span>, <span class="st">"601919.SH"</span>, <span class="st">"601933.SH"</span>, <span class="st">"601939.SH"</span>,</span>
+<span id="cb52-35"><a href="#cb52-35" aria-hidden="true" tabindex="-1"></a>  <span class="st">"601985.SH"</span>, <span class="st">"601988.SH"</span>, <span class="st">"601989.SH"</span>, <span class="st">"601992.SH"</span>, <span class="st">"601997.SH"</span>, <span class="st">"601998.SH"</span>,</span>
+<span id="cb52-36"><a href="#cb52-36" aria-hidden="true" tabindex="-1"></a>  <span class="st">"603019.SH"</span>, <span class="st">"603156.SH"</span>, <span class="st">"603160.SH"</span>, <span class="st">"603259.SH"</span>, <span class="st">"603288.SH"</span>, <span class="st">"603369.SH"</span>,</span>
+<span id="cb52-37"><a href="#cb52-37" aria-hidden="true" tabindex="-1"></a>  <span class="st">"603501.SH"</span>, <span class="st">"603658.SH"</span>, <span class="st">"603799.SH"</span>, <span class="st">"603833.SH"</span>, <span class="st">"603899.SH"</span>, <span class="st">"603986.SH"</span>,</span>
+<span id="cb52-38"><a href="#cb52-38" aria-hidden="true" tabindex="-1"></a>  <span class="st">"603993.SH"</span>, <span class="st">"688008.SH"</span>, <span class="st">"688009.SH"</span>, <span class="st">"688012.SH"</span>, <span class="st">"688036.SH"</span>, <span class="st">"688111.SH"</span>,</span>
+<span id="cb52-39"><a href="#cb52-39" aria-hidden="true" tabindex="-1"></a>  <span class="st">"688126.SH"</span>, <span class="st">"688169.SH"</span>, <span class="st">"688396.SH"</span>, <span class="st">"688561.SH"</span>, <span class="st">"000001.SZ"</span>, <span class="st">"000002.SZ"</span>,</span>
+<span id="cb52-40"><a href="#cb52-40" aria-hidden="true" tabindex="-1"></a>  <span class="st">"000063.SZ"</span>, <span class="st">"000066.SZ"</span>, <span class="st">"000069.SZ"</span>, <span class="st">"000100.SZ"</span>, <span class="st">"000157.SZ"</span>, <span class="st">"000166.SZ"</span>,</span>
+<span id="cb52-41"><a href="#cb52-41" aria-hidden="true" tabindex="-1"></a>  <span class="st">"000333.SZ"</span>, <span class="st">"000338.SZ"</span>, <span class="st">"000425.SZ"</span>, <span class="st">"000538.SZ"</span>, <span class="st">"000568.SZ"</span>, <span class="st">"000596.SZ"</span>,</span>
+<span id="cb52-42"><a href="#cb52-42" aria-hidden="true" tabindex="-1"></a>  <span class="st">"000625.SZ"</span>, <span class="st">"000627.SZ"</span>, <span class="st">"000651.SZ"</span>, <span class="st">"000656.SZ"</span>, <span class="st">"000661.SZ"</span>, <span class="st">"000671.SZ"</span>,</span>
+<span id="cb52-43"><a href="#cb52-43" aria-hidden="true" tabindex="-1"></a>  <span class="st">"000703.SZ"</span>, <span class="st">"000708.SZ"</span>, <span class="st">"000709.SZ"</span>, <span class="st">"000723.SZ"</span>, <span class="st">"000725.SZ"</span>, <span class="st">"000728.SZ"</span>,</span>
+<span id="cb52-44"><a href="#cb52-44" aria-hidden="true" tabindex="-1"></a>  <span class="st">"000738.SZ"</span>, <span class="st">"000768.SZ"</span>, <span class="st">"000776.SZ"</span>, <span class="st">"000783.SZ"</span>, <span class="st">"000786.SZ"</span>, <span class="st">"000858.SZ"</span>,</span>
+<span id="cb52-45"><a href="#cb52-45" aria-hidden="true" tabindex="-1"></a>  <span class="st">"000860.SZ"</span>, <span class="st">"000876.SZ"</span>, <span class="st">"000895.SZ"</span>, <span class="st">"000938.SZ"</span>, <span class="st">"000959.SZ"</span>, <span class="st">"000961.SZ"</span>,</span>
+<span id="cb52-46"><a href="#cb52-46" aria-hidden="true" tabindex="-1"></a>  <span class="st">"000963.SZ"</span>, <span class="st">"000977.SZ"</span>, <span class="st">"001979.SZ"</span>, <span class="st">"002001.SZ"</span>, <span class="st">"002007.SZ"</span>, <span class="st">"002008.SZ"</span>,</span>
+<span id="cb52-47"><a href="#cb52-47" aria-hidden="true" tabindex="-1"></a>  <span class="st">"002024.SZ"</span>, <span class="st">"002027.SZ"</span>, <span class="st">"002032.SZ"</span>, <span class="st">"002044.SZ"</span>, <span class="st">"002049.SZ"</span>, <span class="st">"002050.SZ"</span>,</span>
+<span id="cb52-48"><a href="#cb52-48" aria-hidden="true" tabindex="-1"></a>  <span class="st">"002120.SZ"</span>, <span class="st">"002142.SZ"</span>, <span class="st">"002146.SZ"</span>, <span class="st">"002153.SZ"</span>, <span class="st">"002179.SZ"</span>, <span class="st">"002202.SZ"</span>,</span>
+<span id="cb52-49"><a href="#cb52-49" aria-hidden="true" tabindex="-1"></a>  <span class="st">"002230.SZ"</span>, <span class="st">"002236.SZ"</span>, <span class="st">"002241.SZ"</span>, <span class="st">"002252.SZ"</span>, <span class="st">"002271.SZ"</span>, <span class="st">"002304.SZ"</span>,</span>
+<span id="cb52-50"><a href="#cb52-50" aria-hidden="true" tabindex="-1"></a>  <span class="st">"002311.SZ"</span>, <span class="st">"002352.SZ"</span>, <span class="st">"002371.SZ"</span>, <span class="st">"002410.SZ"</span>, <span class="st">"002415.SZ"</span>, <span class="st">"002422.SZ"</span>,</span>
+<span id="cb52-51"><a href="#cb52-51" aria-hidden="true" tabindex="-1"></a>  <span class="st">"002456.SZ"</span>, <span class="st">"002460.SZ"</span>, <span class="st">"002466.SZ"</span>, <span class="st">"002475.SZ"</span>, <span class="st">"002493.SZ"</span>, <span class="st">"002555.SZ"</span>,</span>
+<span id="cb52-52"><a href="#cb52-52" aria-hidden="true" tabindex="-1"></a>  <span class="st">"002594.SZ"</span>, <span class="st">"002601.SZ"</span>, <span class="st">"002602.SZ"</span>, <span class="st">"002607.SZ"</span>, <span class="st">"002624.SZ"</span>, <span class="st">"002648.SZ"</span>,</span>
+<span id="cb52-53"><a href="#cb52-53" aria-hidden="true" tabindex="-1"></a>  <span class="st">"002714.SZ"</span>, <span class="st">"002736.SZ"</span>, <span class="st">"002739.SZ"</span>, <span class="st">"002812.SZ"</span>, <span class="st">"002821.SZ"</span>, <span class="st">"002831.SZ"</span>,</span>
+<span id="cb52-54"><a href="#cb52-54" aria-hidden="true" tabindex="-1"></a>  <span class="st">"002841.SZ"</span>, <span class="st">"002916.SZ"</span>, <span class="st">"002938.SZ"</span>, <span class="st">"002939.SZ"</span>, <span class="st">"002945.SZ"</span>, <span class="st">"002958.SZ"</span>,</span>
+<span id="cb52-55"><a href="#cb52-55" aria-hidden="true" tabindex="-1"></a>  <span class="st">"003816.SZ"</span>, <span class="st">"300003.SZ"</span>, <span class="st">"300014.SZ"</span>, <span class="st">"300015.SZ"</span>, <span class="st">"300033.SZ"</span>, <span class="st">"300059.SZ"</span>,</span>
+<span id="cb52-56"><a href="#cb52-56" aria-hidden="true" tabindex="-1"></a>  <span class="st">"300122.SZ"</span>, <span class="st">"300124.SZ"</span>, <span class="st">"300136.SZ"</span>, <span class="st">"300142.SZ"</span>, <span class="st">"300144.SZ"</span>, <span class="st">"300347.SZ"</span>,</span>
+<span id="cb52-57"><a href="#cb52-57" aria-hidden="true" tabindex="-1"></a>  <span class="st">"300408.SZ"</span>, <span class="st">"300413.SZ"</span>, <span class="st">"300433.SZ"</span>, <span class="st">"300498.SZ"</span>, <span class="st">"300601.SZ"</span>, <span class="st">"300628.SZ"</span>,</span>
+<span id="cb52-58"><a href="#cb52-58" aria-hidden="true" tabindex="-1"></a>  <span class="st">"300661.SZ"</span>, <span class="st">"300676.SZ"</span>, <span class="st">"300750.SZ"</span>, <span class="st">"300759.SZ"</span>, <span class="st">"300760.SZ"</span>, <span class="st">"300782.SZ"</span>,</span>
+<span id="cb52-59"><a href="#cb52-59" aria-hidden="true" tabindex="-1"></a>  <span class="st">"300832.SZ"</span>, <span class="st">"300866.SZ"</span>, <span class="st">"300896.SZ"</span></span>
+<span id="cb52-60"><a href="#cb52-60" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb52-61"><a href="#cb52-61" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb52-62"><a href="#cb52-62" aria-hidden="true" tabindex="-1"></a><span class="co"># 从沪深300成分股中随机抽取100支股票</span></span>
+<span id="cb52-63"><a href="#cb52-63" aria-hidden="true" tabindex="-1"></a><span class="co"># 设置种子以保证可重复性</span></span>
+<span id="cb52-64"><a href="#cb52-64" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">1037</span>)</span>
+<span id="cb52-65"><a href="#cb52-65" aria-hidden="true" tabindex="-1"></a>symbol <span class="ot">&lt;-</span> <span class="fu">sample</span>(hs300_stock_codes, <span class="at">size =</span> <span class="dv">100</span>, <span class="at">replace =</span> F)</span>
+<span id="cb52-66"><a href="#cb52-66" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb52-67"><a href="#cb52-67" aria-hidden="true" tabindex="-1"></a><span class="co"># 获取股票数据，md_stock函数默认返回列表，列表中的元素为单支股票的数据</span></span>
+<span id="cb52-68"><a href="#cb52-68" aria-hidden="true" tabindex="-1"></a>dat <span class="ot">&lt;-</span> <span class="fu">md_stock</span>(symbol, <span class="at">date_range =</span> <span class="st">'3y'</span>, <span class="at">source =</span> <span class="st">"163"</span>, <span class="at">print_step =</span> <span class="dv">0</span>)</span>
+<span id="cb52-69"><a href="#cb52-69" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb52-70"><a href="#cb52-70" aria-hidden="true" tabindex="-1"></a><span class="co"># 定义一个函数，将数据框格式转换为xts对象，然后返回相应的收益率数据</span></span>
+<span id="cb52-71"><a href="#cb52-71" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb52-72"><a href="#cb52-72" aria-hidden="true" tabindex="-1"></a>calculate_returns <span class="ot">&lt;-</span> <span class="cf">function</span>(df, </span>
+<span id="cb52-73"><a href="#cb52-73" aria-hidden="true" tabindex="-1"></a>                              <span class="at">date_col =</span> <span class="st">"date"</span>, </span>
+<span id="cb52-74"><a href="#cb52-74" aria-hidden="true" tabindex="-1"></a>                              <span class="at">price_col =</span> <span class="st">"close"</span>, </span>
+<span id="cb52-75"><a href="#cb52-75" aria-hidden="true" tabindex="-1"></a>                              <span class="at">period =</span> <span class="fu">c</span>(<span class="st">"daily"</span>, <span class="st">"weekly"</span>, <span class="st">"monthly"</span>, <span class="st">"quarterly"</span>, <span class="st">"yearly"</span>)) {</span>
+<span id="cb52-76"><a href="#cb52-76" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb52-77"><a href="#cb52-77" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb52-78"><a href="#cb52-78" aria-hidden="true" tabindex="-1"></a>  <span class="co"># 转换日期格式</span></span>
+<span id="cb52-79"><a href="#cb52-79" aria-hidden="true" tabindex="-1"></a>  df[[date_col]] <span class="ot">&lt;-</span> <span class="fu">as.Date</span>(df[[date_col]])</span>
+<span id="cb52-80"><a href="#cb52-80" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb52-81"><a href="#cb52-81" aria-hidden="true" tabindex="-1"></a>  <span class="co"># 创建xts对象</span></span>
+<span id="cb52-82"><a href="#cb52-82" aria-hidden="true" tabindex="-1"></a>  price_xts <span class="ot">&lt;-</span> <span class="fu">xts</span>(df[[price_col]], <span class="at">order.by =</span> df[[date_col]])</span>
+<span id="cb52-83"><a href="#cb52-83" aria-hidden="true" tabindex="-1"></a>  <span class="fu">colnames</span>(price_xts) <span class="ot">&lt;-</span> price_col</span>
+<span id="cb52-84"><a href="#cb52-84" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb52-85"><a href="#cb52-85" aria-hidden="true" tabindex="-1"></a>  <span class="co"># 计算收益率</span></span>
+<span id="cb52-86"><a href="#cb52-86" aria-hidden="true" tabindex="-1"></a>  returns <span class="ot">&lt;-</span> <span class="fu">periodReturn</span>(price_xts, <span class="at">period =</span> period, <span class="at">type =</span> <span class="st">"arithmetic"</span>)</span>
+<span id="cb52-87"><a href="#cb52-87" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb52-88"><a href="#cb52-88" aria-hidden="true" tabindex="-1"></a>  <span class="co"># 重命名列</span></span>
+<span id="cb52-89"><a href="#cb52-89" aria-hidden="true" tabindex="-1"></a>  <span class="fu">colnames</span>(returns) <span class="ot">&lt;-</span> <span class="fu">paste0</span>(period, <span class="st">"_return"</span>)</span>
+<span id="cb52-90"><a href="#cb52-90" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb52-91"><a href="#cb52-91" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span>(returns)</span>
+<span id="cb52-92"><a href="#cb52-92" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb52-93"><a href="#cb52-93" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb52-94"><a href="#cb52-94" aria-hidden="true" tabindex="-1"></a><span class="co"># 计算每支股票的周度收益率</span></span>
+<span id="cb52-95"><a href="#cb52-95" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb52-96"><a href="#cb52-96" aria-hidden="true" tabindex="-1"></a>weekly_return <span class="ot">&lt;-</span> <span class="fu">lapply</span>(dat, calculate_returns, <span class="at">period =</span> <span class="st">'weekly'</span>)</span>
+<span id="cb52-97"><a href="#cb52-97" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb52-98"><a href="#cb52-98" aria-hidden="true" tabindex="-1"></a><span class="co"># 将列表中不同股票的收益率数据按照日期进行合并</span></span>
+<span id="cb52-99"><a href="#cb52-99" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb52-100"><a href="#cb52-100" aria-hidden="true" tabindex="-1"></a>weekly_return <span class="ot">&lt;-</span> <span class="fu">reduce</span>(weekly_return, <span class="at">.f =</span> merge.xts, <span class="at">join =</span> <span class="st">'inner'</span>)</span>
+<span id="cb52-101"><a href="#cb52-101" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb52-102"><a href="#cb52-102" aria-hidden="true" tabindex="-1"></a><span class="co"># 将weekly_return 中的列名设置为对应的股票代码</span></span>
+<span id="cb52-103"><a href="#cb52-103" aria-hidden="true" tabindex="-1"></a><span class="fu">colnames</span>(weekly_return) <span class="ot">&lt;-</span> symbol</span>
+<span id="cb52-104"><a href="#cb52-104" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb52-105"><a href="#cb52-105" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb52-106"><a href="#cb52-106" aria-hidden="true" tabindex="-1"></a><span class="co"># 查看数据并绘制收益率曲线</span></span>
+<span id="cb52-107"><a href="#cb52-107" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(weekly_return)</span></code><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code># A tibble: 6 × 273
-  week       `600000.SH` `600004.SH` `600010.SH` `600011.SH` `600015.SH`
-  &lt;date&gt;           &lt;dbl&gt;       &lt;dbl&gt;       &lt;dbl&gt;       &lt;dbl&gt;       &lt;dbl&gt;
-1 2020-03-08   -0.00182    -0.0163    -0.00420     -0.00466   -0.00354  
-2 2020-03-15   -0.0116     -0.0166    -0.00337     -0.0135    -0.0138   
-3 2020-03-22    0.00308    -0.000420   0.000107     0.0100     0.00196  
-4 2020-03-29   -0.00173    -0.00317   -0.00171     -0.0113    -0.00213  
-5 2020-04-05    0.00150     0.00793    0.0000569    0.000601   0.0000307
-6 2020-04-12   -0.000161    0.0116     0.0000460   -0.00408    0.000325 
-# ℹ 267 more variables: `600016.SH` &lt;dbl&gt;, `600018.SH` &lt;dbl&gt;,
-#   `600019.SH` &lt;dbl&gt;, `600025.SH` &lt;dbl&gt;, `600028.SH` &lt;dbl&gt;, `600029.SH` &lt;dbl&gt;,
-#   `600030.SH` &lt;dbl&gt;, `600031.SH` &lt;dbl&gt;, `600036.SH` &lt;dbl&gt;, `600048.SH` &lt;dbl&gt;,
-#   `600050.SH` &lt;dbl&gt;, `600104.SH` &lt;dbl&gt;, `600111.SH` &lt;dbl&gt;, `600115.SH` &lt;dbl&gt;,
-#   `600118.SH` &lt;dbl&gt;, `600170.SH` &lt;dbl&gt;, `600177.SH` &lt;dbl&gt;, `600183.SH` &lt;dbl&gt;,
-#   `600188.SH` &lt;dbl&gt;, `600196.SH` &lt;dbl&gt;, `600208.SH` &lt;dbl&gt;, `600219.SH` &lt;dbl&gt;,
-#   `600221.SH` &lt;dbl&gt;, `600233.SH` &lt;dbl&gt;, `600271.SH` &lt;dbl&gt;, …</code></pre>
+<pre><code>               000768.SZ    600837.SH    688111.SH   603501.SH    601555.SH
+2022-03-18  0.0006896552  0.002854424  0.010257745  0.07826923  0.009421265
+2022-03-25 -0.0017229497 -0.028462998 -0.029172250 -0.08507223 -0.029333333
+2022-04-15 -0.0419069589 -0.012770138  0.006493146 -0.03496115 -0.014569536
+2022-04-22 -0.0489566613 -0.038805970 -0.057123952 -0.14318574 -0.048387097
+2022-04-29 -0.0814345992 -0.063146998  0.103508772  0.01006711 -0.040960452
+2022-05-06  0.0509875976 -0.033149171  0.049284579 -0.06870432 -0.067746686
+             002831.SZ   601088.SH    600606.SH    600016.SH    688126.SH
+2022-03-18  0.01592852 -0.04465649  0.030150754 -0.002673797  0.058895706
+2022-03-25 -0.02485660  0.08589692  0.192682927  0.021447721 -0.106991116
+2022-04-15 -0.03252351  0.01504743 -0.064013841 -0.007772021 -0.004424779
+2022-04-22  0.05103281 -0.04318402 -0.121996303 -0.023498695 -0.026666667
+2022-04-29 -0.04855491  0.03671270  0.008421053 -0.010695187 -0.045662100
+2022-05-06  0.06520859 -0.01754386 -0.098121086 -0.021621622  0.011483254
+             600637.SH    601117.SH    600276.SH   000895.SZ    002410.SZ
+2022-03-18  0.01026958  0.038283063  0.002673797 -0.07234957  0.037273695
+2022-03-25 -0.02414231  0.051396648 -0.030133333  0.02355212  0.001232033
+2022-04-15 -0.01808786  0.000000000  0.004715591  0.10607143 -0.033904987
+2022-04-22 -0.03552632 -0.105731225 -0.031974186  0.01679044 -0.045704958
+2022-04-29 -0.04774898  0.008839779 -0.106666667 -0.05525564 -0.017104982
+2022-05-06 -0.02435530 -0.050383352 -0.004748982  0.02957983  0.054165760
+             601989.SH    600519.SH    000625.SZ    601601.SH     002202.SZ
+2022-03-18 -0.00257732  0.004582353  0.008849558  0.001273345 -0.0150753769
+2022-03-25 -0.01033592 -0.010416972 -0.018421053 -0.019499788 -0.0204081633
+2022-04-15  0.01038961  0.012326233 -0.054595086 -0.020931226 -0.0822444274
+2022-04-22 -0.01542416 -0.018266989 -0.005774783 -0.030541012 -0.0536013400
+2022-04-29 -0.06788512  0.031235195  0.013552759 -0.063906391 -0.0008849558
+2022-05-06 -0.02240896 -0.019350463  0.125119389 -0.035576923 -0.0203720106
+              601328.SH    603369.SH   002466.SZ    600332.SH   002044.SZ
+2022-03-18  0.020876827 -0.012021371  0.01285628  0.031691354 -0.03721683
+2022-03-25  0.004089980 -0.045290671  0.03544486  0.016026711 -0.02016807
+2022-04-15 -0.003868472  0.060188542 -0.06631673 -0.018211921 -0.03389831
+2022-04-22  0.005825243  0.007979936 -0.08816674 -0.046205734 -0.03333333
+2022-04-29 -0.019305019  0.015154942  0.14932331  0.026520509 -0.09255898
+2022-05-06 -0.039370079 -0.028520499  0.02656025  0.007578367 -0.00400000
+              000157.SZ    601828.SH    600905.SH    600369.SH   601985.SH
+2022-03-18 -0.008836524 -0.001269036 -0.007621951  0.009153318  0.01903553
+2022-03-25 -0.020802377  0.007623888 -0.055299539 -0.038548753 -0.07471980
+2022-04-15 -0.064425770 -0.058096415 -0.087520259 -0.009111617 -0.05809642
+2022-04-22 -0.058383234 -0.177165354 -0.012433393 -0.043678161 -0.00656168
+2022-04-29 -0.077901431 -0.204146730  0.046762590 -0.103365385 -0.05812417
+2022-05-06 -0.001724138  0.044088176 -0.022336770 -0.053619303 -0.01542777
+              600018.SH   600919.SH   601108.SH    002142.SZ   000661.SZ
+2022-03-18  0.005357143  0.01883830  0.01972158  0.003492433 -0.05170046
+2022-03-25 -0.039076377  0.03389831 -0.02389078  0.046983759 -0.03418308
+2022-04-15 -0.012759171  0.02581522 -0.05424528 -0.034282833 -0.02291731
+2022-04-22 -0.017770598 -0.00794702 -0.03615960 -0.033933699 -0.06694136
+2022-04-29 -0.024671053 -0.02136182 -0.07891332 -0.018913807  0.06678443
+2022-05-06  0.035413153 -0.06002729 -0.02387640 -0.014045717 -0.02560183
+             601018.SH     000538.SZ    601688.SH    601628.SH    300661.SZ
+2022-03-18 -0.01007557  0.0003736921  0.029696133  0.032358674 -0.014237805
+2022-03-25 -0.01526718  0.0093388121 -0.030851777 -0.043806647  0.039185971
+2022-04-15 -0.01449275 -0.0264240309 -0.007323569 -0.004804139 -0.095973261
+2022-04-22 -0.01715686 -0.0463448982 -0.044265594 -0.015967323 -0.014084507
+2022-04-29 -0.02493766  0.0240300712 -0.063157895 -0.039622642  0.000000000
+2022-05-06 -0.02046036 -0.2819874148 -0.039700375 -0.013752456 -0.005821429
+              002624.SZ    600025.SH    601238.SH    300628.SZ    600887.SH
+2022-03-18  0.048639736 -0.031198686  0.025846702  0.006290957  0.014492754
+2022-03-25  0.006289308 -0.027118644 -0.033014770 -0.000520969 -0.054232804
+2022-04-15  0.015163607 -0.003205128  0.006762468 -0.070865140  0.044642857
+2022-04-22  0.033018868  0.011254019 -0.025188917  0.040668219 -0.006734007
+2022-04-29  0.124048706 -0.023847377  0.054263566  0.020789474  0.003129074
+2022-05-06 -0.061611374 -0.026058632  0.004084967 -0.043825728 -0.018195997
+              002945.SZ    600176.SH   600004.SH   600111.SH     600926.SH
+2022-03-18  0.066748316  0.039203085  0.07976490  0.02634850  0.0007272727
+2022-03-25 -0.072330654 -0.061224490 -0.05054432 -0.02591426 -0.0094476744
+2022-04-15  0.004590164 -0.016564417  0.05250784 -0.08679642  0.0193204530
+2022-04-22  0.011096606 -0.072364317 -0.07222636 -0.09331797 -0.0019607843
+2022-04-29 -0.105229180  0.057834566 -0.04012841  0.00635324  0.0006548788
+2022-05-06 -0.024531025  0.005085823 -0.04682274 -0.04987374 -0.0301047120
+             601216.SH    000069.SZ   000786.SZ   601898.SH   002304.SZ
+2022-03-18 -0.01702128  0.031496063  0.05444646 -0.01396648 -0.01417129
+2022-03-25 -0.01948052 -0.013740458 -0.01927711  0.08215297 -0.05333333
+2022-04-15  0.04449153 -0.006501951 -0.01258257  0.22564735  0.00729927
+2022-04-22 -0.08519270 -0.098167539 -0.08824466 -0.08551308  0.02956522
+2022-04-29 -0.03104213 -0.121915820  0.01432565  0.03410341  0.11951014
+2022-05-06 -0.05034325 -0.064462810  0.03203583  0.00212766 -0.03086885
+             600390.SH    000333.SZ   300347.SZ    600362.SH    600050.SH
+2022-03-18  0.00000000  0.038983948  0.06572717 -0.013691684 -0.008287293
+2022-03-25 -0.01181102 -0.047707980  0.04517085  0.008226221 -0.022284123
+2022-04-15 -0.01498127  0.023024594  0.05381614  0.028440833 -0.008426966
+2022-04-22 -0.04372624 -0.028644501 -0.09795918 -0.089876543 -0.002832861
+2022-04-29 -0.09145129  0.002106372 -0.05766600 -0.043950081  0.000000000
+2022-05-06 -0.01531729  0.019442985 -0.08699051 -0.041997730 -0.017045455
+              600015.SH    000002.SZ    601398.SH    600309.SH   600010.SH
+2022-03-18 -0.005586592  0.084524549 -0.008714597  0.009708738 -0.01298701
+2022-03-25  0.003745318 -0.002292264  0.015384615 -0.040310651 -0.02631579
+2022-04-15 -0.005263158 -0.008841322 -0.010395010 -0.043718934 -0.01754386
+2022-04-22 -0.012345679 -0.069953052  0.016806723 -0.057176610 -0.10267857
+2022-04-29 -0.026785714 -0.021706209 -0.012396694 -0.024558326 -0.06467662
+2022-05-06 -0.034862385 -0.045923633 -0.008368201  0.021194605 -0.04255319
+             002027.SZ    002008.SZ   600547.SH    000627.SZ    002939.SZ
+2022-03-18  0.02755267 -0.053846154 -0.06646972  0.035947712  0.008171604
+2022-03-25 -0.04731861 -0.006605691  0.13660338 -0.028391167 -0.048632219
+2022-04-15 -0.01174497 -0.055183946 -0.06263499 -0.018633540  0.052200614
+2022-04-22 -0.05093379 -0.147492625 -0.06866359  0.003164557 -0.096303502
+2022-04-29  0.04293381 -0.038062284 -0.05195448 -0.104100946 -0.109795479
+2022-05-06 -0.02058319 -0.020503597 -0.03810021  0.003521127 -0.059250302
+              600000.SH   600760.SH   600741.SH   600809.SH   300122.SZ
+2022-03-18 -0.001264223 -0.02076677  0.04227405  0.02365672  0.16154806
+2022-03-25 -0.012658228  0.08392242 -0.02890443 -0.06029015 -0.01755517
+2022-04-15  0.004932182 -0.01985762  0.03822314  0.07353535 -0.11398014
+2022-04-22 -0.007361963 -0.03096330 -0.05522388 -0.01738803 -0.11864115
+2022-04-29 -0.007416564 -0.01577909  0.03212217  0.04182626 -0.07552338
+2022-05-06 -0.022415940  0.05811623  0.01020408 -0.06742647  0.01248677
+             000066.SZ    300866.SZ   601838.SH   600655.SH   002607.SZ
+2022-03-18 -0.01235585 -0.005001429  0.06472727 -0.03958333 -0.01672241
+2022-03-25 -0.03502919  0.021111590 -0.01502732  0.06616052 -0.06122449
+2022-04-15 -0.08940972 -0.044752093  0.05886116 -0.01272016 -0.05594406
+2022-04-22 -0.08007626 -0.029322548 -0.01510574 -0.03865213 -0.10185185
+2022-04-29 -0.06528497 -0.014930556  0.03006135 -0.07319588 -0.05567010
+2022-05-06  0.09423503 -0.020444131  0.02441930 -0.02113459  0.01528384
+              002493.SZ   600048.SH   000709.SZ    000876.SZ    000166.SZ
+2022-03-18  0.045953361  0.03916769 -0.03719008 -0.001971091  0.004576659
+2022-03-25 -0.062950820 -0.01236749  0.00000000  0.070441080 -0.025056948
+2022-04-15 -0.054177546  0.06095552  0.04669261 -0.003824092 -0.011261261
+2022-04-22 -0.048309179 -0.07971014 -0.09665428 -0.027511196 -0.018223235
+2022-04-29 -0.005076142  0.01912261 -0.04115226 -0.076973684 -0.051044084
+2022-05-06  0.042274052 -0.09547461 -0.03004292 -0.018531718 -0.039119804
+              600170.SH    601988.SH    688008.SH   601009.SH    600188.SH
+2022-03-18 -0.006389776  0.003236246 -0.004676019  0.02121212  0.017109685
+2022-03-25 -0.003215434  0.019354839 -0.046040268  0.02670623  0.128867528
+2022-04-15 -0.040697674 -0.003039514 -0.002633311  0.02852204 -0.026246719
+2022-04-22 -0.066666667  0.006097561 -0.048844884  0.02521008 -0.070889488
+2022-04-29  0.051948052 -0.021212121  0.007113116 -0.04918033  0.007542791
+2022-05-06 -0.077160494 -0.012383901  0.023255814 -0.02500000 -0.033976389
+              600011.SH    601618.SH   300759.SZ    300015.SZ    002415.SZ
+2022-03-18  0.006361323 -0.017811705  0.02371999 -0.059191056  0.009073988
+2022-03-25 -0.107458913 -0.025906736  0.08693605  0.036700454 -0.053262624
+2022-04-15 -0.041979010 -0.048346056  0.07863555  0.074984443  0.013451777
+2022-04-22  0.090766823 -0.074866310  0.00982024 -0.002894356  0.021788129
+2022-04-29  0.047345768  0.008670520  0.03181144  0.042670537  0.041421569
+2022-05-06 -0.068493151 -0.005730659 -0.08186901  0.007238307 -0.180983761
+             002153.SZ    600999.SH    600745.SH   601162.SH    002001.SZ
+2022-03-18  0.03396226 -0.004801097  0.015768854  0.04297994 -0.074854450
+2022-03-25 -0.06888686 -0.013783598 -0.090444509 -0.05769231 -0.052741984
+2022-04-15 -0.05246753  0.008168822 -0.081444386 -0.03361345 -0.071094207
+2022-04-22 -0.04331140 -0.037137070 -0.063701578 -0.06086957 -0.085039370
+2022-04-29  0.02578797 -0.104488079  0.007968127 -0.07407407 -0.078485370
+2022-05-06 -0.01675978 -0.007830854 -0.071298267 -0.04000000 -0.008591707</code></pre>
 </div>
-<div class="sourceCode cell-code" id="cb54"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb54-1"><a href="#cb54-1" aria-hidden="true" tabindex="-1"></a>stock_returns <span class="ot">&lt;-</span> <span class="fu">as.matrix</span>(<span class="fu">select</span>(weekly_returns_wide,<span class="sc">-</span>week))</span>
-<span id="cb54-2"><a href="#cb54-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb54-3"><a href="#cb54-3" aria-hidden="true" tabindex="-1"></a><span class="co"># 使用 cvCovEst 包进行协方差矩阵估计</span></span>
-<span id="cb54-4"><a href="#cb54-4" aria-hidden="true" tabindex="-1"></a><span class="co"># 线性收缩估计 (Ledoit-Wolf)</span></span>
-<span id="cb54-5"><a href="#cb54-5" aria-hidden="true" tabindex="-1"></a>linear_shrink_est <span class="ot">&lt;-</span> <span class="fu">linearShrinkLWEst</span>(stock_returns)</span>
-<span id="cb54-6"><a href="#cb54-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb54-7"><a href="#cb54-7" aria-hidden="true" tabindex="-1"></a><span class="co"># 非线性收缩估计 (Ledoit-Wolf)</span></span>
-<span id="cb54-8"><a href="#cb54-8" aria-hidden="true" tabindex="-1"></a>nonlinear_shrink_est <span class="ot">&lt;-</span> <span class="fu">nlShrinkLWEst</span>(stock_returns)</span>
-<span id="cb54-9"><a href="#cb54-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb54-10"><a href="#cb54-10" aria-hidden="true" tabindex="-1"></a><span class="co"># 报告结果</span></span>
-<span id="cb54-11"><a href="#cb54-11" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"线性收缩估计的协方差矩阵（前5行5列）：</span><span class="sc">\n</span><span class="st">"</span>)</span></code><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>线性收缩估计的协方差矩阵（前5行5列）：</code></pre>
-</div>
-<div class="sourceCode cell-code" id="cb56"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb56-1"><a href="#cb56-1" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(linear_shrink_est[<span class="dv">1</span><span class="sc">:</span><span class="dv">5</span>, <span class="dv">1</span><span class="sc">:</span><span class="dv">5</span>])</span></code><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>             600000.SH    600004.SH    600010.SH    600011.SH    600015.SH
-600000.SH 7.794016e-05 1.934616e-05 1.356862e-05 1.332348e-05 2.009596e-05
-600004.SH 1.934616e-05 1.511077e-04 2.650557e-05 9.510637e-06 1.949519e-05
-600010.SH 1.356862e-05 2.650557e-05 1.983571e-04 5.298162e-05 1.905860e-05
-600011.SH 1.332348e-05 9.510637e-06 5.298162e-05 2.330116e-04 1.818018e-05
-600015.SH 2.009596e-05 1.949519e-05 1.905860e-05 1.818018e-05 8.494534e-05</code></pre>
-</div>
-<div class="sourceCode cell-code" id="cb58"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb58-1"><a href="#cb58-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"</span><span class="sc">\n</span><span class="st">非线性收缩估计的协方差矩阵（前5行5列）：</span><span class="sc">\n</span><span class="st">"</span>)</span></code><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>
-非线性收缩估计的协方差矩阵（前5行5列）：</code></pre>
-</div>
-<div class="sourceCode cell-code" id="cb60"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb60-1"><a href="#cb60-1" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(nonlinear_shrink_est[<span class="dv">1</span><span class="sc">:</span><span class="dv">5</span>, <span class="dv">1</span><span class="sc">:</span><span class="dv">5</span>])</span></code><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>             [,1]         [,2]         [,3]         [,4]         [,5]
-[1,] 6.949522e-05 3.309067e-07 3.879734e-07 2.144349e-07 1.891375e-07
-[2,] 3.309067e-07 7.004062e-05 8.224714e-07 4.545841e-07 4.009558e-07
-[3,] 3.879734e-07 8.224714e-07 7.030344e-05 5.329796e-07 4.701028e-07
-[4,] 2.144349e-07 4.545841e-07 5.329796e-07 6.963371e-05 2.598282e-07
-[5,] 1.891375e-07 4.009558e-07 4.701028e-07 2.598282e-07 6.956830e-05</code></pre>
-</div>
-<div class="sourceCode cell-code" id="cb62"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb62-1"><a href="#cb62-1" aria-hidden="true" tabindex="-1"></a><span class="co"># 计算两种方法的差异</span></span>
-<span id="cb62-2"><a href="#cb62-2" aria-hidden="true" tabindex="-1"></a>diff_matrix <span class="ot">&lt;-</span> linear_shrink_est <span class="sc">-</span> nonlinear_shrink_est</span>
-<span id="cb62-3"><a href="#cb62-3" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"</span><span class="sc">\n</span><span class="st">线性收缩与非线性收缩估计的差异矩阵（前5行5列）：</span><span class="sc">\n</span><span class="st">"</span>)</span></code><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>
-线性收缩与非线性收缩估计的差异矩阵（前5行5列）：</code></pre>
-</div>
-<div class="sourceCode cell-code" id="cb64"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb64-1"><a href="#cb64-1" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(diff_matrix[<span class="dv">1</span><span class="sc">:</span><span class="dv">5</span>, <span class="dv">1</span><span class="sc">:</span><span class="dv">5</span>])</span></code><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>             600000.SH    600004.SH    600010.SH    600011.SH    600015.SH
-600000.SH 8.444939e-06 1.901526e-05 1.318065e-05 1.310905e-05 1.990682e-05
-600004.SH 1.901526e-05 8.106710e-05 2.568310e-05 9.056053e-06 1.909423e-05
-600010.SH 1.318065e-05 2.568310e-05 1.280537e-04 5.244864e-05 1.858850e-05
-600011.SH 1.310905e-05 9.056053e-06 5.244864e-05 1.633778e-04 1.792035e-05
-600015.SH 1.990682e-05 1.909423e-05 1.858850e-05 1.792035e-05 1.537703e-05</code></pre>
-</div>
-<div class="sourceCode cell-code" id="cb66"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb66-1"><a href="#cb66-1" aria-hidden="true" tabindex="-1"></a><span class="co"># 可视化协方差矩阵</span></span>
-<span id="cb66-2"><a href="#cb66-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(Matrix)</span>
-<span id="cb66-3"><a href="#cb66-3" aria-hidden="true" tabindex="-1"></a><span class="fu">image</span>(<span class="fu">Matrix</span>(<span class="fu">cov2cor</span>(linear_shrink_est)), <span class="at">title =</span> <span class="st">"线性收缩估计的相关矩阵"</span>)</span></code><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb54"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb54-1"><a href="#cb54-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(weekly_return<span class="sc">$</span><span class="st">`</span><span class="at">000768.SZ</span><span class="st">`</span>) <span class="co"># 以中航西飞 (000768)为例</span></span></code><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
@@ -969,11 +1108,92 @@ z \quad &amp; |z|&gt;a\omega
 </figure>
 </div>
 </div>
-<div class="sourceCode cell-code" id="cb67"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb67-1"><a href="#cb67-1" aria-hidden="true" tabindex="-1"></a><span class="fu">image</span>(<span class="fu">Matrix</span>(<span class="fu">cov2cor</span>(nonlinear_shrink_est)), <span class="at">title =</span> <span class="st">"非线性收缩估计的相关矩阵"</span>)</span></code><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb55"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb55-1"><a href="#cb55-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(<span class="fu">density</span>(weekly_return<span class="sc">$</span><span class="st">`</span><span class="at">000768.SZ</span><span class="st">`</span>, <span class="at">bw =</span> <span class="st">'nrd'</span>)) <span class="co"># 中航西飞 (000768)周收益率的概率密度估计（基于核密度法）</span></span></code><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
 <p><img src="high_dim_cov_est_files/figure-html/unnamed-chunk-6-2.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="sourceCode cell-code" id="cb56"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb56-1"><a href="#cb56-1" aria-hidden="true" tabindex="-1"></a><span class="co"># 使用 cvCovEst 包进行协方差矩阵估计</span></span>
+<span id="cb56-2"><a href="#cb56-2" aria-hidden="true" tabindex="-1"></a><span class="co"># 线性收缩估计 (Ledoit-Wolf)</span></span>
+<span id="cb56-3"><a href="#cb56-3" aria-hidden="true" tabindex="-1"></a>linear_shrink_est <span class="ot">&lt;-</span> <span class="fu">linearShrinkLWEst</span>(<span class="at">dat =</span> <span class="fu">as.matrix</span>(weekly_return))</span>
+<span id="cb56-4"><a href="#cb56-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb56-5"><a href="#cb56-5" aria-hidden="true" tabindex="-1"></a><span class="co"># 非线性收缩估计 (Ledoit-Wolf)</span></span>
+<span id="cb56-6"><a href="#cb56-6" aria-hidden="true" tabindex="-1"></a>nonlinear_shrink_est <span class="ot">&lt;-</span> <span class="fu">nlShrinkLWEst</span>(<span class="at">dat =</span> <span class="fu">as.matrix</span>(weekly_return))</span>
+<span id="cb56-7"><a href="#cb56-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb56-8"><a href="#cb56-8" aria-hidden="true" tabindex="-1"></a><span class="co"># POET估计量</span></span>
+<span id="cb56-9"><a href="#cb56-9" aria-hidden="true" tabindex="-1"></a><span class="co"># K=-Inf: 共同因子个数由信息准则选取</span></span>
+<span id="cb56-10"><a href="#cb56-10" aria-hidden="true" tabindex="-1"></a><span class="co"># C=-Inf: 阈值参数设置为保证估计协方差矩阵正定的最小阈值</span></span>
+<span id="cb56-11"><a href="#cb56-11" aria-hidden="true" tabindex="-1"></a>poet_est <span class="ot">&lt;-</span> <span class="fu">POET</span>(<span class="at">Y =</span> <span class="fu">t</span>(<span class="fu">as.matrix</span>(weekly_return)), <span class="at">K =</span> <span class="sc">-</span><span class="cn">Inf</span>, <span class="at">C =</span> <span class="sc">-</span><span class="cn">Inf</span>, <span class="at">thres =</span> <span class="st">'scad'</span>, <span class="at">matrix =</span> <span class="st">'cor'</span>)</span>
+<span id="cb56-12"><a href="#cb56-12" aria-hidden="true" tabindex="-1"></a>poet_est <span class="ot">&lt;-</span> poet_est<span class="sc">$</span>SigmaY</span>
+<span id="cb56-13"><a href="#cb56-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb56-14"><a href="#cb56-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb56-15"><a href="#cb56-15" aria-hidden="true" tabindex="-1"></a><span class="co"># 报告结果</span></span>
+<span id="cb56-16"><a href="#cb56-16" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"线性收缩估计的协方差矩阵（前5行5列）：</span><span class="sc">\n</span><span class="st">"</span>)</span></code><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>线性收缩估计的协方差矩阵（前5行5列）：</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb58"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb58-1"><a href="#cb58-1" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(linear_shrink_est[<span class="dv">1</span><span class="sc">:</span><span class="dv">5</span>, <span class="dv">1</span><span class="sc">:</span><span class="dv">5</span>])</span></code><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>             000768.SZ    600837.SH    688111.SH    603501.SH    601555.SH
+000768.SZ 0.0018876299 0.0006178593 0.0005383364 0.0007905771 0.0004937805
+600837.SH 0.0006178593 0.0018977439 0.0006161160 0.0006782612 0.0006753979
+688111.SH 0.0005383364 0.0006161160 0.0051855951 0.0012686474 0.0004882563
+603501.SH 0.0007905771 0.0006782612 0.0012686474 0.0035586107 0.0006648710
+601555.SH 0.0004937805 0.0006753979 0.0004882563 0.0006648710 0.0015773044</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb60"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb60-1"><a href="#cb60-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"</span><span class="sc">\n</span><span class="st">非线性收缩估计的协方差矩阵（前5行5列）：</span><span class="sc">\n</span><span class="st">"</span>)</span></code><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+非线性收缩估计的协方差矩阵（前5行5列）：</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb62"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb62-1"><a href="#cb62-1" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(nonlinear_shrink_est[<span class="dv">1</span><span class="sc">:</span><span class="dv">5</span>, <span class="dv">1</span><span class="sc">:</span><span class="dv">5</span>])</span></code><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>             [,1]         [,2]         [,3]         [,4]         [,5]
+[1,] 0.0006392510 0.0001050958 0.0001464055 0.0001716904 0.0001483097
+[2,] 0.0001050958 0.0006315629 0.0001258757 0.0001151502 0.0001471647
+[3,] 0.0001464055 0.0001258757 0.0009760489 0.0003459588 0.0001634412
+[4,] 0.0001716904 0.0001151502 0.0003459588 0.0009731397 0.0001718022
+[5,] 0.0001483097 0.0001471647 0.0001634412 0.0001718022 0.0007287181</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb64"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb64-1"><a href="#cb64-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"</span><span class="sc">\n</span><span class="st"> POET估计的协方差矩阵（前5行5列）：</span><span class="sc">\n</span><span class="st">"</span>)</span></code><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+ POET估计的协方差矩阵（前5行5列）：</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb66"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb66-1"><a href="#cb66-1" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(poet_est[<span class="dv">1</span><span class="sc">:</span><span class="dv">5</span>, <span class="dv">1</span><span class="sc">:</span><span class="dv">5</span>])</span></code><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>             000768.SZ    600837.SH    688111.SH    603501.SH    601555.SH
+000768.SZ 0.0018323192 0.0004358711 0.0006038469 0.0007260704 0.0006170429
+600837.SH 0.0004358711 0.0018436861 0.0004407027 0.0005827351 0.0005770025
+688111.SH 0.0006038469 0.0004407027 0.0055388526 0.0017015466 0.0005961121
+603501.SH 0.0007260704 0.0005827351 0.0017015466 0.0037103094 0.0008052621
+601555.SH 0.0006170429 0.0005770025 0.0005961121 0.0008052621 0.0014835490</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb68"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb68-1"><a href="#cb68-1" aria-hidden="true" tabindex="-1"></a><span class="co"># 可视化协方差矩阵</span></span>
+<span id="cb68-2"><a href="#cb68-2" aria-hidden="true" tabindex="-1"></a><span class="fu">image</span>(<span class="fu">Matrix</span>(linear_shrink_est), <span class="at">title =</span> <span class="st">"线性收缩估计的相关矩阵"</span>)</span></code><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="high_dim_cov_est_files/figure-html/unnamed-chunk-6-3.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="sourceCode cell-code" id="cb69"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb69-1"><a href="#cb69-1" aria-hidden="true" tabindex="-1"></a><span class="fu">image</span>(<span class="fu">Matrix</span>(nonlinear_shrink_est), <span class="at">title =</span> <span class="st">"非线性收缩估计的相关矩阵"</span>)</span></code><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="high_dim_cov_est_files/figure-html/unnamed-chunk-6-4.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="sourceCode cell-code" id="cb70"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb70-1"><a href="#cb70-1" aria-hidden="true" tabindex="-1"></a><span class="fu">image</span>(<span class="fu">Matrix</span>(poet_est), <span class="at">title =</span> <span class="st">"POET估计的相关矩阵"</span>)</span></code><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="high_dim_cov_est_files/figure-html/unnamed-chunk-6-5.png" class="img-fluid figure-img" width="672"></p>
 </figure>
 </div>
 </div>

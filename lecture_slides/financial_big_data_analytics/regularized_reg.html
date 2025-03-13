@@ -361,7 +361,7 @@ Attaching package: 'Matrix'</code></pre>
     expand, pack, unpack</code></pre>
 </div>
 <div class="cell-output cell-output-stderr">
-<pre><code>Loaded glmnet 4.1-8</code></pre>
+<pre><code>Loaded glmnet 4.1-6</code></pre>
 </div>
 <div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">2023</span>)</span>
 <span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="dv">200</span>  <span class="co"># 样本量</span></span>
@@ -413,12 +413,9 @@ Attaching package: 'Matrix'</code></pre>
 <section id="scad与mcp回归实现" class="level2" data-number="3.3">
 <h2 data-number="3.3" class="anchored" data-anchor-id="scad与mcp回归实现"><span class="header-section-number">3.3</span> SCAD与MCP回归实现</h2>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ncvreg)</span></code><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stderr">
-<pre><code>Warning: package 'ncvreg' was built under R version 4.4.3</code></pre>
-</div>
-<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>cv_scad <span class="ot">&lt;-</span> <span class="fu">cv.ncvreg</span>(X, y, <span class="at">penalty =</span> <span class="st">"SCAD"</span>, <span class="at">gamma =</span> <span class="fl">3.7</span>)</span>
-<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(cv_scad, <span class="at">main=</span><span class="st">""</span>)</span></code><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ncvreg)</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>cv_scad <span class="ot">&lt;-</span> <span class="fu">cv.ncvreg</span>(X, y, <span class="at">penalty =</span> <span class="st">"SCAD"</span>, <span class="at">gamma =</span> <span class="fl">3.7</span>)</span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(cv_scad, <span class="at">main=</span><span class="st">""</span>)</span></code><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
@@ -426,10 +423,10 @@ Attaching package: 'Matrix'</code></pre>
 </figure>
 </div>
 </div>
-<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>scad_coef <span class="ot">&lt;-</span> cv_scad<span class="sc">$</span>fit<span class="sc">$</span>beta[<span class="sc">-</span><span class="dv">1</span>, <span class="fu">which.min</span>(cv_scad<span class="sc">$</span>cve)]</span>
-<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>cv_mcp <span class="ot">&lt;-</span> <span class="fu">cv.ncvreg</span>(X, y, <span class="at">penalty =</span> <span class="st">"MCP"</span>, <span class="at">gamma =</span> <span class="dv">3</span>)</span>
-<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(cv_mcp, <span class="at">main=</span><span class="st">""</span>)</span></code><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>scad_coef <span class="ot">&lt;-</span> cv_scad<span class="sc">$</span>fit<span class="sc">$</span>beta[<span class="sc">-</span><span class="dv">1</span>, <span class="fu">which.min</span>(cv_scad<span class="sc">$</span>cve)]</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>cv_mcp <span class="ot">&lt;-</span> <span class="fu">cv.ncvreg</span>(X, y, <span class="at">penalty =</span> <span class="st">"MCP"</span>, <span class="at">gamma =</span> <span class="dv">3</span>)</span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(cv_mcp, <span class="at">main=</span><span class="st">""</span>)</span></code><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
@@ -437,19 +434,19 @@ Attaching package: 'Matrix'</code></pre>
 </figure>
 </div>
 </div>
-<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>mcp_coef <span class="ot">&lt;-</span> cv_mcp<span class="sc">$</span>fit<span class="sc">$</span>beta[<span class="sc">-</span><span class="dv">1</span>, <span class="fu">which.min</span>(cv_mcp<span class="sc">$</span>cve)]</span></code><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>mcp_coef <span class="ot">&lt;-</span> cv_mcp<span class="sc">$</span>fit<span class="sc">$</span>beta[<span class="sc">-</span><span class="dv">1</span>, <span class="fu">which.min</span>(cv_mcp<span class="sc">$</span>cve)]</span></code><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </section>
 <section id="结果可视化" class="level2" data-number="3.4">
 <h2 data-number="3.4" class="anchored" data-anchor-id="结果可视化"><span class="header-section-number">3.4</span> 结果可视化</h2>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mfrow=</span><span class="fu">c</span>(<span class="dv">2</span>,<span class="dv">3</span>))</span>
-<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(true_beta, <span class="at">type=</span><span class="st">'h'</span>, <span class="at">col=</span><span class="st">'red'</span>, <span class="at">main=</span><span class="st">"真实系数"</span>)</span>
-<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(lasso_coef, <span class="at">type=</span><span class="st">'h'</span>, <span class="at">main=</span><span class="st">"Lasso估计"</span>)</span>
-<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(ridge_coef, <span class="at">type=</span><span class="st">'h'</span>, <span class="at">main=</span><span class="st">"Ridge估计"</span>)</span>
-<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(enet_coef, <span class="at">type=</span><span class="st">'h'</span>, <span class="at">main=</span><span class="st">"Elastic Net估计"</span>)</span>
-<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(scad_coef, <span class="at">type=</span><span class="st">'h'</span>, <span class="at">main=</span><span class="st">"SCAD估计"</span>)</span>
-<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(mcp_coef, <span class="at">type=</span><span class="st">'h'</span>, <span class="at">main=</span><span class="st">"MCP估计"</span>)</span></code><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mfrow=</span><span class="fu">c</span>(<span class="dv">2</span>,<span class="dv">3</span>))</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(true_beta, <span class="at">type=</span><span class="st">'h'</span>, <span class="at">col=</span><span class="st">'red'</span>, <span class="at">main=</span><span class="st">"真实系数"</span>)</span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(lasso_coef, <span class="at">type=</span><span class="st">'h'</span>, <span class="at">main=</span><span class="st">"Lasso估计"</span>)</span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(ridge_coef, <span class="at">type=</span><span class="st">'h'</span>, <span class="at">main=</span><span class="st">"Ridge估计"</span>)</span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(enet_coef, <span class="at">type=</span><span class="st">'h'</span>, <span class="at">main=</span><span class="st">"Elastic Net估计"</span>)</span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(scad_coef, <span class="at">type=</span><span class="st">'h'</span>, <span class="at">main=</span><span class="st">"SCAD估计"</span>)</span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(mcp_coef, <span class="at">type=</span><span class="st">'h'</span>, <span class="at">main=</span><span class="st">"MCP估计"</span>)</span></code><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
@@ -462,18 +459,18 @@ Attaching package: 'Matrix'</code></pre>
 <section id="性能评估" class="level2" data-number="3.5">
 <h2 data-number="3.5" class="anchored" data-anchor-id="性能评估"><span class="header-section-number">3.5</span> 性能评估</h2>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>results <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
-<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">True =</span> true_beta,</span>
-<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">Lasso =</span> lasso_coef,</span>
-<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">Ridge =</span> ridge_coef,</span>
-<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">Enet =</span> enet_coef,</span>
-<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">SCAD =</span> scad_coef,</span>
-<span id="cb17-7"><a href="#cb17-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">MCP =</span> mcp_coef</span>
-<span id="cb17-8"><a href="#cb17-8" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb17-9"><a href="#cb17-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb17-10"><a href="#cb17-10" aria-hidden="true" tabindex="-1"></a><span class="co"># 计算均方误差</span></span>
-<span id="cb17-11"><a href="#cb17-11" aria-hidden="true" tabindex="-1"></a>mse <span class="ot">&lt;-</span> <span class="fu">sapply</span>(results[,<span class="sc">-</span><span class="dv">1</span>], <span class="cf">function</span>(x) <span class="fu">mean</span>((x <span class="sc">-</span> true_beta)<span class="sc">^</span><span class="dv">2</span>))</span>
-<span id="cb17-12"><a href="#cb17-12" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">kable</span>(<span class="fu">t</span>(mse), <span class="at">caption =</span> <span class="st">"各方法系数估计MSE比较"</span>)</span></code><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>results <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">True =</span> true_beta,</span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">Lasso =</span> lasso_coef,</span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">Ridge =</span> ridge_coef,</span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">Enet =</span> enet_coef,</span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">SCAD =</span> scad_coef,</span>
+<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">MCP =</span> mcp_coef</span>
+<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb15-9"><a href="#cb15-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-10"><a href="#cb15-10" aria-hidden="true" tabindex="-1"></a><span class="co"># 计算均方误差</span></span>
+<span id="cb15-11"><a href="#cb15-11" aria-hidden="true" tabindex="-1"></a>mse <span class="ot">&lt;-</span> <span class="fu">sapply</span>(results[,<span class="sc">-</span><span class="dv">1</span>], <span class="cf">function</span>(x) <span class="fu">mean</span>((x <span class="sc">-</span> true_beta)<span class="sc">^</span><span class="dv">2</span>))</span>
+<span id="cb15-12"><a href="#cb15-12" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">kable</span>(<span class="fu">t</span>(mse), <span class="at">caption =</span> <span class="st">"各方法系数估计MSE比较"</span>)</span></code><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <table class="caption-top table table-sm table-striped small">
 <caption>各方法系数估计MSE比较</caption>
@@ -497,11 +494,11 @@ Attaching package: 'Matrix'</code></pre>
 </tbody>
 </table>
 </div>
-<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="co"># 变量选择准确性</span></span>
-<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>selection_acc <span class="ot">&lt;-</span> <span class="fu">sapply</span>(results[,<span class="sc">-</span><span class="dv">1</span>], <span class="cf">function</span>(x) {</span>
-<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">sum</span>((x <span class="sc">!=</span> <span class="dv">0</span>) <span class="sc">==</span> (true_beta <span class="sc">!=</span> <span class="dv">0</span>))<span class="sc">/</span>p</span>
-<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>})</span>
-<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">kable</span>(<span class="fu">t</span>(selection_acc), <span class="at">caption =</span> <span class="st">"变量选择准确率"</span>)</span></code><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="co"># 变量选择准确性</span></span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>selection_acc <span class="ot">&lt;-</span> <span class="fu">sapply</span>(results[,<span class="sc">-</span><span class="dv">1</span>], <span class="cf">function</span>(x) {</span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">sum</span>((x <span class="sc">!=</span> <span class="dv">0</span>) <span class="sc">==</span> (true_beta <span class="sc">!=</span> <span class="dv">0</span>))<span class="sc">/</span>p</span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>})</span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">kable</span>(<span class="fu">t</span>(selection_acc), <span class="at">caption =</span> <span class="st">"变量选择准确率"</span>)</span></code><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <table class="caption-top table table-sm table-striped small">
 <caption>变量选择准确率</caption>
